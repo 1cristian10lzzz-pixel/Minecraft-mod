@@ -1,12 +1,11 @@
-itemGroup.voxelcore=VoxelCore
+itemGroup.voxelcore=Minefade
 tile.voxelcore.resonite_ore.name=Resonite Ore
 tile.voxelcore.resonite_block.name=Resonite Block
 item.voxelcore.resonite_crystal.name=Resonite Crystal
 item.voxelcore.resonite_pickaxe.name=Resonite Pickaxe
-key.categories.voxelcore=VoxelCore
-key.voxelcore.open_settings=Open VoxelCore settings
-key.voxelcore.toggle_overlay=Toggle performance overlay
-
+key.categories.voxelcore=Minefade
+key.voxelcore.open_settings=Open Minefade control panel
+key.voxelcore.toggle_overlay=Toggle performance monitor
 item.voxelcore.resonite_ingot.name=Resonite Ingot
 item.voxelcore.resonite_sword.name=Resonite Sword
 item.voxelcore.resonite_shovel.name=Resonite Shovel
@@ -17,5 +16,5 @@ item.voxelcore.resonite_chestplate.name=Resonite Chestplate
 item.voxelcore.resonite_leggings.name=Resonite Leggings
 item.voxelcore.resonite_boots.name=Resonite Boots
 tile.voxelcore.resonite_lamp.name=Resonite Lamp
-key.voxelcore.toggle_entity_culling=Toggle distant creature culling
-key.voxelcore.toggle_particle_limit=Toggle particle limit
+key.voxelcore.toggle_entity_culling=Toggle distant entity culling
+key.voxelcore.toggle_particle_limit=Toggle minimal particles
