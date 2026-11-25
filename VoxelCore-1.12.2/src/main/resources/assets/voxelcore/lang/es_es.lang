@@ -1,12 +1,11 @@
-itemGroup.voxelcore=VoxelCore
+itemGroup.voxelcore=Minefade
 tile.voxelcore.resonite_ore.name=Mena de resonita
 tile.voxelcore.resonite_block.name=Bloque de resonita
 item.voxelcore.resonite_crystal.name=Cristal de resonita
 item.voxelcore.resonite_pickaxe.name=Pico de resonita
-key.categories.voxelcore=VoxelCore
-key.voxelcore.open_settings=Abrir configuración de VoxelCore
-key.voxelcore.toggle_overlay=Alternar monitor de rendimiento
-
+key.categories.voxelcore=Minefade
+key.voxelcore.open_settings=Abrir panel de Minefade
+key.voxelcore.toggle_overlay=Activar/desactivar monitor de rendimiento
 item.voxelcore.resonite_ingot.name=Lingote de resonita
 item.voxelcore.resonite_sword.name=Espada de resonita
 item.voxelcore.resonite_shovel.name=Pala de resonita
@@ -17,5 +16,5 @@ item.voxelcore.resonite_chestplate.name=Pechera de resonita
 item.voxelcore.resonite_leggings.name=Grebas de resonita
 item.voxelcore.resonite_boots.name=Botas de resonita
 tile.voxelcore.resonite_lamp.name=Lámpara de resonita
-key.voxelcore.toggle_entity_culling=Alternar recorte de criaturas lejanas
-key.voxelcore.toggle_particle_limit=Alternar límite de partículas
+key.voxelcore.toggle_entity_culling=Activar/desactivar recorte de criaturas lejanas
+key.voxelcore.toggle_particle_limit=Activar/desactivar partículas mínimas
