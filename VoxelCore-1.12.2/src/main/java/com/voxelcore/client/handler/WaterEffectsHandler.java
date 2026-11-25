@@ -213,7 +213,7 @@ public class WaterEffectsHandler {
                     player.posZ + oz, ox * 0.12D, 0.10D + RANDOM.nextDouble() * 0.08D, oz * 0.12D);
         }
         addRipple(player.posX, surface.getY() + 1.015D, player.posZ, 1.5F);
-        if (!Minecraft.getMinecraft().gameSettings.particleSettingIsMinimal()) {
+        if (Minecraft.getMinecraft().gameSettings.particleSetting != 2) {
             addRipple(player.posX + 0.35D, surface.getY() + 1.016D, player.posZ - 0.2D, 0.75F);
         }
     }
