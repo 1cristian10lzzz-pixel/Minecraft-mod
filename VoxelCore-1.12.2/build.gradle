@@ -10,9 +10,9 @@ buildscript {
 
 apply plugin: 'net.minecraftforge.gradle.forge'
 
-version = '0.2.0'
-group = 'com.voxelcore'
-archivesBaseName = 'voxelcore'
+version = '0.3.0'
+group = 'com.minefade'
+archivesBaseName = 'minefade'
 
 sourceCompatibility = targetCompatibility = '1.8'
 
@@ -43,12 +43,12 @@ processResources {
 jar {
     manifest {
         attributes([
-            'Specification-Title': 'VoxelCore',
-            'Specification-Vendor': 'VoxelCore',
+            'Specification-Title': 'Minefade Mod',
+            'Specification-Vendor': 'Minefade',
             'Specification-Version': '1',
             'Implementation-Title': project.name,
             'Implementation-Version': project.version,
-            'Implementation-Vendor': 'VoxelCore'
+            'Implementation-Vendor': 'Minefade'
         ])
     }
 }
