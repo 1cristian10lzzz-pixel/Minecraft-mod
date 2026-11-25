@@ -44,7 +44,10 @@ public final class MinefadeDroppedItemRenderer extends RenderEntityItem {
             Entity view = Minecraft.getMinecraft().getRenderViewEntity();
             if (view != null) {
                 double radius = ModConfig.ITEM_RENDER_RADIUS;
-                if (entity.getDistanceSqToEntity(view) > radius * radius) return false;
+                double dx = entity.posX - view.posX;
+                double dy = entity.posY - view.posY;
+                double dz = entity.posZ - view.posZ;
+                if (dx * dx + dy * dy + dz * dz > radius * radius) return false;
             }
         }
         return super.shouldRender(entity, camera, camX, camY, camZ);
