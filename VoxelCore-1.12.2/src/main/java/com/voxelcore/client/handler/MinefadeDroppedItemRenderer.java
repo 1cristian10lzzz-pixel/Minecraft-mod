@@ -73,7 +73,7 @@ public final class MinefadeDroppedItemRenderer extends RenderEntityItem {
         GlStateManager.pushMatrix();
 
         IBakedModel model = itemRenderer.getItemModelWithOverrides(stack, entity.world, (EntityLivingBase) null);
-        int count = getModelCount(stack);
+        int count = getStackRenderCount(stack);
         boolean is3d = model.isGui3d();
         float stableYaw = (entity.getEntityId() * 37.0F) % 360.0F;
 
@@ -101,7 +101,7 @@ public final class MinefadeDroppedItemRenderer extends RenderEntityItem {
         super.doRenderShadowAndFire(entity, x, y, z, entityYaw, partialTicks);
     }
 
-    private static int getModelCount(ItemStack stack) {
+    private static int getStackRenderCount(ItemStack stack) {
         int count = stack.getCount();
         if (count > 48) return 5;
         if (count > 32) return 4;
