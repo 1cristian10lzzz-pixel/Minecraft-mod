@@ -10,8 +10,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: minefade-1122-build-${{ github.ref }}
-  cancel-in-progress: true
+  group: minefade-1122-build-${{ github.sha }}
+  cancel-in-progress: false
 
 jobs:
   build:
