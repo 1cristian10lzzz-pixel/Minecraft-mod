@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Lightweight validation for VoxelCore's Minecraft 1.12 resource pack."""
+"""Validate Minefade's models, recipes, translations and original resource textures."""
 import json
 import sys
 from pathlib import Path
@@ -38,8 +38,7 @@ for path in sorted(ASSETS.rglob("*.json")):
         continue
     rel = path.relative_to(ASSETS).as_posix()
     if rel.startswith("blockstates/"):
-        variants = data.get("variants", {})
-        for variant in variants.values():
+        for variant in data.get("variants", {}).values():
             model = variant.get("model")
             if model and model.startswith("voxelcore:"):
                 model_path = ASSETS / "models" / "block" / (model.split(":", 1)[1] + ".json")
@@ -77,8 +76,8 @@ for path in sorted((ASSETS / "textures").rglob("*.png")):
                 width, height = image.size
             if path.parent.name == "armor" and (width, height) != (64, 32):
                 fail(f"Armor texture must be 64x32: {path.relative_to(ROOT)} is {width}x{height}")
-            if path.parent.name in ("items", "blocks") and (width, height) != (16, 16):
-                fail(f"Item/block texture must be 16x16: {path.relative_to(ROOT)} is {width}x{height}")
+            if path.parent.name in ("items", "blocks") and (width, height) not in ((16, 16), (32, 32)):
+                fail(f"Item/block texture must be 16x16 or 32x32: {path.relative_to(ROOT)} is {width}x{height}")
         except Exception as exc:
             fail(f"Invalid PNG {path.relative_to(ROOT)}: {exc}")
 
@@ -93,9 +92,9 @@ for lang in (ASSETS / "lang").glob("*.lang"):
         seen.add(key)
 
 if ERRORS:
-    print("VoxelCore asset validation failed:")
+    print("Minefade asset validation failed:")
     for error in ERRORS:
         print(" - " + error)
     sys.exit(1)
 
-print("VoxelCore asset validation passed.")
+print("Minefade asset validation passed.")

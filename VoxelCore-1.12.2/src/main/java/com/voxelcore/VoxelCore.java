@@ -23,7 +23,7 @@ import com.voxelcore.registry.ModContent;
 public final class VoxelCore {
     public static final String MODID = "voxelcore";
     public static final String NAME = "Minefade Mod";
-    public static final String VERSION = "0.5.0";
+    public static final String VERSION = "0.6.0";
 
     @SidedProxy(
             clientSide = "com.voxelcore.proxy.ClientProxy",
