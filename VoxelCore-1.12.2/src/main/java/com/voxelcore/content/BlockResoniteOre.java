@@ -12,7 +12,7 @@ public class BlockResoniteOre extends BlockOre {
     public BlockResoniteOre() {
         super();
         setRegistryName(VoxelCore.MODID, "resonite_ore");
-        setUnlocalizedName(VoxelCore.MODID + ".resonite_ore");
+        setTranslationKey(VoxelCore.MODID + ".resonite_ore");
         setHardness(3.2F);
         setResistance(5.0F);
         setHarvestLevel("pickaxe", 2);
