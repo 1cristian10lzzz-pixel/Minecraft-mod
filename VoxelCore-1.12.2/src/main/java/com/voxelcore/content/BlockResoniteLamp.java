@@ -10,7 +10,7 @@ public class BlockResoniteLamp extends Block {
     public BlockResoniteLamp() {
         super(Material.GLASS);
         setRegistryName(VoxelCore.MODID, "resonite_lamp");
-        setUnlocalizedName(VoxelCore.MODID + ".resonite_lamp");
+        setTranslationKey(VoxelCore.MODID + ".resonite_lamp");
         setHardness(0.5F);
         setResistance(2.0F);
         setLightLevel(0.95F);
