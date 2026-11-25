@@ -1,14 +1,17 @@
 Minefade Mod 0.4.0 build status
 
-Source update: committed to main.
-Resource validation: pending new build.
-Forge compilation: pending new build.
-Runtime validation: not performed.
+Forge compilation: PASSED.
+GitHub Actions run: #36
+Run URL: https://github.com/1cristian10lzzz-pixel/Minecraft-mod/actions/runs/45698663718
+Build commit: a6e052941ffc76214d4d7875f1a53f78c3bbc1d5
+Toolchain: Minecraft 1.12.2 / Forge 14.23.5.2847, JDK 8, Gradle 4.10.3, ForgeGradle 2.3.
+Resource validation: PASSED with tools/validate_assets.py.
+JAR artifact: minefade-0.4.0.jar (69,472 bytes).
+GitHub Actions artifact ID: 15062137229 (30-day retention).
+JAR SHA-256: 2b4bf20a48e253b4615fbaa05c5771ea5912a1ad5825ab3c5126f524d124dbc8.
 
-Target toolchain: Minecraft 1.12.2, Forge 14.23.5.2847, JDK 8, Gradle 4.10.3 and ForgeGradle 2.3.
-New water layer: client-only ripples, splashes, wakes, rain rings, waterfall mist and underwater tint.
-Fluid world state: unchanged; no server-side fluid block replacement.
+The JAR was downloaded from the successful Actions artifact and checked for ZIP/JAR integrity, manifest, mcmod.info, the main mod class, the water effects class, the updated settings screen, config class and Spanish language resource.
 
-Rubius's November 13, 2026 video showcases a modern Realistic Water project. The original mod is built for Fabric 26.3 and Vulkan and cannot be installed in this Forge 1.12.2 project. Minefade uses original implementation and does not include or redistribute that mod's code or assets.
+The mod has not yet been launched inside a real Minecraft client in this environment. This is a successful Forge compilation and archive validation, not an in-game compatibility certification.
 
-After the GitHub Actions build succeeds, record the exact artifact size and SHA-256 here. Do not label an uncompiled archive as an installable JAR.
+Install: copy minefade-0.4.0.jar into .minecraft/mods with Minecraft Java 1.12.2 and Forge 1.12.2 installed. The internal mod ID remains "voxelcore" to preserve the registry namespace and config compatibility.

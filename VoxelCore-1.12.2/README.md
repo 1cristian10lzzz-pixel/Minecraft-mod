@@ -53,11 +53,15 @@ Keys can be rebound in Options → Controls → Minefade.
 - Resonite ore, crystal, ingot, block, lamp, tools, full armor set and crafting recipes.
 - Configurable ore generation in newly generated Overworld chunks.
 
-## Build and install
+## Build, verify and install
+
+**Forge build: passed.** [GitHub Actions run #36](https://github.com/1cristian10lzzz-pixel/Minecraft-mod/actions/runs/45698663718).
+
+- JAR: `minefade-0.4.0.jar`
+- Size: 69,472 bytes
+- SHA-256: `2b4bf20a48e253b4615fbaa05c5771ea5912a1ad5825ab3c5126f524d124dbc8`
 
 Target: Minecraft 1.12.2, Forge 14.23.5.2847, JDK 8, Gradle 4.10.3 and ForgeGradle 2.3.
-
-The repository root contains the GitHub Actions workflow that validates assets, compiles the mod and uploads `minefade-0.4.0.jar` as an Actions artifact. For local builds, run `build.sh` or `build.bat` from this project folder. The local output is `build/libs/minefade-0.4.0.jar`.
 
 Source archives are not installable mods. Copy only the compiled JAR from a successful build into `.minecraft/mods`, alongside Forge 1.12.2.
 
