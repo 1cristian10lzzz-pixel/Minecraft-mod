@@ -1,9 +1,17 @@
 Minefade Mod 0.3.0 build status
 
-Source and GUI work: prepared.
-Resource validation: passed with tools/validate_assets.py.
-Forge compilation: not confirmed in the creation environment.
+Forge compilation: PASSED.
+GitHub Actions run: #34
+Run URL: https://github.com/1cristian10lzzz-pixel/Minecraft-mod/actions/runs/45693043458
+Build commit: d1d3726ee4ec0df513c58da943058be55e76c54a
+Toolchain: JDK 8, Gradle 4.10.3, ForgeGradle 2.3, Minecraft 1.12.2 / Forge 14.23.5.2847.
+Resource validation: PASSED with tools/validate_assets.py.
+JAR artifact: minefade-0.3.0.jar (59,618 bytes).
+JAR SHA-256: 34c1766b20a4dea1d381752da491a95477053986037abe7239e151bc80d8ae7f.
+GitHub artifact ID: 15059342552 (30-day retention).
 
-The creation environment has OpenJDK 21 but does not have the legacy Java 8 + ForgeGradle 2.3 toolchain or Gradle 4.10.3. The repository root has a GitHub Actions workflow configured to install Temurin JDK 8 and Gradle 4.10.3, validate resources, compile the mod and upload minefade-0.3.0.jar as an Actions artifact.
+The JAR was downloaded from the successful Actions artifact and checked for ZIP/JAR integrity, manifest, mcmod.info, the main mod class, Minefade GUI classes, and language resources.
 
-Do not rename the source archive to .jar; it is not an installable mod. Install only the compiled JAR emitted by a successful build workflow into .minecraft/mods, alongside Forge 1.12.2.
+The mod has not yet been launched inside a real Minecraft client in this environment. This is a successful compile and archive validation, not an in-game compatibility certification.
+
+Install: copy minefade-0.3.0.jar into .minecraft/mods with Minecraft Java 1.12.2 and Forge 1.12.2 installed. The internal mod ID remains "voxelcore" to preserve the registry namespace and config compatibility from the earlier source line.
