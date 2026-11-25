@@ -9,14 +9,16 @@ import org.lwjgl.input.Keyboard;
 
 import java.io.IOException;
 
-/** Responsive Minefade control panel. It changes settings without replacing vanilla screens. */
+/** Responsive Minefade control centre with diagnostics, performance, water and world tabs. */
 public class MinefadeSettingsScreen extends GuiScreen {
     private static final int TAB_DIAGNOSTICS = 0;
     private static final int TAB_PERFORMANCE = 1;
-    private static final int TAB_CONTENT = 2;
+    private static final int TAB_WATER = 2;
+    private static final int TAB_CONTENT = 3;
     private static final int ID_DIAG = 10;
     private static final int ID_PERF = 11;
-    private static final int ID_CONTENT = 12;
+    private static final int ID_WATER = 12;
+    private static final int ID_CONTENT = 13;
     private static final int ID_CLOSE = 99;
     private static final int ID_TOGGLE_BASE = 100;
     private static final int ID_ADJUST_BASE = 200;
@@ -41,11 +43,12 @@ public class MinefadeSettingsScreen extends GuiScreen {
         panelTop = (this.height - panelHeight) / 2;
 
         int tabY = panelTop + 48;
-        int gap = 6;
-        int tabWidth = (panelWidth - 32 - gap * 2) / 3;
-        this.buttonList.add(new MinefadeButton(ID_DIAG, panelLeft + 12, tabY, tabWidth, 20, "DIAGNÓSTICO"));
-        this.buttonList.add(new MinefadeButton(ID_PERF, panelLeft + 12 + tabWidth + gap, tabY, tabWidth, 20, "RENDIMIENTO"));
-        this.buttonList.add(new MinefadeButton(ID_CONTENT, panelLeft + 12 + (tabWidth + gap) * 2, tabY, tabWidth, 20, "CONTENIDO"));
+        int gap = 5;
+        int tabWidth = (panelWidth - 30 - gap * 3) / 4;
+        this.buttonList.add(new MinefadeButton(ID_DIAG, panelLeft + 10, tabY, tabWidth, 20, "INFO"));
+        this.buttonList.add(new MinefadeButton(ID_PERF, panelLeft + 10 + tabWidth + gap, tabY, tabWidth, 20, "REND."));
+        this.buttonList.add(new MinefadeButton(ID_WATER, panelLeft + 10 + (tabWidth + gap) * 2, tabY, tabWidth, 20, "AGUA"));
+        this.buttonList.add(new MinefadeButton(ID_CONTENT, panelLeft + 10 + (tabWidth + gap) * 3, tabY, tabWidth, 20, "MUNDO"));
 
         int closeY = panelTop + panelHeight - 30;
         this.buttonList.add(new MinefadeButton(ID_CLOSE, panelLeft + panelWidth - 104, closeY, 92, 20, "CERRAR"));
@@ -70,6 +73,15 @@ public class MinefadeSettingsScreen extends GuiScreen {
             addToggle(0, left, y, colWidth, "Recorte de criaturas lejanas", ModConfig.ENABLE_ENTITY_DISTANCE_CULLING);
             addAdjust(0, right, y, colWidth, "Distancia de criaturas: " + ModConfig.ENTITY_DISTANCE_PERCENT + "%");
             addToggle(1, left, y + rowGap, colWidth, "Partículas mínimas", ModConfig.FORCE_MINIMAL_PARTICLES);
+        } else if (tab == TAB_WATER) {
+            addToggle(0, left, y, colWidth, "Efectos de agua Minefade", ModConfig.ENABLE_WATER_EFFECTS);
+            addToggle(1, right, y, colWidth, "Ondas y estelas", ModConfig.ENABLE_WATER_RIPPLES);
+            addToggle(2, left, y + rowGap, colWidth, "Salpicaduras al nadar", ModConfig.ENABLE_WATER_SPLASHES);
+            addToggle(3, right, y + rowGap, colWidth, "Aros de lluvia", ModConfig.ENABLE_RAIN_RIPPLES);
+            addToggle(4, left, y + rowGap * 2, colWidth, "Neblina en cascadas", ModConfig.ENABLE_WATERFALL_MIST);
+            addToggle(5, right, y + rowGap * 2, colWidth, "Color submarino por bioma", ModConfig.ENABLE_UNDERWATER_TINT);
+            addAdjust(0, left, y + rowGap * 3, colWidth, "Intensidad de ondas: " + ModConfig.WATER_WAVE_STRENGTH + "%");
+            addAdjust(1, right, y + rowGap * 3, colWidth, "Radio de efectos: " + ModConfig.WATER_EFFECT_RADIUS);
         } else {
             addToggle(0, left, y, colWidth, "Generar mena de resonita", ModConfig.GENERATE_RESONITE_ORE);
             addAdjust(0, right, y, colWidth, "Vetas por chunk: " + ModConfig.ORE_VEINS_PER_CHUNK);
@@ -94,8 +106,11 @@ public class MinefadeSettingsScreen extends GuiScreen {
             mc.displayGuiScreen(parent);
             return;
         }
-        if (button.id == ID_DIAG || button.id == ID_PERF || button.id == ID_CONTENT) {
-            tab = button.id == ID_DIAG ? TAB_DIAGNOSTICS : (button.id == ID_PERF ? TAB_PERFORMANCE : TAB_CONTENT);
+        if (button.id == ID_DIAG || button.id == ID_PERF || button.id == ID_WATER || button.id == ID_CONTENT) {
+            if (button.id == ID_DIAG) tab = TAB_DIAGNOSTICS;
+            else if (button.id == ID_PERF) tab = TAB_PERFORMANCE;
+            else if (button.id == ID_WATER) tab = TAB_WATER;
+            else tab = TAB_CONTENT;
             initGui();
             return;
         }
@@ -115,18 +130,21 @@ public class MinefadeSettingsScreen extends GuiScreen {
             ModConfig.FORCE_MINIMAL_PARTICLES = !ModConfig.FORCE_MINIMAL_PARTICLES;
         } else if (tab == TAB_PERFORMANCE && button.id == ID_ADJUST_BASE) {
             ModConfig.ENTITY_DISTANCE_PERCENT = ModConfig.ENTITY_DISTANCE_PERCENT >= 100 ? 50 : ModConfig.ENTITY_DISTANCE_PERCENT + 10;
+        } else if (tab == TAB_WATER) {
+            if (button.id == ID_TOGGLE_BASE) ModConfig.ENABLE_WATER_EFFECTS = !ModConfig.ENABLE_WATER_EFFECTS;
+            else if (button.id == ID_TOGGLE_BASE + 1) ModConfig.ENABLE_WATER_RIPPLES = !ModConfig.ENABLE_WATER_RIPPLES;
+            else if (button.id == ID_TOGGLE_BASE + 2) ModConfig.ENABLE_WATER_SPLASHES = !ModConfig.ENABLE_WATER_SPLASHES;
+            else if (button.id == ID_TOGGLE_BASE + 3) ModConfig.ENABLE_RAIN_RIPPLES = !ModConfig.ENABLE_RAIN_RIPPLES;
+            else if (button.id == ID_TOGGLE_BASE + 4) ModConfig.ENABLE_WATERFALL_MIST = !ModConfig.ENABLE_WATERFALL_MIST;
+            else if (button.id == ID_TOGGLE_BASE + 5) ModConfig.ENABLE_UNDERWATER_TINT = !ModConfig.ENABLE_UNDERWATER_TINT;
+            else if (button.id == ID_ADJUST_BASE) ModConfig.WATER_WAVE_STRENGTH = ModConfig.WATER_WAVE_STRENGTH >= 100 ? 0 : ModConfig.WATER_WAVE_STRENGTH + 10;
+            else if (button.id == ID_ADJUST_BASE + 1) ModConfig.WATER_EFFECT_RADIUS = ModConfig.WATER_EFFECT_RADIUS >= 64 ? 8 : ModConfig.WATER_EFFECT_RADIUS + 8;
         } else if (tab == TAB_CONTENT) {
-            if (button.id == ID_TOGGLE_BASE) {
-                ModConfig.GENERATE_RESONITE_ORE = !ModConfig.GENERATE_RESONITE_ORE;
-            } else if (button.id == ID_ADJUST_BASE) {
-                ModConfig.ORE_VEINS_PER_CHUNK = ModConfig.ORE_VEINS_PER_CHUNK >= 16 ? 0 : ModConfig.ORE_VEINS_PER_CHUNK + 1;
-            } else if (button.id == ID_ADJUST_BASE + 1) {
-                ModConfig.ORE_VEIN_SIZE = ModConfig.ORE_VEIN_SIZE >= 12 ? 1 : ModConfig.ORE_VEIN_SIZE + 1;
-            } else if (button.id == ID_ADJUST_BASE + 2) {
-                ModConfig.ORE_MIN_Y = ModConfig.ORE_MIN_Y >= ModConfig.ORE_MAX_Y - 1 ? 1 : ModConfig.ORE_MIN_Y + 1;
-            } else if (button.id == ID_ADJUST_BASE + 3) {
-                ModConfig.ORE_MAX_Y = ModConfig.ORE_MAX_Y >= 255 ? Math.max(ModConfig.ORE_MIN_Y + 1, 2) : ModConfig.ORE_MAX_Y + 1;
-            }
+            if (button.id == ID_TOGGLE_BASE) ModConfig.GENERATE_RESONITE_ORE = !ModConfig.GENERATE_RESONITE_ORE;
+            else if (button.id == ID_ADJUST_BASE) ModConfig.ORE_VEINS_PER_CHUNK = ModConfig.ORE_VEINS_PER_CHUNK >= 16 ? 0 : ModConfig.ORE_VEINS_PER_CHUNK + 1;
+            else if (button.id == ID_ADJUST_BASE + 1) ModConfig.ORE_VEIN_SIZE = ModConfig.ORE_VEIN_SIZE >= 12 ? 1 : ModConfig.ORE_VEIN_SIZE + 1;
+            else if (button.id == ID_ADJUST_BASE + 2) ModConfig.ORE_MIN_Y = ModConfig.ORE_MIN_Y >= ModConfig.ORE_MAX_Y - 1 ? 1 : ModConfig.ORE_MIN_Y + 1;
+            else if (button.id == ID_ADJUST_BASE + 3) ModConfig.ORE_MAX_Y = ModConfig.ORE_MAX_Y >= 255 ? Math.max(ModConfig.ORE_MIN_Y + 1, 2) : ModConfig.ORE_MAX_Y + 1;
         }
 
         ModConfig.save();
@@ -150,8 +168,9 @@ public class MinefadeSettingsScreen extends GuiScreen {
                 panelTop + 17, 0xFF8195A3, false);
 
         String hint;
-        if (tab == TAB_DIAGNOSTICS) hint = "Personaliza los indicadores y el aspecto de todas las pantallas.";
-        else if (tab == TAB_PERFORMANCE) hint = "Las optimizaciones visuales son opcionales y reversibles.";
+        if (tab == TAB_DIAGNOSTICS) hint = "Indicadores y aspecto de las pantallas.";
+        else if (tab == TAB_PERFORMANCE) hint = "Optimización visual opcional y reversible.";
+        else if (tab == TAB_WATER) hint = "Efectos visuales locales; el agua vanilla conserva su física.";
         else hint = "La generación solo afecta a chunks nuevos del mundo.";
         this.fontRenderer.drawString(hint, panelLeft + 14, panelTop + panelHeight - 47, 0xFF8398A5, false);
 

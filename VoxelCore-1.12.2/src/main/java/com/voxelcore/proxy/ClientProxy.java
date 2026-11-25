@@ -4,6 +4,7 @@ import com.voxelcore.client.handler.ClientEventHandler;
 import com.voxelcore.client.handler.ClientKeyHandler;
 import com.voxelcore.client.handler.ClientModelRegistry;
 import com.voxelcore.client.handler.GuiThemeHandler;
+import com.voxelcore.client.handler.WaterEffectsHandler;
 import com.voxelcore.client.handler.ConfigChangedHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.FMLCommonHandler;
@@ -17,6 +18,11 @@ public class ClientProxy extends CommonProxy {
         MinecraftForge.EVENT_BUS.register(new ClientEventHandler());
         MinecraftForge.EVENT_BUS.register(new ClientModelRegistry());
         MinecraftForge.EVENT_BUS.register(new GuiThemeHandler());
+
+        WaterEffectsHandler waterEffects = new WaterEffectsHandler();
+        MinecraftForge.EVENT_BUS.register(waterEffects);
+        FMLCommonHandler.instance().bus().register(waterEffects);
+
         FMLCommonHandler.instance().bus().register(new ClientKeyHandler());
         FMLCommonHandler.instance().bus().register(new ConfigChangedHandler());
     }

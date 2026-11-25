@@ -18,3 +18,4 @@ item.voxelcore.resonite_boots.name=Botas de resonita
 tile.voxelcore.resonite_lamp.name=Lámpara de resonita
 key.voxelcore.toggle_entity_culling=Activar/desactivar recorte de criaturas lejanas
 key.voxelcore.toggle_particle_limit=Activar/desactivar partículas mínimas
+key.voxelcore.toggle_water_effects=Activar/desactivar efectos de agua Minefade

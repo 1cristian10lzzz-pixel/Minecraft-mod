@@ -1,17 +1,14 @@
-Minefade Mod 0.3.0 build status
+Minefade Mod 0.4.0 build status
 
-Forge compilation: PASSED.
-GitHub Actions run: #34
-Run URL: https://github.com/1cristian10lzzz-pixel/Minecraft-mod/actions/runs/45693043458
-Build commit: d1d3726ee4ec0df513c58da943058be55e76c54a
-Toolchain: JDK 8, Gradle 4.10.3, ForgeGradle 2.3, Minecraft 1.12.2 / Forge 14.23.5.2847.
-Resource validation: PASSED with tools/validate_assets.py.
-JAR artifact: minefade-0.3.0.jar (59,618 bytes).
-JAR SHA-256: 34c1766b20a4dea1d381752da491a95477053986037abe7239e151bc80d8ae7f.
-GitHub artifact ID: 15059342552 (30-day retention).
+Source update: committed to main.
+Resource validation: pending new build.
+Forge compilation: pending new build.
+Runtime validation: not performed.
 
-The JAR was downloaded from the successful Actions artifact and checked for ZIP/JAR integrity, manifest, mcmod.info, the main mod class, Minefade GUI classes, and language resources.
+Target toolchain: Minecraft 1.12.2, Forge 14.23.5.2847, JDK 8, Gradle 4.10.3 and ForgeGradle 2.3.
+New water layer: client-only ripples, splashes, wakes, rain rings, waterfall mist and underwater tint.
+Fluid world state: unchanged; no server-side fluid block replacement.
 
-The mod has not yet been launched inside a real Minecraft client in this environment. This is a successful compile and archive validation, not an in-game compatibility certification.
+Rubius's November 13, 2026 video showcases a modern Realistic Water project. The original mod is built for Fabric 26.3 and Vulkan and cannot be installed in this Forge 1.12.2 project. Minefade uses original implementation and does not include or redistribute that mod's code or assets.
 
-Install: copy minefade-0.3.0.jar into .minecraft/mods with Minecraft Java 1.12.2 and Forge 1.12.2 installed. The internal mod ID remains "voxelcore" to preserve the registry namespace and config compatibility from the earlier source line.
+After the GitHub Actions build succeeds, record the exact artifact size and SHA-256 here. Do not label an uncompiled archive as an installable JAR.

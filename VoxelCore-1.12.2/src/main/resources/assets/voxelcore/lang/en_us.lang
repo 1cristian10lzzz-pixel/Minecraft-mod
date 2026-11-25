@@ -18,3 +18,4 @@ item.voxelcore.resonite_boots.name=Resonite Boots
 tile.voxelcore.resonite_lamp.name=Resonite Lamp
 key.voxelcore.toggle_entity_culling=Toggle distant entity culling
 key.voxelcore.toggle_particle_limit=Toggle minimal particles
+key.voxelcore.toggle_water_effects=Toggle Minefade water effects

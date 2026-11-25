@@ -43,6 +43,7 @@ public class ClientEventHandler {
     public void onWorldUnload(WorldEvent.Unload event) {
         if (event.getWorld().isRemote) {
             ChunkTracker.clear();
+            WaterEffectsHandler.clearAll();
             resetFrameSamples();
             cachedLines = new String[0];
         }
@@ -145,6 +146,8 @@ public class ClientEventHandler {
         if (ModConfig.SHOW_CHUNK_COUNT) lines.add("Client chunks: " + ChunkTracker.getLoadedCount());
         if (ModConfig.SHOW_ENTITY_COUNT) lines.add("Entities: " + entityCount);
         if (ModConfig.SHOW_TILE_ENTITY_COUNT) lines.add("Tile entities: " + tileCount);
+        lines.add("Water FX: " + (ModConfig.ENABLE_WATER_EFFECTS ? "ON" : "OFF")
+                + "  |  Radius: " + ModConfig.WATER_EFFECT_RADIUS);
         lines.add("Dimension: " + mc.world.provider.getDimension());
         return lines.toArray(new String[lines.size()]);
     }
