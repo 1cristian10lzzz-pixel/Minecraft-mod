@@ -32,6 +32,7 @@ public final class ModConfig {
     public static boolean ENABLE_RAIN_RIPPLES = true;
     public static boolean ENABLE_WATERFALL_MIST = true;
     public static boolean ENABLE_UNDERWATER_TINT = true;
+    public static boolean ENABLE_ADAPTIVE_WATER_QUALITY = true;
     public static int WATER_WAVE_STRENGTH = 70;
     public static int WATER_EFFECT_RADIUS = 32;
 
@@ -85,6 +86,8 @@ public final class ModConfig {
                 "Add a small mist plume near nearby falling-water impacts.").getBoolean(true);
         ENABLE_UNDERWATER_TINT = configuration.get(CAT_WATER, "enableUnderwaterTint", true,
                 "Use a biome-aware underwater fog tint.").getBoolean(true);
+        ENABLE_ADAPTIVE_WATER_QUALITY = configuration.get(CAT_WATER, "adaptiveQuality", true,
+                "Automatically reduce optional water effect frequency and detail when FPS stays low.").getBoolean(true);
         WATER_WAVE_STRENGTH = configuration.get(CAT_WATER, "waveStrength", 70,
                 "Strength of Minefade's client-side ripple rings.", 0, 100).getInt(70);
         WATER_EFFECT_RADIUS = configuration.get(CAT_WATER, "effectRadius", 32,
@@ -129,6 +132,7 @@ public final class ModConfig {
         ENABLE_RAIN_RIPPLES = configuration.get(CAT_WATER, "enableRainRipples", true).getBoolean(true);
         ENABLE_WATERFALL_MIST = configuration.get(CAT_WATER, "enableWaterfallMist", true).getBoolean(true);
         ENABLE_UNDERWATER_TINT = configuration.get(CAT_WATER, "enableUnderwaterTint", true).getBoolean(true);
+        ENABLE_ADAPTIVE_WATER_QUALITY = configuration.get(CAT_WATER, "adaptiveQuality", true).getBoolean(true);
         WATER_WAVE_STRENGTH = configuration.get(CAT_WATER, "waveStrength", 70).getInt(70);
         WATER_EFFECT_RADIUS = configuration.get(CAT_WATER, "effectRadius", 32).getInt(32);
 
@@ -192,6 +196,7 @@ public final class ModConfig {
         configuration.get(CAT_WATER, "enableRainRipples", true).set(ENABLE_RAIN_RIPPLES);
         configuration.get(CAT_WATER, "enableWaterfallMist", true).set(ENABLE_WATERFALL_MIST);
         configuration.get(CAT_WATER, "enableUnderwaterTint", true).set(ENABLE_UNDERWATER_TINT);
+        configuration.get(CAT_WATER, "adaptiveQuality", true).set(ENABLE_ADAPTIVE_WATER_QUALITY);
         configuration.get(CAT_WATER, "waveStrength", 70).set(WATER_WAVE_STRENGTH);
         configuration.get(CAT_WATER, "effectRadius", 32).set(WATER_EFFECT_RADIUS);
         configuration.get(CAT_WORLDGEN, "generateResoniteOre", true).set(GENERATE_RESONITE_ORE);

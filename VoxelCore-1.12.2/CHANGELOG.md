@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.0 — Optimización del renderizado de agua
+
+- Batched all active ripple rings into one render buffer and one draw call per frame, instead of issuing a draw per ring.
+- Cached nearby water-surface lookups and reduced waterfall scans to lower client-tick block queries.
+- Added optional automatic water quality with hysteresis; sustained low FPS reduces scan frequency, particle count and ring detail, then restores quality after FPS recovers.
+- Reduced visual work at low particle settings and capped concurrent ripples.
+- Cleared cached surfaces and active ripples when leaving a world or disabling water effects.
+- Preserved Forge 1.12.2 compatibility, vanilla fluid blocks and the existing `voxelcore` registry namespace.
+
+
 ## 0.4.0 — Realismo ambiental y agua
 
 - Added an original client-side water presentation layer for Forge 1.12.2.

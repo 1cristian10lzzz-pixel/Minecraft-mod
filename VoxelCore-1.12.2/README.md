@@ -1,17 +1,18 @@
-# Minefade Mod 0.4.0 — Minecraft Java 1.12.2
+# Minefade Mod 0.5.0 — Minecraft Java 1.12.2
 
 Minefade is a Forge 1.12.2 mod combining an interface redesign, performance diagnostics, original Resonite content and a new water/atmosphere presentation layer.
 
 ## Realistic water and atmosphere
 
-Version 0.4.0 adds an original client-side water visual system:
+Version 0.5.0 improves the original client-side water visual system:
 
-- Expanding surface rings when swimmers and boats move through nearby water.
+- Expanding surface rings when swimmers and boats move through nearby water, now batched into one draw call per frame.
 - Water-entry splash particles and subtle wakes.
 - Small rain rings on exposed nearby water surfaces.
 - Light mist particles near nearby waterfall impacts.
 - Biome-aware underwater colour.
-- In-game controls for the whole system, wave strength and effect radius.
+- In-game controls for the whole system, wave strength, effect radius and automatic quality adaptation.
+- Cached surface scans, less frequent waterfall checks and a lower-cost fallback when FPS remains low.
 - Press **K** to toggle Minefade's water effects.
 
 These effects render locally on the client. The mod does not replace vanilla water blocks, alter the server's fluid states, or change saved oceans. The effect radius is capped at 64 blocks and active ripple count is capped to keep the renderer lightweight.
@@ -20,7 +21,7 @@ These effects render locally on the client. The mod does not replace vanilla wat
 
 The video **"Instalé AGUA REALISTA en Minecraft"** was published by Rubius Z on November 13, 2026. The mod called Realistic Water by sskaffy is built for Fabric 26.3 and requires Vulkan. Its current source has a separate renderer/simulation stack and a custom all-rights-reserved license. It cannot be dropped into Forge 1.12.2 or redistributed as Minefade code.
 
-Minefade 0.4.0 therefore recreates selected visual ideas with original Forge-compatible code. It is not a port of the Fabric/Vulkan mod and does not yet claim FLIP particle simulation, fully finite water, custom liquid blocks or real GPU fluid physics.
+Minefade 0.5.0 therefore recreates selected visual ideas with original Forge-compatible code. It is not a port of the Fabric/Vulkan mod and does not yet claim FLIP particle simulation, fully finite water, custom liquid blocks or real GPU fluid physics.
 
 For actual finite-fluid mechanics on Forge 1.12.2, a separate community mod, Realistic Finite Fluids, exists; it is not bundled or required by Minefade, and combined use has not been runtime-tested here.
 
@@ -55,7 +56,7 @@ Keys can be rebound in Options → Controls → Minefade.
 
 ## Build, verify and install
 
-**Forge build: passed.** [GitHub Actions run #36](https://github.com/1cristian10lzzz-pixel/Minecraft-mod/actions/runs/45698663718).
+**Forge build: pending CI for 0.5.0.** The previous 0.5.0 build passed; this version will be distributed only after its own build and JAR integrity checks succeed.
 
 - JAR: `minefade-0.4.0.jar`
 - Size: 69,472 bytes

@@ -1,17 +1,16 @@
-Minefade Mod 0.4.0 build status
+Minefade Mod 0.5.0 build status
 
-Forge compilation: PASSED.
-GitHub Actions run: #36
-Run URL: https://github.com/1cristian10lzzz-pixel/Minecraft-mod/actions/runs/45698663718
-Build commit: a6e052941ffc76214d4d7875f1a53f78c3bbc1d5
-Toolchain: Minecraft 1.12.2 / Forge 14.23.5.2847, JDK 8, Gradle 4.10.3, ForgeGradle 2.3.
-Resource validation: PASSED with tools/validate_assets.py.
-JAR artifact: minefade-0.4.0.jar (69,472 bytes).
-GitHub Actions artifact ID: 15062137229 (30-day retention).
-JAR SHA-256: 2b4bf20a48e253b4615fbaa05c5771ea5912a1ad5825ab3c5126f524d124dbc8.
+Source changes committed; CI build is expected to run from the main branch.
+Forge compilation: NOT YET VERIFIED.
+Minecraft target: 1.12.2 / Forge 14.23.5.2847.
+Toolchain: JDK 8, Gradle 4.10.3, ForgeGradle 2.3.
+Asset validation and JAR integrity checks: pending the workflow artifact.
+Runtime inside a real Minecraft client: not tested in this environment.
 
-The JAR was downloaded from the successful Actions artifact and checked for ZIP/JAR integrity, manifest, mcmod.info, the main mod class, the water effects class, the updated settings screen, config class and Spanish language resource.
+0.5.0 changes:
+- Ripple geometry is batched into one GL draw call per frame.
+- Nearby water surfaces are cached; waterfall and rain scans are throttled.
+- Optional adaptive quality reduces only Minefade's visual work after sustained low FPS.
+- Cached water effects are cleared on world changes and when the effects are disabled.
 
-The mod has not yet been launched inside a real Minecraft client in this environment. This is a successful Forge compilation and archive validation, not an in-game compatibility certification.
-
-Install: copy minefade-0.4.0.jar into .minecraft/mods with Minecraft Java 1.12.2 and Forge 1.12.2 installed. The internal mod ID remains "voxelcore" to preserve the registry namespace and config compatibility.
+The internal mod ID remains "voxelcore". Install only the compiled JAR produced by a successful 0.5.0 workflow run.

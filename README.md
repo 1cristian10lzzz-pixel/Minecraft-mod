@@ -1,31 +1,24 @@
 # Minefade Mod — Minecraft Java 1.12.2
 
-Current source line: **0.4.0** · Forge 14.23.5.2847
+Current source line: **0.5.0** · Forge 14.23.5.2847
 
-Minefade is a Forge 1.12.2 mod combining a shared interface theme, performance diagnostics, original Resonite content and new realistic water presentation effects.
+Minefade is a Forge 1.12.2 mod with a shared interface theme, performance diagnostics, Resonite content and an enhanced client-side water presentation system.
 
-## Minefade Mod 0.4.0 — compiled JAR
+## Minefade Mod 0.5.0 — improved rendering
 
-**Build successful:** [GitHub Actions run #36](https://github.com/1cristian10lzzz-pixel/Minecraft-mod/actions/runs/45698663718).
+The 0.5.0 source improves the water effects renderer and reduces unnecessary client work:
 
-The run compiled with JDK 8, Gradle 4.10.3 and ForgeGradle 2.3, validated the assets, and uploaded the installable JAR as artifact **minefade-mod-minecraft-1.12.2-v0.4.0**. Download it from the run's **Artifacts** section. The artifact is retained for 30 days.
+- All visible ripple rings are batched into one render buffer and one GL draw call per frame.
+- Nearby water-surface searches are cached instead of repeated on every client tick.
+- Rain and waterfall scans run less frequently.
+- Optional adaptive quality uses FPS hysteresis to reduce Minefade-only visual detail when performance remains low, and restores it after recovery.
+- Active ripples and cached surfaces are cleared when leaving a world or disabling water effects.
 
-- JAR: `minefade-0.4.0.jar`
-- Size: 69,472 bytes
-- SHA-256: `2b4bf20a48e253b4615fbaa05c5771ea5912a1ad5825ab3c5126f524d124dbc8`
+Vanilla water blocks, fluid states and saved-world water are unchanged. This remains an original Forge 1.12.2 presentation layer, not a port of the Fabric/Vulkan Realistic Water project.
 
-The JAR passed archive-integrity and metadata checks. A launch inside a real Minecraft client has not yet been performed in the build environment.
+## Build status
 
-## 0.4.0 — Water and environmental realism
-
-- New client-side water surface rings, wakes, splashes and rain impacts.
-- Light mist at nearby waterfall impacts.
-- Biome-aware underwater tint.
-- In-game Agua tab with on/off switches, intensity and effect radius.
-- Press **K** to toggle water visuals.
-- Original Forge 1.12.2 code; vanilla/server water states are not replaced.
-
-The Rubius video "Instalé AGUA REALISTA en Minecraft" features a modern Fabric/Vulkan project. That project cannot be installed in this Forge 1.12.2 mod. Minefade implements selected visual concepts independently; it does not include or redistribute the original project's code/assets.
+The 0.5.0 source has been committed. Its own Forge build and JAR validation must pass before the installable file is considered ready. The previous 0.4.0 build passed, but that result does not substitute for the new build.
 
 ## Latest source
 
@@ -36,12 +29,6 @@ The Rubius video "Instalé AGUA REALISTA en Minecraft" features a modern Fabric/
 
 ## Build and install
 
-The repository includes a GitHub Actions build using Temurin JDK 8 and Gradle 4.10.3. It validates resources, builds against Forge 14.23.5.2847 and uploads the compiled JAR as an Actions artifact.
+The repository uses GitHub Actions with Temurin JDK 8, Gradle 4.10.3 and ForgeGradle 2.3. Install only the compiled JAR from the successful 0.5.0 run into `.minecraft/mods`, alongside Minecraft Java 1.12.2 and Forge 14.23.5.2847. A source archive is not an installable mod.
 
-Install only the compiled JAR from a successful run into `.minecraft/mods`; source archives are not installable mods.
-
-## Compatibility
-
-The internal mod ID remains `voxelcore` to preserve existing registry names and configuration from the 0.2.x/0.3.x source line.
-
-Minecraft 1.12.2 · Forge 14.23.5.2847 · Java 8 · ForgeGradle 2.3.
+The internal mod ID remains `voxelcore` for registry and configuration compatibility.

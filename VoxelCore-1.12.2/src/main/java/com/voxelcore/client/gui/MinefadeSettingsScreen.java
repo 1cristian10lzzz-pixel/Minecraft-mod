@@ -82,6 +82,8 @@ public class MinefadeSettingsScreen extends GuiScreen {
             addToggle(5, right, y + rowGap * 2, colWidth, "Color submarino por bioma", ModConfig.ENABLE_UNDERWATER_TINT);
             addAdjust(0, left, y + rowGap * 3, colWidth, "Intensidad de ondas: " + ModConfig.WATER_WAVE_STRENGTH + "%");
             addAdjust(1, right, y + rowGap * 3, colWidth, "Radio de efectos: " + ModConfig.WATER_EFFECT_RADIUS);
+            addToggle(6, left, y + rowGap * 4, colWidth * 2 + 4,
+                    "Calidad de agua automática", ModConfig.ENABLE_ADAPTIVE_WATER_QUALITY);
         } else {
             addToggle(0, left, y, colWidth, "Generar mena de resonita", ModConfig.GENERATE_RESONITE_ORE);
             addAdjust(0, right, y, colWidth, "Vetas por chunk: " + ModConfig.ORE_VEINS_PER_CHUNK);
@@ -137,6 +139,7 @@ public class MinefadeSettingsScreen extends GuiScreen {
             else if (button.id == ID_TOGGLE_BASE + 3) ModConfig.ENABLE_RAIN_RIPPLES = !ModConfig.ENABLE_RAIN_RIPPLES;
             else if (button.id == ID_TOGGLE_BASE + 4) ModConfig.ENABLE_WATERFALL_MIST = !ModConfig.ENABLE_WATERFALL_MIST;
             else if (button.id == ID_TOGGLE_BASE + 5) ModConfig.ENABLE_UNDERWATER_TINT = !ModConfig.ENABLE_UNDERWATER_TINT;
+            else if (button.id == ID_TOGGLE_BASE + 6) ModConfig.ENABLE_ADAPTIVE_WATER_QUALITY = !ModConfig.ENABLE_ADAPTIVE_WATER_QUALITY;
             else if (button.id == ID_ADJUST_BASE) ModConfig.WATER_WAVE_STRENGTH = ModConfig.WATER_WAVE_STRENGTH >= 100 ? 0 : ModConfig.WATER_WAVE_STRENGTH + 10;
             else if (button.id == ID_ADJUST_BASE + 1) ModConfig.WATER_EFFECT_RADIUS = ModConfig.WATER_EFFECT_RADIUS >= 64 ? 8 : ModConfig.WATER_EFFECT_RADIUS + 8;
         } else if (tab == TAB_CONTENT) {
@@ -170,7 +173,7 @@ public class MinefadeSettingsScreen extends GuiScreen {
         String hint;
         if (tab == TAB_DIAGNOSTICS) hint = "Indicadores y aspecto de las pantallas.";
         else if (tab == TAB_PERFORMANCE) hint = "Optimización visual opcional y reversible.";
-        else if (tab == TAB_WATER) hint = "Efectos visuales locales; el agua vanilla conserva su física.";
+        else if (tab == TAB_WATER) hint = "Efectos locales; el agua vanilla conserva su física. La calidad automática ayuda a mantener FPS.";
         else hint = "La generación solo afecta a chunks nuevos del mundo.";
         this.fontRenderer.drawString(hint, panelLeft + 14, panelTop + panelHeight - 47, 0xFF8398A5, false);
 
