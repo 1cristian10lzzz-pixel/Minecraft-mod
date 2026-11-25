@@ -21,7 +21,7 @@ import net.minecraftforge.common.util.EnumHelper;
 public final class ModContent {
     public static final CreativeTabs TAB = new CreativeTabs(VoxelCore.MODID) {
         @Override
-        public ItemStack getTabIconItem() {
+        public ItemStack createIcon() {
             return new ItemStack(RESONITE_CRYSTAL);
         }
     };
@@ -38,18 +38,18 @@ public final class ModContent {
     public static final Block RESONITE_ORE = new BlockResoniteOre();
     public static final Block RESONITE_BLOCK = new Block(Material.IRON)
             .setRegistryName(VoxelCore.MODID, "resonite_block")
-            .setUnlocalizedName(VoxelCore.MODID + ".resonite_block")
+            .setTranslationKey(VoxelCore.MODID + ".resonite_block")
             .setHardness(5.0F)
             .setResistance(12.0F);
     public static final Block RESONITE_LAMP = new BlockResoniteLamp();
 
     public static final Item RESONITE_CRYSTAL = new Item()
             .setRegistryName(VoxelCore.MODID, "resonite_crystal")
-            .setUnlocalizedName(VoxelCore.MODID + ".resonite_crystal")
+            .setTranslationKey(VoxelCore.MODID + ".resonite_crystal")
             .setCreativeTab(TAB);
     public static final Item RESONITE_INGOT = new Item()
             .setRegistryName(VoxelCore.MODID, "resonite_ingot")
-            .setUnlocalizedName(VoxelCore.MODID + ".resonite_ingot")
+            .setTranslationKey(VoxelCore.MODID + ".resonite_ingot")
             .setCreativeTab(TAB);
 
     public static final Item RESONITE_PICKAXE = new ItemResonitePickaxe();
