@@ -1,69 +1,60 @@
-# Minefade Mod 0.5.0 — Minecraft Java 1.12.2
+# Minefade Mod 0.6.0 — Minecraft Java 1.12.2
 
-Minefade is a Forge 1.12.2 mod combining an interface redesign, performance diagnostics, original Resonite content and a client-side water/atmosphere presentation layer.
+Forge 14.23.5.2847 · Java 8 · ForgeGradle 2.3 · Gradle 4.10.3
 
-## Realistic water and atmosphere
+## Dropped item physics
 
-Version 0.5.0 improves the original client-side water visual system:
+Minefade 0.6.0 adds original Forge 1.12.2 behaviour inspired by Realistic Item Drops:
 
-- Expanding surface rings when swimmers and boats move through nearby water, now batched into one draw call per frame.
-- Water-entry splash particles and subtle wakes.
-- Small rain rings on exposed nearby water surfaces.
-- Light mist particles near nearby waterfall impacts.
-- Biome-aware underwater colour.
-- In-game controls for the whole system, wave strength, effect radius and automatic quality adaptation.
-- Cached surface scans, less frequent waterfall checks and a lower-cost fallback when FPS remains low.
-- Press **K** to toggle Minefade's water effects.
+- Dropped items lie horizontally on the ground instead of hovering and spinning.
+- Right-click pickup replaces automatic walk-over collection when enabled.
+- Sprinting when dropping an item adds a forward throw impulse.
+- Airborne items can be caught with the same right-click interaction.
+- Dropped items receive gentle buoyancy and drag in water and lava.
+- The OBJETOS tab exposes separate controls and throw strength.
 
-These effects render locally on the client. The mod does not replace vanilla water blocks, alter the server's fluid states, or change saved oceans. The effect radius is capped at 64 blocks and active ripple count is capped to keep the renderer lightweight.
+The server handles pickup, toss and liquid motion so multiplayer state remains authoritative. Minefade uses its own implementation and does not copy the reference mod's code.
 
-### About the water mod in Rubius's video
+## Rendering and performance
 
-The video **"Instalé AGUA REALISTA en Minecraft"** was published by Rubius Z on November 13, 2026. The mod called Realistic Water by sskaffy is built for Fabric 26.3 and requires Vulkan. It cannot be installed directly in this Forge 1.12.2 mod; Minefade recreates selected visual ideas with original Forge-compatible code, not a port or redistributed copy.
+The custom EntityItem renderer keeps Minecraft's baked item models, item texture atlas and standard lighting. It adds a ground transform for resting drops and optional item-distance culling.
 
-Minefade does not claim FLIP particle simulation, fully finite water, custom liquid blocks or real GPU fluid physics. Realistic Finite Fluids is a separate community mod and is not bundled or required by Minefade; combined use has not been runtime-tested.
+Minefade also retains the 0.5.0 water rendering improvements: ripple geometry is batched, nearby water surfaces are cached, and optional water effects reduce their detail when FPS remains low.
 
-## Interface and settings
+Sodium-derived Forge renderers such as Zorya rewrite more of the chunk rendering path and use techniques including face culling, chunk multi-draw, vertex arrays and compact vertex formats. Those are engine-level changes and can conflict with other renderer mods. Minefade therefore applies narrower optimizations without replacing the vanilla chunk renderer. It is not a full Sodium implementation.
 
-The control centre is available from the main menu, pause menu and Options screen, or with **O** when no screen is open. Tabs:
+## Textures and interface
 
-- **INFO:** global interface theme and diagnostic counters.
-- **REND.:** optional distant-creature culling and particle quality.
-- **AGUA:** water effects, ripples, splashes, rain, waterfall mist, underwater tint, wave strength, radius and adaptive quality.
-- **MUNDO:** Resonite world generation settings.
+Minefade now includes original 32x32 item/block icons for Resonite tools, armour and materials, plus original leather and aged-metal panel/button textures. A new OBJETOS tab controls dropped-item physics.
 
-## Performance controls
+Realstuff64 (64x, Minecraft 1.12.2) served as a visual reference for realistic texture density and palette. Its files are not bundled or copied. This update changes Minefade's own assets, not every vanilla item texture.
 
-| Key | Action |
-|---|---|
-| O | Open the Minefade control centre. |
-| K | Toggle Minefade water effects. |
-| F8 | Toggle the performance monitor. |
-| F7 | Toggle distant-creature visual culling. |
-| F6 | Toggle minimal particles. |
+## Water and atmosphere
 
-Keys can be rebound in Options → Controls → Minefade.
+The 0.5.0 water effects remain available: surface rings, wakes, entry splashes, rain ripples, waterfall mist and biome-aware underwater tint. These are client-side visual effects. Vanilla fluid blocks and server water states are unchanged.
 
-## Performance and content
+## Controls and settings
 
-- Frame-time/FPS, Java heap, client chunk, entity and tile-entity diagnostics.
-- Optional rendering cutoff for distant non-player living entities; disabled by default.
-- Optional native minimal-particle setting with restoration of the previous value.
-- Resonite ore, crystal, ingot, block, lamp, tools, full armor set and crafting recipes.
-- Configurable ore generation in newly generated Overworld chunks.
+- **O:** open the Minefade control centre.
+- **K:** toggle Minefade water effects.
+- **F8:** toggle the performance monitor.
+- **F7:** toggle distant-living-entity culling.
+- **F6:** toggle minimal particles.
+
+The settings centre includes INFO, REND., AGUA, MUNDO and OBJETOS.
 
 ## Build, verify and install
 
-**Forge build passed:** [GitHub Actions run #40](https://github.com/1cristian10lzzz-pixel/Minecraft-mod/actions/runs/45701481080).
+**Forge build passed:** [GitHub Actions run #47](https://github.com/1cristian10lzzz-pixel/Minecraft-mod/actions/runs/45705530398).
 
-- JAR: `minefade-0.5.0.jar`
-- Size: 70,999 bytes
-- SHA-256: `890ea6deff74db2a791fe2d6fd9a0506543a138f7b016537513f0d2b0225d2a3`
+- JAR: `minefade-0.6.0.jar`
+- Size: 97,424 bytes
+- SHA-256: `67ebad56ddcb7473b8a14a79a0f3dfb8c0224cd300cc6ba6ba2bf7ac5f194212`
 
-Target: Minecraft 1.12.2, Forge 14.23.5.2847, JDK 8, Gradle 4.10.3 and ForgeGradle 2.3.
+The downloaded JAR passed archive-integrity checks and includes the item physics handler, custom dropped-item renderer, OBJETOS settings screen, original textures and 0.6.0 metadata.
 
-The downloaded JAR passed ZIP/CRC integrity and metadata checks. Copy only `minefade-0.5.0.jar` into `.minecraft/mods`, alongside Forge 1.12.2.
+Install the compiled JAR in `.minecraft/mods` with Minecraft Java 1.12.2 and Forge 14.23.5.2847.
 
-## Technical limits
+## Compatibility notes
 
-This release does not replace Minecraft's chunk renderer or provide Vulkan/FLIP water simulation. Its water enhancement is a client-side presentation layer; vanilla liquid simulation is preserved for compatibility. A real Minecraft client launch and in-game performance/compatibility test have not been performed in this environment.
+The internal mod ID remains `voxelcore`. Optional item-distance culling is disabled by default. Vanilla item models and fluid blocks are retained. A live Minecraft client launch and multiplayer runtime test have not been performed in this build environment.

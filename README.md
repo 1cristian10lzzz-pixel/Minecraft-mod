@@ -1,39 +1,41 @@
 # Minefade Mod — Minecraft Java 1.12.2
 
-Current source line: **0.5.0** · Forge 14.23.5.2847
+Current source line: **0.6.0** · Forge 14.23.5.2847
 
-Minefade is a Forge 1.12.2 mod with a shared interface theme, performance diagnostics, Resonite content and an enhanced client-side water presentation system.
+Minefade combines a shared interface theme, performance diagnostics, Resonite content, water effects and improved dropped-item behaviour.
 
-## Minefade Mod 0.5.0 — improved rendering
+## Minefade Mod 0.6.0
 
-- All visible ripple rings are batched into one render buffer and one GL draw call per frame.
-- Nearby water-surface searches are cached instead of repeated on every client tick.
-- Rain and waterfall scans run less frequently.
-- Optional adaptive quality uses FPS hysteresis to reduce Minefade-only visual detail when performance remains low, and restores it after recovery.
-- Active ripples and cached surfaces are cleared when leaving a world or disabling water effects.
+- **Realistic dropped items:** flat ground placement, right-click pickup, sprint toss and gentle water/lava buoyancy and drag.
+- **Item renderer:** uses Minecraft's baked item models and lighting, with a separate flat ground transform and optional render-distance culling.
+- **Performance:** retains batched water ripple rendering, cached surface searches and adaptive water effects. Adds optional culling of distant dropped items and retains optional distant living-entity culling.
+- **Visuals:** original 32x32 Minefade icons for its Resonite tools, armour and materials, plus original leather/aged-metal interface textures and an OBJETOS settings tab.
 
-Vanilla water blocks, fluid states and saved-world water are unchanged. This is an original Forge 1.12.2 presentation layer, not a port of the Fabric/Vulkan Realistic Water project.
+These are original Minefade implementations inspired by the behaviour and visual direction of other projects. No Realistic Item Drops source code or third-party resource-pack textures are copied into this mod.
+
+## Sodium compatibility and limits
+
+Sodium's Forge 1.12.2 ports improve performance by changing the chunk renderer deeply, with techniques such as face culling, chunk multi-draw, vertex arrays and compact vertex formats. Replacing Minecraft's complete chunk renderer inside Minefade would risk conflicts with other mods. Minefade instead uses isolated optimizations that do not replace the vanilla chunk pipeline. It is not a full Sodium port.
+
+## References used
+
+- [Realistic Item Drops — CurseForge](https://www.curseforge.com/minecraft/mc-mods/realistic-item-drops)
+- [Zorya — Forge 1.12.2 Sodium-derived renderer](https://github.com/MyNukeMC/Zorya)
+- [Realstuff64 — realistic 64x resource pack for 1.12.2](https://www.curseforge.com/minecraft/texture-packs/realstuff64)
+
+Third-party assets are references only. Minefade's included GUI and Resonite textures are original.
 
 ## Build status
 
-**Forge build passed:** [GitHub Actions run #40](https://github.com/1cristian10lzzz-pixel/Minecraft-mod/actions/runs/45701481080).
+**Forge build passed:** [GitHub Actions run #47](https://github.com/1cristian10lzzz-pixel/Minecraft-mod/actions/runs/45705530398).
 
-- JAR: `minefade-0.5.0.jar`
-- Size: 70,999 bytes
-- SHA-256: `890ea6deff74db2a791fe2d6fd9a0506543a138f7b016537513f0d2b0225d2a3`
-- GitHub artifact: `minefade-mod-minecraft-1.12.2-v0.5.0` (artifact ID 15063167659)
+- JAR: `minefade-0.6.0.jar`
+- Size: 97,424 bytes
+- SHA-256: `67ebad56ddcb7473b8a14a79a0f3dfb8c0224cd300cc6ba6ba2bf7ac5f194212`
+- Artifact: `minefade-mod-minecraft-1.12.2-v0.6.0` (ID 15065261525)
 
-The downloaded JAR passed CRC/integrity checks and validation of the manifest, `mcmod.info`, version, Minecraft target and required compiled classes. It has not been launched inside a real Minecraft client in this environment.
+The downloaded JAR passed ZIP/CRC checks and required class/metadata checks. It has not been launched inside a real Minecraft client in this environment.
 
-## Latest source
+## Install
 
-- [Open the complete source project](./VoxelCore-1.12.2/)
-- [Realism and water system notes](./VoxelCore-1.12.2/README.md)
-- [Change log](./VoxelCore-1.12.2/CHANGELOG.md)
-- [Build and integrity record](./VoxelCore-1.12.2/BUILD_STATUS.txt)
-
-## Build and install
-
-The repository uses GitHub Actions with Temurin JDK 8, Gradle 4.10.3 and ForgeGradle 2.3. Install the compiled JAR into `.minecraft/mods`, alongside Minecraft Java 1.12.2 and Forge 14.23.5.2847. A source archive is not an installable mod.
-
-The internal mod ID remains `voxelcore` for registry and configuration compatibility.
+Copy `Minefade-Mod-0.6.0-Forge-1.12.2.jar` into `.minecraft/mods` with Minecraft Java 1.12.2 and Forge 14.23.5.2847. The internal mod ID remains `voxelcore` to preserve existing registry and configuration compatibility.
