@@ -35,7 +35,7 @@ Keys can be rebound in Options → Controls → Minefade.
 
 ## Build and install
 
-Target: Minecraft 1.12.2, Forge 14.23.5.2860, JDK 8, Gradle 4.10.3 and ForgeGradle 2.3.
+Target: Minecraft 1.12.2, Forge 14.23.5.2847, JDK 8, Gradle 4.10.3 and ForgeGradle 2.3.
 
 The repository root contains the GitHub Actions workflow that builds the JAR on pushes and pull requests. It validates resources, compiles the mod and uploads minefade-0.3.0.jar as an Actions artifact. For local builds, run build.sh or build.bat from this project folder. The local output is build/libs/minefade-0.3.0.jar.
 
