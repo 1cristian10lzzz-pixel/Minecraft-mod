@@ -1,0 +1,16 @@
+[
+  {
+    "modid": "voxelcore",
+    "name": "VoxelCore",
+    "description": "A modular performance toolkit and gameplay content mod for Minecraft 1.12.2.",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "url": "",
+    "updateUrl": "",
+    "authorList": ["VoxelCore"],
+    "credits": "Built for Minecraft Forge 1.12.2.",
+    "logoFile": "",
+    "screenshots": [],
+    "dependencies": ["required-after:forge"]
+  }
+]

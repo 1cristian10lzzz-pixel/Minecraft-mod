@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "voxelcore:resonite_block"
+    }
+  ],
+  "result": {
+    "item": "voxelcore:resonite_ingot",
+    "count": 9
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "GIG",
+    "ICI",
+    "GIG"
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:glowstone_dust"
+    },
+    "I": {
+      "item": "voxelcore:resonite_ingot"
+    },
+    "C": {
+      "item": "voxelcore:resonite_crystal"
+    }
+  },
+  "result": {
+    "item": "voxelcore:resonite_lamp",
+    "count": 1
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "variants": {
+    "normal": { "model": "voxelcore:resonite_block" }
+  }
+}

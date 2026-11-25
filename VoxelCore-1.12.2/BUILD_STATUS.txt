@@ -1,0 +1,15 @@
+VoxelCore 0.2.0 build status
+
+Source/resource preparation: completed.
+JSON, texture-reference, PNG-dimension, and localization validation: passed with tools/validate_assets.py.
+Forge compilation: NOT RUN successfully in the creation environment.
+
+Reason: Minecraft Forge 1.12.2 / ForgeGradle 2.3 requires a Java 8 toolchain for this legacy build. The available runtime is OpenJDK 21, Gradle is not installed, and external dependency downloads are unavailable in this environment. The build script correctly refuses to run under the wrong Java version.
+
+No installable JAR is included. Do not rename this source ZIP to .jar and do not copy it into the Minecraft mods folder.
+
+To build the JAR in a compatible environment:
+1. Install a 64-bit JDK 8.
+2. Install Gradle 4.10.3.
+3. Run ./build.sh (Linux/macOS) or build.bat (Windows).
+4. Install build/libs/voxelcore-0.2.0.jar into .minecraft/mods with Forge 1.12.2.

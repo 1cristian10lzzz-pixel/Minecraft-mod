@@ -1,0 +1,21 @@
+itemGroup.voxelcore=VoxelCore
+tile.voxelcore.resonite_ore.name=Mena de resonita
+tile.voxelcore.resonite_block.name=Bloque de resonita
+item.voxelcore.resonite_crystal.name=Cristal de resonita
+item.voxelcore.resonite_pickaxe.name=Pico de resonita
+key.categories.voxelcore=VoxelCore
+key.voxelcore.open_settings=Abrir configuración de VoxelCore
+key.voxelcore.toggle_overlay=Alternar monitor de rendimiento
+
+item.voxelcore.resonite_ingot.name=Lingote de resonita
+item.voxelcore.resonite_sword.name=Espada de resonita
+item.voxelcore.resonite_shovel.name=Pala de resonita
+item.voxelcore.resonite_axe.name=Hacha de resonita
+item.voxelcore.resonite_hoe.name=Azada de resonita
+item.voxelcore.resonite_helmet.name=Casco de resonita
+item.voxelcore.resonite_chestplate.name=Pechera de resonita
+item.voxelcore.resonite_leggings.name=Grebas de resonita
+item.voxelcore.resonite_boots.name=Botas de resonita
+tile.voxelcore.resonite_lamp.name=Lámpara de resonita
+key.voxelcore.toggle_entity_culling=Alternar recorte de criaturas lejanas
+key.voxelcore.toggle_particle_limit=Alternar límite de partículas

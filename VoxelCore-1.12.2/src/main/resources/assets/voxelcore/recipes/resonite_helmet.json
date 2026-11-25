@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "I I"
+  ],
+  "key": {
+    "I": {
+      "item": "voxelcore:resonite_ingot"
+    }
+  },
+  "result": {
+    "item": "voxelcore:resonite_helmet",
+    "count": 1
+  }
+}
