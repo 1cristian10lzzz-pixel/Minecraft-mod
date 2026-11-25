@@ -34,7 +34,7 @@ jobs:
         with:
           gradle-version: '4.10.3'
       - name: Build Forge 1.12.2 mod
-        run: gradle setupDecompWorkspace build --no-daemon
+        run: gradle setupCIWorkspace build --no-daemon
       - name: Upload installable JAR
         uses: actions/upload-artifact@v4
         with:
