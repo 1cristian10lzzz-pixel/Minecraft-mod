@@ -1,16 +1,25 @@
 Minefade Mod 0.5.0 build status
 
-Source changes committed; CI build is expected to run from the main branch.
-Forge compilation: NOT YET VERIFIED.
-Minecraft target: 1.12.2 / Forge 14.23.5.2847.
-Toolchain: JDK 8, Gradle 4.10.3, ForgeGradle 2.3.
-Asset validation and JAR integrity checks: pending the workflow artifact.
-Runtime inside a real Minecraft client: not tested in this environment.
+Forge compilation: PASSED.
+GitHub Actions run: #40
+Run ID: 45701481080
+Run URL: https://github.com/1cristian10lzzz-pixel/Minecraft-mod/actions/runs/45701481080
+Build commit: 79a2cb1ca00453180a940ccea485187c50d93750
+Toolchain: Minecraft 1.12.2 / Forge 14.23.5.2847, JDK 8, Gradle 4.10.3, ForgeGradle 2.3.
+Resource validation: PASSED with tools/validate_assets.py.
+JAR artifact: minefade-0.5.0.jar (70,999 bytes).
+GitHub Actions artifact name: minefade-mod-minecraft-1.12.2-v0.5.0
+GitHub Actions artifact ID: 15063167659 (30-day retention).
+JAR SHA-256: 890ea6deff74db2a791fe2d6fd9a0506543a138f7b016537513f0d2b0225d2a3
+
+The artifact ZIP and extracted JAR passed CRC/integrity checks. The JAR contains the expected main mod, water-effects handler, settings screen and configuration classes. Its manifest and mcmod.info both report version 0.5.0; mcmod.info confirms modid "voxelcore" and Minecraft 1.12.2.
 
 0.5.0 changes:
 - Ripple geometry is batched into one GL draw call per frame.
 - Nearby water surfaces are cached; waterfall and rain scans are throttled.
-- Optional adaptive quality reduces only Minefade's visual work after sustained low FPS.
+- Optional adaptive quality reduces only Minefade's visual work after sustained low FPS and restores detail after recovery.
 - Cached water effects are cleared on world changes and when the effects are disabled.
 
-The internal mod ID remains "voxelcore". Install only the compiled JAR produced by a successful 0.5.0 workflow run.
+Runtime inside a real Minecraft client: NOT TESTED in this environment. A successful Forge compile and archive check are not a guarantee of in-game compatibility.
+
+Install: copy minefade-0.5.0.jar into .minecraft/mods with Minecraft Java 1.12.2 and Forge 14.23.5.2847 installed. The internal mod ID remains "voxelcore" for compatibility.

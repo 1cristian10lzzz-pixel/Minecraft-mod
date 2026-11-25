@@ -1,6 +1,6 @@
 # Minefade Mod 0.5.0 — Minecraft Java 1.12.2
 
-Minefade is a Forge 1.12.2 mod combining an interface redesign, performance diagnostics, original Resonite content and a new water/atmosphere presentation layer.
+Minefade is a Forge 1.12.2 mod combining an interface redesign, performance diagnostics, original Resonite content and a client-side water/atmosphere presentation layer.
 
 ## Realistic water and atmosphere
 
@@ -19,11 +19,9 @@ These effects render locally on the client. The mod does not replace vanilla wat
 
 ### About the water mod in Rubius's video
 
-The video **"Instalé AGUA REALISTA en Minecraft"** was published by Rubius Z on November 13, 2026. The mod called Realistic Water by sskaffy is built for Fabric 26.3 and requires Vulkan. Its current source has a separate renderer/simulation stack and a custom all-rights-reserved license. It cannot be dropped into Forge 1.12.2 or redistributed as Minefade code.
+The video **"Instalé AGUA REALISTA en Minecraft"** was published by Rubius Z on November 13, 2026. The mod called Realistic Water by sskaffy is built for Fabric 26.3 and requires Vulkan. It cannot be installed directly in this Forge 1.12.2 mod; Minefade recreates selected visual ideas with original Forge-compatible code, not a port or redistributed copy.
 
-Minefade 0.5.0 therefore recreates selected visual ideas with original Forge-compatible code. It is not a port of the Fabric/Vulkan mod and does not yet claim FLIP particle simulation, fully finite water, custom liquid blocks or real GPU fluid physics.
-
-For actual finite-fluid mechanics on Forge 1.12.2, a separate community mod, Realistic Finite Fluids, exists; it is not bundled or required by Minefade, and combined use has not been runtime-tested here.
+Minefade does not claim FLIP particle simulation, fully finite water, custom liquid blocks or real GPU fluid physics. Realistic Finite Fluids is a separate community mod and is not bundled or required by Minefade; combined use has not been runtime-tested.
 
 ## Interface and settings
 
@@ -31,7 +29,7 @@ The control centre is available from the main menu, pause menu and Options scree
 
 - **INFO:** global interface theme and diagnostic counters.
 - **REND.:** optional distant-creature culling and particle quality.
-- **AGUA:** water effects, ripples, splashes, rain, waterfall mist, underwater tint, wave strength and radius.
+- **AGUA:** water effects, ripples, splashes, rain, waterfall mist, underwater tint, wave strength, radius and adaptive quality.
 - **MUNDO:** Resonite world generation settings.
 
 ## Performance controls
@@ -56,16 +54,16 @@ Keys can be rebound in Options → Controls → Minefade.
 
 ## Build, verify and install
 
-**Forge build: pending CI for 0.5.0.** The previous 0.5.0 build passed; this version will be distributed only after its own build and JAR integrity checks succeed.
+**Forge build passed:** [GitHub Actions run #40](https://github.com/1cristian10lzzz-pixel/Minecraft-mod/actions/runs/45701481080).
 
-- JAR: `minefade-0.4.0.jar`
-- Size: 69,472 bytes
-- SHA-256: `2b4bf20a48e253b4615fbaa05c5771ea5912a1ad5825ab3c5126f524d124dbc8`
+- JAR: `minefade-0.5.0.jar`
+- Size: 70,999 bytes
+- SHA-256: `890ea6deff74db2a791fe2d6fd9a0506543a138f7b016537513f0d2b0225d2a3`
 
 Target: Minecraft 1.12.2, Forge 14.23.5.2847, JDK 8, Gradle 4.10.3 and ForgeGradle 2.3.
 
-Source archives are not installable mods. Copy only the compiled JAR from a successful build into `.minecraft/mods`, alongside Forge 1.12.2.
+The downloaded JAR passed ZIP/CRC integrity and metadata checks. Copy only `minefade-0.5.0.jar` into `.minecraft/mods`, alongside Forge 1.12.2.
 
 ## Technical limits
 
-This release does not claim to replace Minecraft's chunk renderer, provide Vulkan/FLIP water simulation, or rewrite the full terrain renderer. Its water enhancement is a client-side presentation layer; the vanilla liquid simulation is preserved for compatibility. Deeper renderer and fluid-simulation work requires separate compatibility and in-game performance testing.
+This release does not replace Minecraft's chunk renderer or provide Vulkan/FLIP water simulation. Its water enhancement is a client-side presentation layer; vanilla liquid simulation is preserved for compatibility. A real Minecraft client launch and in-game performance/compatibility test have not been performed in this environment.
