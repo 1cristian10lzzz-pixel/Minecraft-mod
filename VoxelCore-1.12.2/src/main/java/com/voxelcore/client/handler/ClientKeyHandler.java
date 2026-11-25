@@ -1,6 +1,6 @@
 package com.voxelcore.client.handler;
 
-import com.voxelcore.client.gui.VoxelCoreConfigScreen;
+import com.voxelcore.client.gui.MinefadeSettingsScreen;
 import com.voxelcore.config.ModConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
@@ -36,7 +36,7 @@ public class ClientKeyHandler {
         ParticleQualityController.update(mc);
 
         while (OPEN_SETTINGS.isPressed()) {
-            if (mc.currentScreen == null) mc.displayGuiScreen(new VoxelCoreConfigScreen(null));
+            if (mc.currentScreen == null) mc.displayGuiScreen(new MinefadeSettingsScreen(null));
         }
         while (TOGGLE_OVERLAY.isPressed()) {
             ModConfig.setOverlayEnabled(!ModConfig.SHOW_OVERLAY);
