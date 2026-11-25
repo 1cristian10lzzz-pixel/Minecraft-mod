@@ -1,15 +1,9 @@
-VoxelCore 0.2.0 build status
+Minefade Mod 0.3.0 build status
 
-Source/resource preparation: completed.
-JSON, texture-reference, PNG-dimension, and localization validation: passed with tools/validate_assets.py.
-Forge compilation: NOT RUN successfully in the creation environment.
+Source and GUI work: prepared.
+Resource validation: passed with tools/validate_assets.py.
+Forge compilation: not confirmed in the creation environment.
 
-Reason: Minecraft Forge 1.12.2 / ForgeGradle 2.3 requires a Java 8 toolchain for this legacy build. The available runtime is OpenJDK 21, Gradle is not installed, and external dependency downloads are unavailable in this environment. The build script correctly refuses to run under the wrong Java version.
+The creation environment has OpenJDK 21 but does not have the legacy Java 8 + ForgeGradle 2.3 toolchain or Gradle 4.10.3. The repository root has a GitHub Actions workflow configured to install Temurin JDK 8 and Gradle 4.10.3, validate resources, compile the mod and upload minefade-0.3.0.jar as an Actions artifact.
 
-No installable JAR is included. Do not rename this source ZIP to .jar and do not copy it into the Minecraft mods folder.
-
-To build the JAR in a compatible environment:
-1. Install a 64-bit JDK 8.
-2. Install Gradle 4.10.3.
-3. Run ./build.sh (Linux/macOS) or build.bat (Windows).
-4. Install build/libs/voxelcore-0.2.0.jar into .minecraft/mods with Forge 1.12.2.
+Do not rename the source archive to .jar; it is not an installable mod. Install only the compiled JAR emitted by a successful build workflow into .minecraft/mods, alongside Forge 1.12.2.
