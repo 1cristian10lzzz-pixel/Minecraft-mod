@@ -5,14 +5,16 @@ import net.minecraftforge.common.config.Property;
 
 import java.io.File;
 
-/** Central, persistent configuration for VoxelCore. Keep defaults conservative for mod compatibility. */
+/** Central, persistent configuration for Minefade Mod. Keep defaults conservative for mod compatibility. */
 public final class ModConfig {
     private static final String CAT_PERFORMANCE = "performance";
     private static final String CAT_DIAGNOSTICS = "diagnostics";
     private static final String CAT_WORLDGEN = "world_generation";
+    private static final String CAT_INTERFACE = "interface";
 
     private static Configuration configuration;
 
+    public static boolean ENABLE_UI_THEME = true;
     public static boolean SHOW_OVERLAY = true;
     public static boolean SHOW_CHUNK_COUNT = true;
     public static boolean SHOW_MEMORY = true;
@@ -40,8 +42,11 @@ public final class ModConfig {
         if (configuration == null) return;
         configuration.load();
 
+        ENABLE_UI_THEME = configuration.get(CAT_INTERFACE, "enableUiTheme", true,
+                "Apply the Minefade visual theme to vanilla and compatible mod GUI screens.").getBoolean(true);
+
         SHOW_OVERLAY = configuration.get(CAT_DIAGNOSTICS, "showOverlay", true,
-                "Show the VoxelCore performance monitor in the game HUD.").getBoolean(true);
+                "Show the Minefade performance monitor in the game HUD.").getBoolean(true);
         SHOW_CHUNK_COUNT = configuration.get(CAT_DIAGNOSTICS, "showChunkCount", true,
                 "Show the number of chunks currently loaded by the client.").getBoolean(true);
         SHOW_MEMORY = configuration.get(CAT_DIAGNOSTICS, "showMemory", true,
@@ -81,6 +86,7 @@ public final class ModConfig {
     /** Called after Forge's GuiConfig screen has written values into the Configuration object. */
     public static void syncFromGui() {
         if (configuration == null) return;
+        ENABLE_UI_THEME = configuration.get(CAT_INTERFACE, "enableUiTheme", true).getBoolean(true);
         SHOW_OVERLAY = configuration.get(CAT_DIAGNOSTICS, "showOverlay", true).getBoolean(true);
         SHOW_CHUNK_COUNT = configuration.get(CAT_DIAGNOSTICS, "showChunkCount", true).getBoolean(true);
         SHOW_MEMORY = configuration.get(CAT_DIAGNOSTICS, "showMemory", true).getBoolean(true);
@@ -117,6 +123,27 @@ public final class ModConfig {
         Property property = configuration.get(category, key, value);
         property.set(value);
         configuration.save();
+    }
+
+
+    /** Persist every live setting modified by the in-game Minefade control panel. */
+    public static void save() {
+        if (configuration == null) return;
+        configuration.get(CAT_INTERFACE, "enableUiTheme", true).set(ENABLE_UI_THEME);
+        configuration.get(CAT_DIAGNOSTICS, "showOverlay", true).set(SHOW_OVERLAY);
+        configuration.get(CAT_DIAGNOSTICS, "showChunkCount", true).set(SHOW_CHUNK_COUNT);
+        configuration.get(CAT_DIAGNOSTICS, "showMemory", true).set(SHOW_MEMORY);
+        configuration.get(CAT_DIAGNOSTICS, "showEntityCount", true).set(SHOW_ENTITY_COUNT);
+        configuration.get(CAT_DIAGNOSTICS, "showTileEntityCount", false).set(SHOW_TILE_ENTITY_COUNT);
+        configuration.get(CAT_PERFORMANCE, "enableEntityDistanceCulling", false).set(ENABLE_ENTITY_DISTANCE_CULLING);
+        configuration.get(CAT_PERFORMANCE, "entityDistancePercent", 85).set(Math.max(50, Math.min(100, ENTITY_DISTANCE_PERCENT)));
+        configuration.get(CAT_PERFORMANCE, "forceMinimalParticles", false).set(FORCE_MINIMAL_PARTICLES);
+        configuration.get(CAT_WORLDGEN, "generateResoniteOre", true).set(GENERATE_RESONITE_ORE);
+        configuration.get(CAT_WORLDGEN, "oreVeinsPerChunk", 4).set(Math.max(0, Math.min(16, ORE_VEINS_PER_CHUNK)));
+        configuration.get(CAT_WORLDGEN, "oreVeinSize", 5).set(Math.max(1, Math.min(12, ORE_VEIN_SIZE)));
+        configuration.get(CAT_WORLDGEN, "oreMinY", 5).set(Math.max(1, Math.min(254, ORE_MIN_Y)));
+        configuration.get(CAT_WORLDGEN, "oreMaxY", 48).set(Math.max(1, Math.min(255, ORE_MAX_Y)));
+        if (configuration.hasChanged()) configuration.save();
     }
 
     public static Configuration getConfiguration() {
