@@ -6,14 +6,14 @@ La primera entrega importada es **VoxelCore 0.2.0**, base inicial del mod Minefa
 
 ## Código fuente
 
-El archivo `VoxelCore-1.12.2-v0.2.0-source.zip` contiene el proyecto completo de esta versión, incluidos:
+El archivo `MinefadeMod-VoxelCore-0.2.0.tar.gz` contiene el proyecto completo de esta versión: código Java, configuración Forge, recursos, modelos, recetas, traducciones, texturas, scripts de compilación, validador y flujo de GitHub Actions.
 
-- Código Java y configuración de Forge 1.12.2.
-- Recursos, modelos, recetas, traducciones y texturas.
-- Scripts de compilación y validación.
-- Flujo de GitHub Actions para compilar con Java 8.
+Para extraerlo:
+```bash
+tar -xzf MinefadeMod-VoxelCore-0.2.0.tar.gz
+```
 
-Descarga el archivo desde la raíz del repositorio y extrae su carpeta para abrir el proyecto en Gradle.
+En Windows puedes utilizar 7-Zip para extraer el archivo.
 
 ## Compilación
 
