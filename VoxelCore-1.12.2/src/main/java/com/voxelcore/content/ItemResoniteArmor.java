@@ -12,7 +12,7 @@ public class ItemResoniteArmor extends ItemArmor {
     public ItemResoniteArmor(EntityEquipmentSlot slot, String name) {
         super(ModContent.RESONITE_ARMOR_MATERIAL, 0, slot);
         setRegistryName(VoxelCore.MODID, name);
-        setUnlocalizedName(VoxelCore.MODID + "." + name);
+        setTranslationKey(VoxelCore.MODID + "." + name);
         setCreativeTab(ModContent.TAB);
     }
 
