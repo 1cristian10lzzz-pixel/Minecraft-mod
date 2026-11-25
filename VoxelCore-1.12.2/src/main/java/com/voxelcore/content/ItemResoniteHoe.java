@@ -8,7 +8,7 @@ public class ItemResoniteHoe extends ItemHoe {
     public ItemResoniteHoe() {
         super(ModContent.RESONITE_TOOL_MATERIAL);
         setRegistryName(VoxelCore.MODID, "resonite_hoe");
-        setUnlocalizedName(VoxelCore.MODID + ".resonite_hoe");
+        setTranslationKey(VoxelCore.MODID + ".resonite_hoe");
         setCreativeTab(ModContent.TAB);
     }
 }
