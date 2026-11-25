@@ -133,7 +133,7 @@ public class ClientEventHandler {
         int tileCount = mc.world.loadedTileEntityList.size();
 
         java.util.List<String> lines = new java.util.ArrayList<String>();
-        lines.add("§bVoxelCore §7| §fPerformance");
+        lines.add("§bMinefade §7| §fRendimiento");
         lines.add("FPS: " + Minecraft.getDebugFPS() + "  |  " + frame);
 
         if (ModConfig.SHOW_MEMORY) {
