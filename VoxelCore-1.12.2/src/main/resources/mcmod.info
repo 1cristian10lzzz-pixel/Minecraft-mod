@@ -1,14 +1,14 @@
 [
   {
     "modid": "voxelcore",
-    "name": "VoxelCore",
+    "name": "Minefade Mod",
     "description": "A modular performance toolkit and gameplay content mod for Minecraft 1.12.2.",
     "version": "${version}",
     "mcversion": "${mcversion}",
     "url": "",
     "updateUrl": "",
-    "authorList": ["VoxelCore"],
-    "credits": "Built for Minecraft Forge 1.12.2.",
+    "authorList": ["Minefade"],
+    "credits": "Minefade Mod for Minecraft Forge 1.12.2.",
     "logoFile": "",
     "screenshots": [],
     "dependencies": ["required-after:forge"]
