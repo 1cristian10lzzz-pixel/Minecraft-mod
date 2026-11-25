@@ -1,40 +1,29 @@
-# Minefade Mod
+# Minefade Mod — Minecraft Java 1.12.2
 
-Proyecto de mod para **Minecraft Java 1.12.2 + Forge**.
+Current source line: **0.3.0** · Forge 14.23.5.2860
 
-La primera entrega importada es **VoxelCore 0.2.0**, base inicial del mod Minefade: configuración de rendimiento, métricas de cliente, control de partículas, seguimiento de chunks, contenido de resonita y recursos propios.
+Minefade is a modular Minecraft 1.12.2 mod combining performance tools, a unified interface theme and original gameplay content.
 
-## Código fuente
+## Latest source
 
-El proyecto ya está expandido en la carpeta [`VoxelCore-1.12.2/`](./VoxelCore-1.12.2/). También se conserva el paquete original `MinefadeMod-VoxelCore-0.2.0.tar.gz`. El código incluye Java, configuración Forge, recursos, modelos, recetas, traducciones, texturas, scripts de compilación y validador.
+- [Open the complete source project](./VoxelCore-1.12.2/)
+- [Interface redesign and version notes](./VoxelCore-1.12.2/README.md)
+- [Change log](./VoxelCore-1.12.2/CHANGELOG.md)
 
-Para extraerlo:
-```bash
-tar -xzf MinefadeMod-VoxelCore-0.2.0.tar.gz
-```
+The historical mod ID remains voxelcore to preserve existing registry IDs and the configuration filename used by the 0.2.0 source line. The in-game name and interface branding are Minefade Mod.
 
-En Windows puedes utilizar 7-Zip para extraer el archivo.
+## 0.3.0 interface work
 
-## Compilación
+- Shared Minefade styling for ordinary buttons on vanilla and compatible mod screens.
+- Minefade entry points on the main menu, pause menu and Options screen.
+- Responsive in-game control center with Diagnostics, Performance and Content tabs.
+- Persistent global UI theme toggle.
+- Specialized sliders and image controls are left intact to preserve their behavior.
 
-Requisitos: JDK 8 y Gradle 4.10.3.
+## Building the installable JAR
 
-En Windows:
-```bat
-build.bat
-```
+The repository includes a GitHub Actions build that installs JDK 8 and Gradle 4.10.3, validates assets, builds Forge 1.12.2 and uploads the resulting JAR as an Actions artifact.
 
-En Linux/macOS:
-```bash
-./build.sh
-```
+Open the Actions tab and select **Build Minefade Mod 1.12.2**. Install only the compiled JAR from a successful run in .minecraft/mods; source archives are not installable mods.
 
-El artefacto esperado se genera en `build/libs/`.
-
-## Estado de la entrega
-
-Esta importación contiene el **código fuente**, no un JAR precompilado. La compilación debe ejecutarse en un entorno compatible con Java 8 y ForgeGradle 2.3. No se afirma que el JAR haya sido compilado ni probado todavía.
-
-## Objetivo del proyecto
-
-Minefade Mod no será únicamente un optimizador: la arquitectura debe permitir ampliar Minecraft con bloques, objetos, herramientas, armaduras, entidades, recetas, estructuras, mecánicas, interfaces y módulos gráficos, además de las funciones de rendimiento.
+Forge target: Minecraft 1.12.2 · Forge 14.23.5.2860 · Java 8 · ForgeGradle 2.3.
