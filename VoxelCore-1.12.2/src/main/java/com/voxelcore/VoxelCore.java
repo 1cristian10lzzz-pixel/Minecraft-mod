@@ -22,8 +22,8 @@ import com.voxelcore.registry.ModContent;
 )
 public final class VoxelCore {
     public static final String MODID = "voxelcore";
-    public static final String NAME = "VoxelCore";
-    public static final String VERSION = "0.2.0";
+    public static final String NAME = "Minefade Mod";
+    public static final String VERSION = "0.3.0";
 
     @SidedProxy(
             clientSide = "com.voxelcore.proxy.ClientProxy",
@@ -39,7 +39,7 @@ public final class VoxelCore {
     public void preInit(FMLPreInitializationEvent event) {
         ModConfig.init(event.getSuggestedConfigurationFile());
         proxy.preInit();
-        event.getModLog().info("VoxelCore {} initialized for Minecraft 1.12.2", VERSION);
+        event.getModLog().info("Minefade Mod {} initialized for Minecraft 1.12.2", VERSION);
     }
 
     @Mod.EventHandler
