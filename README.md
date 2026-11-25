@@ -1,6 +1,6 @@
 # Minefade Mod — Minecraft Java 1.12.2
 
-Current source line: **0.3.0** · Forge 14.23.5.2860
+Current source line: **0.3.0** · Forge 14.23.5.2847
 
 Minefade is a modular Minecraft 1.12.2 mod combining performance tools, a unified interface theme and original gameplay content.
 
@@ -26,4 +26,4 @@ The repository includes a GitHub Actions build that installs JDK 8 and Gradle 4.
 
 Open the Actions tab and select **Build Minefade Mod 1.12.2**. Install only the compiled JAR from a successful run in .minecraft/mods; source archives are not installable mods.
 
-Forge target: Minecraft 1.12.2 · Forge 14.23.5.2860 · Java 8 · ForgeGradle 2.3.
+Forge target: Minecraft 1.12.2 · Forge 14.23.5.2847 · Java 8 · ForgeGradle 2.3.
