@@ -1,17 +1,17 @@
 # Changelog
 
-## 0.2.0
-- Expanded the performance HUD with smoothed frame time, p95 frame time, memory, entity, tile-entity, chunk, and dimension diagnostics.
-- Made chunk tracking dimension-aware.
-- Added separate hotkeys for the HUD, optional distant-entity rendering cull, and minimal-particle mode.
-- Improved settings synchronization and particle-setting restoration.
-- Added configurable ore generation height range.
-- Added Resonite ingot, lamp, sword, shovel, axe, hoe, and full armor set.
-- Added recipes, furnace smelting registration, localization, item models, and armor textures.
-- Removed an invalid 1.12-era JSON smelting recipe; furnace smelting is now registered through Forge's API.
-- Updated project metadata and build version.
+## 0.3.0 — Minefade UI and settings overhaul
 
-## 0.1.0
-- Initial Forge 1.12.2 project structure.
-- Initial performance overlay and conservative optional settings.
-- Resonite ore, crystal, block, and pickaxe.
+- Added a shared Minefade GUI theme for vanilla screens and compatible mod screens.
+- Re-skinned ordinary buttons while preserving their original IDs, dimensions and action handling.
+- Kept specialized sliders, image buttons and custom controls intact to avoid breaking behavior.
+- Added Minefade access buttons to the main menu, pause menu and Options screen.
+- Added a responsive in-game settings center with diagnostics, performance and content tabs.
+- Added a persistent global UI-theme toggle.
+- Updated branding and language strings for Minefade.
+- Added a root GitHub Actions workflow for Forge 1.12.2 builds and JAR artifacts.
+
+## 0.2.0
+
+- Added chunk/entity/memory diagnostics and configurable optional visual performance controls.
+- Added Resonite gameplay content, tools, armor, recipes and world generation.
