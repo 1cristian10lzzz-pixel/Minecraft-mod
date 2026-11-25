@@ -8,7 +8,7 @@ public class ItemResoniteShovel extends ItemSpade {
     public ItemResoniteShovel() {
         super(ModContent.RESONITE_TOOL_MATERIAL);
         setRegistryName(VoxelCore.MODID, "resonite_shovel");
-        setUnlocalizedName(VoxelCore.MODID + ".resonite_shovel");
+        setTranslationKey(VoxelCore.MODID + ".resonite_shovel");
         setCreativeTab(ModContent.TAB);
     }
 }
