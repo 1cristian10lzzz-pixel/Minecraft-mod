@@ -113,7 +113,7 @@ public final class ModConfig {
         FLAT_GROUND_ITEMS = configuration.get(CAT_ITEMS, "flatGroundItems", true,
                 "Lay dropped item models flat when they rest on the ground.").getBoolean(true);
         MANUAL_ITEM_PICKUP = configuration.get(CAT_ITEMS, "manualPickup", true,
-                "Require right-click to collect dropped items instead of automatic walking pickup.").getBoolean(true);
+                "Add right-click pickup as an extra option; vanilla walk-over pickup remains enabled.").getBoolean(true);
         ENABLE_SPRINT_TOSS = configuration.get(CAT_ITEMS, "sprintToss", true,
                 "Add a forward toss impulse when dropping items while sprinting.").getBoolean(true);
         FLOAT_ITEMS_IN_FLUIDS = configuration.get(CAT_ITEMS, "floatInFluids", true,
