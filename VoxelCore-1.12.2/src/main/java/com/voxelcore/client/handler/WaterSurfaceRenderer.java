@@ -9,7 +9,6 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
-import net.minecraft.init.Blocks;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
@@ -20,7 +19,6 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -60,6 +58,7 @@ public final class WaterSurfaceRenderer {
         int centreY = MathHelper.floor(view.posY);
         int centreZ = MathHelper.floor(view.posZ);
         int radius = Math.min(18, Math.max(8, ModConfig.WATER_EFFECT_RADIUS / 2));
+        if (centreY > 110) radius = Math.max(8, radius - 4);
         int interval = reducedQuality ? 20 : 12;
 
         boolean worldChanged = cachedWorld != world;
