@@ -48,10 +48,14 @@ public final class MinefadePlayerModel extends ModelPlayer {
         bipedLeftLeg.rotateAngleZ -= strafe * 0.010F;
 
         if (player.isInsideOfMaterial(Material.WATER)) {
-            float paddle = (float) Math.sin(phase * 0.62F) * 0.075F;
+            float swimPhase = phase * 0.62F;
+            float paddle = (float) Math.sin(swimPhase) * 0.085F;
+            float kick = (float) Math.sin(swimPhase + Math.PI * 0.5D) * 0.11F;
             bipedRightArm.rotateAngleX += paddle;
             bipedLeftArm.rotateAngleX -= paddle;
-            bipedBody.rotateAngleX -= 0.025F;
+            bipedRightLeg.rotateAngleX += kick;
+            bipedLeftLeg.rotateAngleX -= kick;
+            bipedBody.rotateAngleX -= 0.035F;
         }
 
         if (player.isElytraFlying()) {
