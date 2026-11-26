@@ -8,7 +8,7 @@ Minefade adds a shared interface theme, performance diagnostics, Resonite conten
 
 - **Player animation:** a small additive animation layer runs after vanilla calculates the base pose. Default and slim player models, armour layers and vanilla hitboxes are retained.
 - **Dropped items:** one smaller baked model represents each dropped stack on the ground. The renderer binds Minecraft's item atlas and keeps the vanilla ground camera transform.
-- **Pickup reliability:** a server-side proximity recovery calls the vanilla dropped-item pickup method; inventory capacity, pickup delay and server authority remain handled by Minecraft.
+- **Pickup reliability:** a server-side proximity recovery calls the vanilla dropped-item pickup method, with an optional additional right-click path; inventory capacity, pickup delay and server authority remain handled by Minecraft.
 - **Water:** cached local surface lookups run less often, ripples use smoother rings, and optional effects continue to adapt when FPS is low. Vanilla water blocks and fluid simulation are unchanged.
 - **Performance:** optional dropped-item culling remains disabled by default; fluid buoyancy checks are throttled and the vanilla chunk renderer is untouched.
 - **Assets:** existing PNG textures and icons are preserved exactly. No new images or third-party resource-pack textures are included.
