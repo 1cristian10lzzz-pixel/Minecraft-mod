@@ -12,7 +12,6 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.event.entity.item.ItemTossEvent;
-import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -22,13 +21,6 @@ import java.util.List;
 /** Server-authoritative dropped-item behaviour implemented with original Minefade code. */
 public final class DroppedItemPhysicsHandler {
     private int tickCounter;
-
-    @SubscribeEvent
-    public void onAutomaticPickup(EntityItemPickupEvent event) {
-        if (ModConfig.ENABLE_REALISTIC_ITEM_PHYSICS && ModConfig.MANUAL_ITEM_PICKUP) {
-            event.setCanceled(true);
-        }
-    }
 
     @SubscribeEvent
     public void onManualPickup(PlayerInteractEvent.EntityInteract event) {
