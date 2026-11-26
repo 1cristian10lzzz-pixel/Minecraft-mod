@@ -105,11 +105,21 @@ public final class DroppedItemPhysicsHandler {
 
             Material fluid = getFluidAtItem(item);
             if (fluid == null) continue;
-            double drag = fluid == Material.LAVA ? 0.76D : 0.88D;
+            double drag = fluid == Material.LAVA ? 0.80D : 0.91D;
             item.motionX *= drag;
             item.motionZ *= drag;
-            double lift = fluid == Material.LAVA ? 0.055D : 0.032D;
-            item.motionY = Math.max(-0.015D, Math.min(0.075D, item.motionY * 0.35D + lift));
+
+            BlockPos fluidPos = new BlockPos(item.posX, item.posY, item.posZ);
+            boolean atSurface = item.world.getBlockState(fluidPos.up()).getMaterial() != fluid;
+            double lift = fluid == Material.LAVA ? 0.026D : 0.012D;
+            if (atSurface) {
+                // Dampen vertical movement near the air/fluid boundary to prevent bobbing jitter.
+                item.motionY = Math.max(-0.025D, Math.min(0.025D,
+                        item.motionY * 0.24D + lift * 0.20D));
+            } else {
+                item.motionY = Math.max(-0.035D, Math.min(0.045D,
+                        item.motionY * 0.58D + lift));
+            }
             item.velocityChanged = true;
         }
     }
