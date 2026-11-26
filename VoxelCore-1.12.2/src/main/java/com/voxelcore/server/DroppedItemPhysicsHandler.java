@@ -18,16 +18,21 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.List;
 
-/** Server-authoritative dropped-item behaviour implemented with original Minefade code. */
+/** Server-authoritative dropped-item behaviour using vanilla inventory collision logic. */
 public final class DroppedItemPhysicsHandler {
     private int tickCounter;
 
+    /**
+     * Optional right-click fallback. Vanilla's normal walk-over pickup remains enabled;
+     * this path only supplements it and still checks the real inventory capacity.
+     */
     @SubscribeEvent
     public void onManualPickup(PlayerInteractEvent.EntityInteract event) {
         if (!ModConfig.ENABLE_REALISTIC_ITEM_PHYSICS || !ModConfig.MANUAL_ITEM_PICKUP
                 || event.getWorld().isRemote || !(event.getTarget() instanceof EntityItem)) return;
         EntityPlayer player = event.getEntityPlayer();
         if (player == null || event.getHand() != EnumHand.MAIN_HAND) return;
+
         EntityItem dropped = (EntityItem) event.getTarget();
         if (dropped.isDead || dropped.cannotPickup()) return;
 
@@ -48,12 +53,33 @@ public final class DroppedItemPhysicsHandler {
         event.setCanceled(true);
     }
 
+    /**
+     * Small server-side recovery check around each player. It delegates to the
+     * vanilla EntityItem callback instead of duplicating stack transfer rules.
+     */
+    @SubscribeEvent
+    public void onPlayerTick(TickEvent.PlayerTickEvent event) {
+        if (event.phase != TickEvent.Phase.END || event.player == null) return;
+        EntityPlayer player = event.player;
+        if (player.world.isRemote || player.isSpectator()
+                || !ModConfig.ENABLE_REALISTIC_ITEM_PHYSICS || ModConfig.MANUAL_ITEM_PICKUP) return;
+
+        List<EntityItem> nearby = player.world.getEntitiesWithinAABB(
+                EntityItem.class, player.getEntityBoundingBox().grow(0.12D, 0.10D, 0.12D));
+        for (EntityItem item : nearby) {
+            if (item != null && !item.isDead && !item.getItem().isEmpty()) {
+                item.onCollideWithPlayer(player);
+            }
+        }
+    }
+
     @SubscribeEvent
     public void onSprintToss(ItemTossEvent event) {
         if (!ModConfig.ENABLE_REALISTIC_ITEM_PHYSICS || !ModConfig.ENABLE_SPRINT_TOSS) return;
         EntityPlayer player = event.getPlayer();
         EntityItem dropped = event.getEntityItem();
         if (player == null || dropped == null || !player.isSprinting()) return;
+
         Vec3d look = player.getLookVec();
         double impulse = ModConfig.ITEM_TOSS_STRENGTH / 100.0D;
         dropped.motionX = dropped.motionX * 0.35D + look.x * impulse + player.motionX * 0.35D;
@@ -67,13 +93,16 @@ public final class DroppedItemPhysicsHandler {
     public void onWorldTick(TickEvent.WorldTickEvent event) {
         if (event.phase != TickEvent.Phase.END || event.world.isRemote
                 || !ModConfig.ENABLE_REALISTIC_ITEM_PHYSICS || !ModConfig.FLOAT_ITEMS_IN_FLUIDS) return;
-        if (++tickCounter % 3 != 0) return;
+        // Fluid buoyancy is cosmetic; do not scan every loaded entity every single tick.
+        if (++tickCounter % 5 != 0) return;
+
         List<Entity> entities = event.world.loadedEntityList;
         for (int i = 0, count = entities.size(); i < count; i++) {
             Entity entity = entities.get(i);
             if (!(entity instanceof EntityItem) || entity.isDead) continue;
             EntityItem item = (EntityItem) entity;
             if (item.getItem().isEmpty()) continue;
+
             Material fluid = getFluidAtItem(item);
             if (fluid == null) continue;
             double drag = fluid == Material.LAVA ? 0.76D : 0.88D;
