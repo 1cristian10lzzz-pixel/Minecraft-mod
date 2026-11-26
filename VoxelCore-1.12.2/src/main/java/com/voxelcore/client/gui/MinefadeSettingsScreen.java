@@ -77,7 +77,8 @@ public class MinefadeSettingsScreen extends GuiScreen {
             addAdjust(0, right, y, colWidth, "Distancia de criaturas: " + ModConfig.ENTITY_DISTANCE_PERCENT + "%");
             addToggle(1, left, y + rowGap, colWidth, "Partículas mínimas", ModConfig.FORCE_MINIMAL_PARTICLES);
             addToggle(2, left, y + rowGap * 2, colWidth, "Ocultar objetos lejanos", ModConfig.ENABLE_ITEM_DISTANCE_CULLING);
-            addAdjust(1, right, y + rowGap * 2, colWidth, "Radio objetos: " + ModConfig.ITEM_RENDER_RADIUS);
+            addToggle(3, right, y + rowGap * 2, colWidth, "Animaciones naturales", ModConfig.ENABLE_PLAYER_ANIMATIONS);
+            addAdjust(1, right, y + rowGap * 3, colWidth, "Radio objetos: " + ModConfig.ITEM_RENDER_RADIUS);
         } else if (tab == TAB_WATER) {
             addToggle(0, left, y, colWidth, "Efectos de agua Minefade", ModConfig.ENABLE_WATER_EFFECTS);
             addToggle(1, right, y, colWidth, "Ondas y estelas", ModConfig.ENABLE_WATER_RIPPLES);
@@ -98,7 +99,7 @@ public class MinefadeSettingsScreen extends GuiScreen {
         } else {
             addToggle(0, left, y, colWidth, "Física realista de objetos", ModConfig.ENABLE_REALISTIC_ITEM_PHYSICS);
             addToggle(1, right, y, colWidth, "Objetos tumbados", ModConfig.FLAT_GROUND_ITEMS);
-            addToggle(2, left, y + rowGap, colWidth, "Recoger con clic derecho", ModConfig.MANUAL_ITEM_PICKUP);
+            addToggle(2, left, y + rowGap, colWidth, "Recoger también con clic derecho", ModConfig.MANUAL_ITEM_PICKUP);
             addToggle(3, right, y + rowGap, colWidth, "Lanzar al correr", ModConfig.ENABLE_SPRINT_TOSS);
             addToggle(4, left, y + rowGap * 2, colWidth, "Flotar en agua y lava", ModConfig.FLOAT_ITEMS_IN_FLUIDS);
             addAdjust(0, right, y + rowGap * 2, colWidth, "Fuerza de lanzamiento: " + ModConfig.ITEM_TOSS_STRENGTH + "%");
@@ -146,6 +147,8 @@ public class MinefadeSettingsScreen extends GuiScreen {
             ModConfig.FORCE_MINIMAL_PARTICLES = !ModConfig.FORCE_MINIMAL_PARTICLES;
         } else if (tab == TAB_PERFORMANCE && button.id == ID_TOGGLE_BASE + 2) {
             ModConfig.ENABLE_ITEM_DISTANCE_CULLING = !ModConfig.ENABLE_ITEM_DISTANCE_CULLING;
+        } else if (tab == TAB_PERFORMANCE && button.id == ID_TOGGLE_BASE + 3) {
+            ModConfig.ENABLE_PLAYER_ANIMATIONS = !ModConfig.ENABLE_PLAYER_ANIMATIONS;
         } else if (tab == TAB_PERFORMANCE && button.id == ID_ADJUST_BASE) {
             ModConfig.ENTITY_DISTANCE_PERCENT = ModConfig.ENTITY_DISTANCE_PERCENT >= 100 ? 50 : ModConfig.ENTITY_DISTANCE_PERCENT + 10;
         } else if (tab == TAB_PERFORMANCE && button.id == ID_ADJUST_BASE + 1) {
