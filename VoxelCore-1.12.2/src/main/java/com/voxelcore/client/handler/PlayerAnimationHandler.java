@@ -10,8 +10,10 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Lightweight additive player animation layer inspired by Mo' Bends.
@@ -20,7 +22,8 @@ import java.util.Map;
  */
 @SideOnly(Side.CLIENT)
 public final class PlayerAnimationHandler {
-    private final Map<ModelBiped, float[]> originalAngles = new IdentityHashMap<ModelBiped, float[]>();
+    private final Map<ModelBiped, float[]> angleBuffers = new IdentityHashMap<ModelBiped, float[]>();
+    private final Set<ModelBiped> activeModels = Collections.newSetFromMap(new IdentityHashMap<ModelBiped, Boolean>());
 
     @SubscribeEvent
     public void onPlayerRenderPre(RenderPlayerEvent.Pre event) {
@@ -31,9 +34,15 @@ public final class PlayerAnimationHandler {
         if (player.isRiding() || player.isPlayerSleeping()) return;
 
         ModelBiped model = (ModelBiped) renderer.getMainModel();
-        if (model == null || originalAngles.containsKey(model)) return;
+        if (model == null || activeModels.contains(model)) return;
 
-        originalAngles.put(model, capture(model));
+        float[] angles = angleBuffers.get(model);
+        if (angles == null) {
+            angles = new float[18];
+            angleBuffers.put(model, angles);
+        }
+        capture(model, angles);
+        activeModels.add(model);
         float walk = clamp(player.limbSwingAmount, 0.0F, 1.0F);
         float phase = player.limbSwing;
         float speed = (float) Math.sqrt(player.motionX * player.motionX + player.motionZ * player.motionZ);
@@ -86,26 +95,27 @@ public final class PlayerAnimationHandler {
             return;
         }
         ModelBiped model = (ModelBiped) event.getRenderer().getMainModel();
-        float[] angles = originalAngles.remove(model);
-        if (angles != null) restore(model, angles);
+        if (activeModels.remove(model)) {
+            float[] angles = angleBuffers.get(model);
+            if (angles != null) restore(model, angles);
+        }
     }
 
     private void restoreAll() {
-        for (Map.Entry<ModelBiped, float[]> entry : originalAngles.entrySet()) {
-            restore(entry.getKey(), entry.getValue());
+        for (ModelBiped model : activeModels) {
+            float[] angles = angleBuffers.get(model);
+            if (angles != null) restore(model, angles);
         }
-        originalAngles.clear();
+        activeModels.clear();
     }
 
-    private static float[] capture(ModelBiped m) {
-        return new float[] {
-                m.bipedHead.rotateAngleX, m.bipedHead.rotateAngleY, m.bipedHead.rotateAngleZ,
-                m.bipedBody.rotateAngleX, m.bipedBody.rotateAngleY, m.bipedBody.rotateAngleZ,
-                m.bipedRightArm.rotateAngleX, m.bipedRightArm.rotateAngleY, m.bipedRightArm.rotateAngleZ,
-                m.bipedLeftArm.rotateAngleX, m.bipedLeftArm.rotateAngleY, m.bipedLeftArm.rotateAngleZ,
-                m.bipedRightLeg.rotateAngleX, m.bipedRightLeg.rotateAngleY, m.bipedRightLeg.rotateAngleZ,
-                m.bipedLeftLeg.rotateAngleX, m.bipedLeftLeg.rotateAngleY, m.bipedLeftLeg.rotateAngleZ
-        };
+    private static void capture(ModelBiped m, float[] a) {
+        a[0]=m.bipedHead.rotateAngleX; a[1]=m.bipedHead.rotateAngleY; a[2]=m.bipedHead.rotateAngleZ;
+        a[3]=m.bipedBody.rotateAngleX; a[4]=m.bipedBody.rotateAngleY; a[5]=m.bipedBody.rotateAngleZ;
+        a[6]=m.bipedRightArm.rotateAngleX; a[7]=m.bipedRightArm.rotateAngleY; a[8]=m.bipedRightArm.rotateAngleZ;
+        a[9]=m.bipedLeftArm.rotateAngleX; a[10]=m.bipedLeftArm.rotateAngleY; a[11]=m.bipedLeftArm.rotateAngleZ;
+        a[12]=m.bipedRightLeg.rotateAngleX; a[13]=m.bipedRightLeg.rotateAngleY; a[14]=m.bipedRightLeg.rotateAngleZ;
+        a[15]=m.bipedLeftLeg.rotateAngleX; a[16]=m.bipedLeftLeg.rotateAngleY; a[17]=m.bipedLeftLeg.rotateAngleZ;
     }
 
     private static void restore(ModelBiped m, float[] a) {
