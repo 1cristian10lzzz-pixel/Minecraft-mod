@@ -62,42 +62,43 @@ public final class MinefadeDroppedItemRenderer extends RenderEntityItem {
 
         ItemStack stack = entity.getItem();
         if (stack.isEmpty()) return;
-        Item item = stack.getItem();
-        random.setSeed((long) (Item.getIdFromItem(item) + stack.getMetadata()));
 
+        random.setSeed((long) (Item.getIdFromItem(stack.getItem()) + stack.getMetadata()));
         GlStateManager.enableRescaleNormal();
         GlStateManager.alphaFunc(516, 0.1F);
         GlStateManager.enableBlend();
         RenderHelper.enableStandardItemLighting();
         GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
         GlStateManager.pushMatrix();
+        try {
+            IBakedModel model = itemRenderer.getItemModelWithOverrides(stack, entity.world, (EntityLivingBase) null);
+            int count = getStackRenderCount(stack);
+            boolean is3d = model.isGui3d();
+            float stableYaw = (entity.getEntityId() * 37.0F) % 360.0F;
 
-        IBakedModel model = itemRenderer.getItemModelWithOverrides(stack, entity.world, (EntityLivingBase) null);
-        int count = getStackRenderCount(stack);
-        boolean is3d = model.isGui3d();
-        float stableYaw = (entity.getEntityId() * 37.0F) % 360.0F;
+            // The baked GROUND transform already handles the item's orientation.
+            // Avoid the old extra 90-degree rotation and shrink drops consistently.
+            GlStateManager.translate((float) x, (float) y + 0.012F, (float) z);
+            GlStateManager.rotate(stableYaw, 0.0F, 1.0F, 0.0F);
+            GlStateManager.scale(0.72F, 0.72F, 0.72F);
 
-        // Flat items sit close to the ground and receive a stable random-looking yaw.
-        GlStateManager.translate((float) x, (float) y + 0.025F, (float) z);
-        GlStateManager.rotate(stableYaw, 0.0F, 1.0F, 0.0F);
-        GlStateManager.rotate(90.0F, 1.0F, 0.0F, 0.0F);
-
-        for (int i = 0; i < count; i++) {
-            GlStateManager.pushMatrix();
-            if (i > 0) {
-                float spread = is3d ? 0.12F : 0.07F;
-                GlStateManager.translate((random.nextFloat() * 2.0F - 1.0F) * spread,
-                        (random.nextFloat() * 2.0F - 1.0F) * spread * 0.2F,
-                        (random.nextFloat() * 2.0F - 1.0F) * spread);
+            for (int i = 0; i < count; i++) {
+                GlStateManager.pushMatrix();
+                if (i > 0) {
+                    float spread = is3d ? 0.055F : 0.035F;
+                    GlStateManager.translate((random.nextFloat() * 2.0F - 1.0F) * spread,
+                            random.nextFloat() * 0.006F,
+                            (random.nextFloat() * 2.0F - 1.0F) * spread);
+                }
+                model.getItemCameraTransforms().applyTransform(ItemCameraTransforms.TransformType.GROUND);
+                itemRenderer.renderItem(stack, model);
+                GlStateManager.popMatrix();
             }
-            model.getItemCameraTransforms().applyTransform(ItemCameraTransforms.TransformType.GROUND);
-            itemRenderer.renderItem(stack, model);
+        } finally {
             GlStateManager.popMatrix();
+            GlStateManager.disableRescaleNormal();
+            GlStateManager.disableBlend();
         }
-
-        GlStateManager.popMatrix();
-        GlStateManager.disableRescaleNormal();
-        GlStateManager.disableBlend();
         super.doRenderShadowAndFire(entity, x, y, z, entityYaw, partialTicks);
     }
 
