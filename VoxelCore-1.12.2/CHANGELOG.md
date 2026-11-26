@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.8.0 — Agua realista y mejoras del motor visual
+
+- Replaces the old expanding-ring-only water effect with a batched procedural surface mesh over exposed water blocks.
+- Adds gentle continuously animated surface displacement, biome/depth colour absorption, a view-dependent sky-reflection approximation, directional specular highlights and shoreline foam.
+- Adds underwater colour absorption and distance fog, plus rising bubbles, entry splashes, wakes and waterfall mist.
+- Removes the old ring renderer; splashes and wakes remain local secondary effects rather than pretending to be the water surface.
+- Smooths dropped-item buoyancy near the water/lava surface and adds leg kicks to the existing swimming animation.
+- Keeps vanilla water blocks, flow, collision, source/flowing levels, chunk meshing and server simulation intact.
+- Makes no interface changes and creates, edits or adds no images or textures.
+
+
 ## 0.7.1 — Animaciones, recogida y rendimiento visual
 
 - Installs an additive player model before vanilla calculates its pose; preserves default/slim skin geometry and armour overlays. Models are cached per renderer to avoid per-frame allocation.
