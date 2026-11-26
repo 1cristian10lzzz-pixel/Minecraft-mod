@@ -1,31 +1,27 @@
 # Minefade Mod — Minecraft Java 1.12.2
 
-Current source line: **0.7.1** · Forge 14.23.5.2847
+Current source line: **0.8.0** · Forge 14.23.5.2847
 
-Minefade adds a shared interface theme, performance diagnostics, Resonite content, client-side water effects, natural player animation and improved dropped-item handling.
+Minefade focuses on the legacy client rendering path, water appearance, player animation, dropped items, performance diagnostics and Resonite content.
 
-## Minefade Mod 0.7.1
+## Minefade Mod 0.8.0
 
-- **Player animation:** subtle secondary motion is applied after Minecraft calculates its standard pose. Default and slim skins and their overlays are preserved. The model is cached per renderer to avoid allocation every frame.
-- **Dropped items:** one smaller baked model represents each stack on the floor. The vanilla item atlas is explicitly bound and the original GROUND transform is retained.
-- **Pickup reliability:** a server-side fallback delegates to Minecraft's own EntityItem pickup method, retaining inventory capacity and pickup-delay rules.
-- **Water:** surface checks run less often; smooth ripple rings and adaptive quality remain client-side. Vanilla water blocks and simulation are unchanged.
-- **Performance:** optional entity culling remains configurable; liquid buoyancy processing is throttled; the vanilla chunk renderer is untouched.
-- **Assets:** all existing PNG textures and icons are preserved. No new or modified images are included.
+- **Realistic water surface:** the old ring-only effect is removed. Exposed water surfaces are covered by a custom procedural mesh with small continuous height changes, biome/depth colour absorption, view-angle sky reflection approximation, specular highlights and shoreline foam.
+- **Underwater presentation:** deeper red/green light absorption, custom fog distance and rising air bubbles. Entry splashes, wakes and waterfall mist remain as small local effects.
+- **Preserved fluid simulation:** Minecraft's water blocks, levels, flow, collision, source/flowing states and server simulation are not replaced. The mod changes the client-side appearance and fog only.
+- **Performance:** surface positions are cached and rebuilt periodically; the mesh is batched; adaptive quality lowers surface detail when FPS remains low.
+- **Dropped items:** fluid buoyancy is damped near the surface to reduce bobbing jitter while retaining existing server-side pickup rules.
+- **Player animation:** adds alternating leg kicks while swimming to the existing additive player animation.
+- **Assets and interfaces:** all existing PNGs are kept untouched. No images/textures were created, modified or added. No GUI or interface files were changed.
 
-Mo' Bends, Realistica and Realistic Finite Fluids are references only; no external mod code or resource-pack textures are bundled.
+## Water rendering limits
+
+The new surface uses procedural geometry and a sky-colour/specular approximation. It is a substantial change from the flat vanilla top-face appearance, but it is not full screen-space reflection, physically accurate refraction or a new finite-water simulation. A fully reflective shader path would require deeper framebuffer/chunk-renderer integration and has higher compatibility risk on Forge 1.12.2.
 
 ## Build status
 
-**Forge compilation and asset validation passed:** [GitHub Actions run #53](https://github.com/1cristian10lzzz-pixel/Minecraft-mod/actions/runs/45838678259).
-
-- JAR: `Minefade-Mod-0.7.1-Forge-1.12.2.jar`
-- Size: 101,998 bytes
-- SHA-256: `949ab73eae7c68f374f14d32a2926dc0335a2bfaf691fa48249f928493f675ed`
-- Artifact: `minefade-mod-minecraft-1.12.2-v0.7.1` (ID 15126578103)
-
-The JAR passed archive/CRC and metadata checks and contains the new classes. Actual Minecraft client and dedicated/LAN runtime tests have not been performed in this environment.
+The 0.8.0 asset validation and ForgeGradle build are pending. Runtime tests inside a real Minecraft client and dedicated/LAN server are separate from compilation.
 
 ## Install
 
-Copy `Minefade-Mod-0.7.1-Forge-1.12.2.jar` into `.minecraft/mods` with Minecraft Java 1.12.2 and Forge 14.23.5.2847. The internal mod ID remains `voxelcore`.
+Copy the finished `Minefade-Mod-0.8.0-Forge-1.12.2.jar` into `.minecraft/mods` with Minecraft Java 1.12.2 and Forge 14.23.5.2847. The internal mod ID remains `voxelcore`.
