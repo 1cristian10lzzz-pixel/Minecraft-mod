@@ -39,7 +39,7 @@ public class WaterEffectsHandler {
     private static final int MAX_RIPPLES = 24;
     private static final int NORMAL_RIPPLE_LIMIT = 20;
     private static final int LOW_RIPPLE_LIMIT = 9;
-    private static final int NORMAL_RING_SEGMENTS = 32;
+    private static final int NORMAL_RING_SEGMENTS = 40;
     private static final int LOW_RING_SEGMENTS = 20;
     private static final List<Ripple> RIPPLES = new ArrayList<Ripple>();
     private static final Random RANDOM = new Random();
@@ -81,13 +81,13 @@ public class WaterEffectsHandler {
         tickCounter++;
         updateAdaptiveQuality();
 
-        int scanInterval = reducedQuality ? 6 : 3;
+        int scanInterval = reducedQuality ? 8 : 4;
         boolean movedToAnotherArea = cachedSurface == null
                 || Math.abs(player.posX - cachedSurface.getX()) > 5.0D
                 || Math.abs(player.posZ - cachedSurface.getZ()) > 5.0D
                 || Math.abs(player.posY - cachedSurface.getY()) > 5.0D;
         if (movedToAnotherArea || tickCounter - lastSurfaceScanTick >= scanInterval) {
-            cachedSurface = findNearbyWaterSurface(world, player.posX, player.posY, player.posZ, 3);
+            cachedSurface = findNearbyWaterSurface(world, player.posX, player.posY, player.posZ, 2);
             lastSurfaceScanTick = tickCounter;
         }
 
@@ -318,10 +318,10 @@ public class WaterEffectsHandler {
 
                 float progress = (ripple.age + event.getPartialTicks()) / (float) ripple.maxAge;
                 float fade = Math.max(0.0F, 1.0F - progress);
-                float alpha = fade * strength * 0.52F;
+                float alpha = fade * strength * 0.58F;
                 if (alpha < 0.015F) continue;
 
-                double radius = (0.22D + progress * 2.4D) * ripple.scale;
+                double radius = (0.22D + progress * 2.55D) * ripple.scale;
                 int a = MathHelper.clamp((int) (alpha * 255.0F), 0, 255);
                 appendRing(buffer, ripple.x, ripple.y, ripple.z, radius, a, segments, 110, 204, 236);
                 appendRing(buffer, ripple.x, ripple.y + 0.001D, ripple.z, radius * 0.58D,
