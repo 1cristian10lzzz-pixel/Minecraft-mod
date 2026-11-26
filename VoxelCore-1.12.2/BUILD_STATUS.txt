@@ -1,21 +1,29 @@
 Minefade Mod 0.7.1 build status
 
-Source branch: minefade-0.7.1-pickup-animation-water
-Minecraft: Java 1.12.2
-Forge: 14.23.5.2847
-Toolchain: JDK 8, Gradle 4.10.3, ForgeGradle 2.3.
-Resource validation: PENDING.
-Forge compilation: PENDING.
-JAR artifact: PENDING.
-Runtime inside an actual Minecraft client or dedicated/LAN server: NOT TESTED.
+Forge compilation: PASSED.
+GitHub Actions run: #53
+Run ID: 45838678259
+Run URL: https://github.com/1cristian10lzzz-pixel/Minecraft-mod/actions/runs/45838678259
+Build commit: f215437f1e8927493f90b9a57feaa853fb9d683f
+Toolchain: Minecraft 1.12.2 / Forge 14.23.5.2847, JDK 8, Gradle 4.10.3, ForgeGradle 2.3.
+Resource validation: PASSED with tools/validate_assets.py.
+JAR artifact: minefade-0.7.1.jar (101,998 bytes).
+GitHub Actions artifact name: minefade-mod-minecraft-1.12.2-v0.7.1
+GitHub Actions artifact ID: 15126578103 (30-day retention).
+JAR SHA-256: 949ab73eae7c68f374f14d32a2926dc0335a2bfaf691fa48249f928493f675ed
+Artifact ZIP SHA-256: 03eaa561aa4658ddc8362f2698dda068c4b71aad7e27af0fddaf6f347e2b1e74
+
+The GitHub Actions artifact ZIP and extracted JAR passed ZIP/CRC integrity checks. The JAR contains the expected main mod, PlayerAnimationHandler, MinefadePlayerModel, DroppedItemPhysicsHandler, MinefadeDroppedItemRenderer and WaterEffectsHandler. Manifest and mcmod.info report version 0.7.1; mcmod.info confirms modid "voxelcore" and Minecraft 1.12.2.
 
 0.7.1 changes:
-- Player animation model installed before vanilla pose calculation; subtle secondary motion is applied afterwards. Default/slim skin geometry and overlay parts are retained.
-- Ground item renderer explicitly binds Minecraft's block atlas, draws one reduced-size baked model per dropped stack, and retains the model's GROUND transform.
-- Server-side pickup recovery calls EntityItem.onCollideWithPlayer so Minecraft still enforces pickup delay, inventory capacity and item transfer.
-- Nearby water surface checks have a shorter radius and interval; ripple lines use 40 segments in normal quality and keep the low-FPS fallback.
-- Liquid buoyancy scans are throttled to every fifth world tick.
-- Existing PNG assets are unchanged; no images were created, edited or added.
-- The internal mod ID remains "voxelcore"; Minecraft/Forge versions, item IDs and block IDs are unchanged.
+- Installs the player animation model before vanilla pose calculation and caches it per renderer to avoid per-frame allocation. Default/slim skin geometry and overlays are preserved.
+- Ground item rendering binds Minecraft's item atlas, uses one reduced-size baked model per dropped stack and retains the model's GROUND transform.
+- Adds a server-side proximity recovery that delegates to EntityItem.onCollideWithPlayer, preserving vanilla pickup delay, inventory capacity and transfer rules.
+- Reduces nearby water surface scan frequency/radius, smooths ripple rings, retains batched drawing and adaptive quality.
+- Throttles optional liquid buoyancy scans.
+- Existing PNG files were not changed; no images were created or added.
+- Preserves internal mod ID "voxelcore", Minecraft/Forge targets, and existing registry IDs.
 
-A passing Forge build and asset validation do not prove actual in-game behaviour. A Minecraft client test and multiplayer/server pickup test are still required.
+Runtime inside an actual Minecraft client, dedicated server or LAN world: NOT TESTED in this environment. Successful compilation and archive checks do not guarantee absence of runtime interaction bugs.
+
+Install: copy Minefade-Mod-0.7.1-Forge-1.12.2.jar into .minecraft/mods with Minecraft Java 1.12.2 and Forge 14.23.5.2847. Internal mod ID remains "voxelcore".
