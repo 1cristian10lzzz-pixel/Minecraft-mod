@@ -1,27 +1,22 @@
-Minefade Mod 0.6.0 build status
+Minefade Mod 0.7.0 build status
 
-Forge compilation: PASSED.
-GitHub Actions run: #47
-Run ID: 45705530398
-Run URL: https://github.com/1cristian10lzzz-pixel/Minecraft-mod/actions/runs/45705530398
-Build commit: 838cdcde479a61143cd7a38cb24d7b780c7904f7
-Toolchain: Minecraft 1.12.2 / Forge 14.23.5.2847, JDK 8, Gradle 4.10.3, ForgeGradle 2.3.
-Resource validation: PASSED with tools/validate_assets.py.
-JAR artifact: minefade-0.6.0.jar (97,424 bytes).
-GitHub Actions artifact name: minefade-mod-minecraft-1.12.2-v0.6.0
-GitHub Actions artifact ID: 15065261525 (30-day retention).
-JAR SHA-256: 67ebad56ddcb7473b8a14a79a0f3dfb8c0224cd300cc6ba6ba2bf7ac5f194212
+Source updates committed to branch: minefade-0.7.0-visual-overhaul
+Minecraft: Java 1.12.2
+Forge: 14.23.5.2847
+Toolchain: JDK 8, Gradle 4.10.3, ForgeGradle 2.3.
+Resource validation: PENDING.
+Forge compilation: PENDING.
+JAR artifact: PENDING.
+Runtime inside an actual Minecraft client or dedicated/LAN server: NOT TESTED.
 
-The artifact ZIP and extracted JAR passed CRC/integrity checks. The JAR contains the expected main mod, DroppedItemPhysicsHandler, MinefadeDroppedItemRenderer, settings/configuration classes, original GUI textures and 32x32 Resonite icons. Manifest and mcmod.info report version 0.6.0; mcmod.info confirms modid "voxelcore" and Minecraft 1.12.2.
+0.7.0 source changes:
+- Player animation model is installed in RenderPlayerEvent.Pre, before vanilla calls setRotationAngles; the subclass adds secondary motion after vanilla calculates the base pose.
+- Slim/default skin arm geometry and skin overlay rotations are preserved.
+- Ground item renderer explicitly binds the vanilla block atlas and draws one smaller baked model per dropped stack to reduce oversized piles and draw calls.
+- Server-side player tick recovery delegates pickup to EntityItem.onCollideWithPlayer, preserving vanilla inventory capacity and pickup rules.
+- Water surface scans run less frequently and search a smaller local area; ripple rings use more segments with adaptive low-FPS reduction.
+- Fluid buoyancy work is throttled to every fifth world tick.
+- Existing texture PNGs are not modified, added or regenerated.
+- Mod ID remains "voxelcore"; Minecraft/Forge target and content registry IDs are unchanged.
 
-0.6.0 changes:
-- Server-authoritative dropped-item pickup, sprint toss, catch interaction and fluid buoyancy/drag.
-- Ground-flat dropped-item rendering using vanilla baked models and lighting.
-- Optional item distance culling, disabled by default.
-- Original 32x32 Resonite item/block icons, leather/aged-metal UI panels and OBJETOS settings tab.
-- Retains 0.5.0 batched water rendering and adaptive water effects.
-- Applies selective Sodium-inspired culling and reduced work without replacing the vanilla chunk renderer.
-
-Runtime inside a real Minecraft client or LAN server: NOT TESTED in this environment. Successful Forge compilation and archive validation do not guarantee in-game compatibility.
-
-Install: copy Minefade-Mod-0.6.0-Forge-1.12.2.jar into .minecraft/mods with Minecraft Java 1.12.2 and Forge 14.23.5.2847. Internal mod ID remains "voxelcore".
+This status file must be updated after GitHub Actions finishes. A passing CI build/asset check validates compilation and archive contents, not actual in-game rendering or pickup behaviour.
