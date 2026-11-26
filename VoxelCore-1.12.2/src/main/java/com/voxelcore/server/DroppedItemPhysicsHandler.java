@@ -62,7 +62,7 @@ public final class DroppedItemPhysicsHandler {
         if (event.phase != TickEvent.Phase.END || event.player == null) return;
         EntityPlayer player = event.player;
         if (player.world.isRemote || player.isSpectator()
-                || !ModConfig.ENABLE_REALISTIC_ITEM_PHYSICS || ModConfig.MANUAL_ITEM_PICKUP) return;
+                || !ModConfig.ENABLE_REALISTIC_ITEM_PHYSICS) return;
 
         List<EntityItem> nearby = player.world.getEntitiesWithinAABB(
                 EntityItem.class, player.getEntityBoundingBox().grow(0.12D, 0.10D, 0.12D));
