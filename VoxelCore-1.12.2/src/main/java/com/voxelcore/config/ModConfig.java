@@ -170,7 +170,8 @@ public final class ModConfig {
         MANUAL_ITEM_PICKUP = configuration.get(CAT_ITEMS, "manualPickup", true).getBoolean(true);
         ENABLE_SPRINT_TOSS = configuration.get(CAT_ITEMS, "sprintToss", true).getBoolean(true);
         FLOAT_ITEMS_IN_FLUIDS = configuration.get(CAT_ITEMS, "floatInFluids", true).getBoolean(true);
-        ITEM_TOSS_STRENGTH = configuration.get(CAT_ITEMS, "tossStrength", 85).getInt(85);\n        ENABLE_PLAYER_ANIMATIONS = configuration.get(CAT_ANIMATION, "enablePlayerAnimations", true).getBoolean(true);
+        ITEM_TOSS_STRENGTH = configuration.get(CAT_ITEMS, "tossStrength", 85).getInt(85);
+        ENABLE_PLAYER_ANIMATIONS = configuration.get(CAT_ANIMATION, "enablePlayerAnimations", true).getBoolean(true);
 
         GENERATE_RESONITE_ORE = configuration.get(CAT_WORLDGEN, "generateResoniteOre", true).getBoolean(true);
         ORE_VEINS_PER_CHUNK = configuration.get(CAT_WORLDGEN, "oreVeinsPerChunk", 4).getInt(4);
@@ -243,7 +244,8 @@ public final class ModConfig {
         configuration.get(CAT_ITEMS, "manualPickup", true).set(MANUAL_ITEM_PICKUP);
         configuration.get(CAT_ITEMS, "sprintToss", true).set(ENABLE_SPRINT_TOSS);
         configuration.get(CAT_ITEMS, "floatInFluids", true).set(FLOAT_ITEMS_IN_FLUIDS);
-        configuration.get(CAT_ITEMS, "tossStrength", 85).set(ITEM_TOSS_STRENGTH);\n        configuration.get(CAT_ANIMATION, "enablePlayerAnimations", true).set(ENABLE_PLAYER_ANIMATIONS);
+        configuration.get(CAT_ITEMS, "tossStrength", 85).set(ITEM_TOSS_STRENGTH);
+        configuration.get(CAT_ANIMATION, "enablePlayerAnimations", true).set(ENABLE_PLAYER_ANIMATIONS);
         configuration.get(CAT_WORLDGEN, "generateResoniteOre", true).set(GENERATE_RESONITE_ORE);
         configuration.get(CAT_WORLDGEN, "oreVeinsPerChunk", 4).set(ORE_VEINS_PER_CHUNK);
         configuration.get(CAT_WORLDGEN, "oreVeinSize", 5).set(ORE_VEIN_SIZE);
