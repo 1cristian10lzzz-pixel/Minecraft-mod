@@ -81,7 +81,7 @@ public final class PlayerAnimationHandler {
             model.bipedBody.rotateAngleY += attack * 0.10F;
             model.bipedRightArm.rotateAngleX -= attack * 0.035F;
         }
-        if (speed < 0.015F && !player.isInWater()) {
+        if (speed < 0.015F && !player.isInsideOfMaterial(Material.WATER)) {
             float idle = (float) Math.sin(player.ticksExisted * 0.08F) * 0.008F;
             model.bipedBody.rotateAngleX += idle;
             model.bipedHead.rotateAngleX += idle * 0.35F;
