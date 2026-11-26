@@ -14,28 +14,24 @@ import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-import java.util.Random;
-
 /**
- * Uses Minecraft's baked item models and lighting, with a separate ground
- * transform so resting drops lie horizontally instead of hovering/spinning.
+ * Ground items use Minecraft's baked models and GROUND transforms. Each dropped
+ * entity is drawn once: stack count no longer creates an oversized pile of copies.
  */
 @SideOnly(Side.CLIENT)
 public final class MinefadeDroppedItemRenderer extends RenderEntityItem {
     private final RenderItem itemRenderer;
-    private final Random random = new Random();
 
     public MinefadeDroppedItemRenderer(RenderManager manager, RenderItem itemRenderer) {
         super(manager, itemRenderer);
         this.itemRenderer = itemRenderer;
-        this.shadowSize = 0.12F;
+        this.shadowSize = 0.10F;
+        this.shadowOpaque = 0.55F;
     }
 
     @Override
@@ -63,7 +59,8 @@ public final class MinefadeDroppedItemRenderer extends RenderEntityItem {
         ItemStack stack = entity.getItem();
         if (stack.isEmpty()) return;
 
-        random.setSeed((long) (Item.getIdFromItem(stack.getItem()) + stack.getMetadata()));
+        // Bind the vanilla block atlas explicitly before drawing baked quads.
+        bindEntityTexture(entity);
         GlStateManager.enableRescaleNormal();
         GlStateManager.alphaFunc(516, 0.1F);
         GlStateManager.enableBlend();
@@ -72,43 +69,24 @@ public final class MinefadeDroppedItemRenderer extends RenderEntityItem {
         GlStateManager.pushMatrix();
         try {
             IBakedModel model = itemRenderer.getItemModelWithOverrides(stack, entity.world, (EntityLivingBase) null);
-            int count = getStackRenderCount(stack);
             boolean is3d = model.isGui3d();
             float stableYaw = (entity.getEntityId() * 37.0F) % 360.0F;
+            float groundScale = is3d ? 0.64F : 0.54F;
 
-            // The baked GROUND transform already handles the item's orientation.
-            // Avoid the old extra 90-degree rotation and shrink drops consistently.
             GlStateManager.translate((float) x, (float) y + 0.012F, (float) z);
             GlStateManager.rotate(stableYaw, 0.0F, 1.0F, 0.0F);
-            GlStateManager.scale(0.72F, 0.72F, 0.72F);
-
-            for (int i = 0; i < count; i++) {
-                GlStateManager.pushMatrix();
-                if (i > 0) {
-                    float spread = is3d ? 0.055F : 0.035F;
-                    GlStateManager.translate((random.nextFloat() * 2.0F - 1.0F) * spread,
-                            random.nextFloat() * 0.006F,
-                            (random.nextFloat() * 2.0F - 1.0F) * spread);
-                }
-                model.getItemCameraTransforms().applyTransform(ItemCameraTransforms.TransformType.GROUND);
-                itemRenderer.renderItem(stack, model);
-                GlStateManager.popMatrix();
-            }
+            GlStateManager.scale(groundScale, groundScale, groundScale);
+            model.getItemCameraTransforms().applyTransform(ItemCameraTransforms.TransformType.GROUND);
+            itemRenderer.renderItem(stack, model);
         } finally {
             GlStateManager.popMatrix();
             GlStateManager.disableRescaleNormal();
             GlStateManager.disableBlend();
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            // Keep the block atlas selected for Minecraft's remaining world renders.
+            Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
         }
         super.doRenderShadowAndFire(entity, x, y, z, entityYaw, partialTicks);
-    }
-
-    private static int getStackRenderCount(ItemStack stack) {
-        int count = stack.getCount();
-        if (count > 48) return 5;
-        if (count > 32) return 4;
-        if (count > 16) return 3;
-        if (count > 1) return 2;
-        return 1;
     }
 
     @Override
