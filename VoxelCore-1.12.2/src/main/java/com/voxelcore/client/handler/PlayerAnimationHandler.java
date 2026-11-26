@@ -4,6 +4,7 @@ import com.voxelcore.config.ModConfig;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.renderer.entity.RenderLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.block.material.Material;
 import net.minecraftforge.client.event.RenderPlayerEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
@@ -51,8 +52,11 @@ public final class PlayerAnimationHandler {
         model.bipedLeftArm.rotateAngleZ += 0.035F * sway + turn * 0.025F;
         model.bipedRightArm.rotateAngleX += -0.035F * bob;
         model.bipedLeftArm.rotateAngleX += 0.035F * bob;
+        model.bipedRightLeg.rotateAngleZ -= turn * 0.012F;
+        model.bipedLeftLeg.rotateAngleZ -= turn * 0.012F;
+        model.bipedHead.rotateAngleY -= turn * 0.012F;
 
-        if (player.isInWater()) {
+        if (player.isInsideOfMaterial(Material.WATER)) {
             float paddle = (float) Math.sin(phase * 0.65F) * 0.10F;
             model.bipedRightArm.rotateAngleX += paddle;
             model.bipedLeftArm.rotateAngleX -= paddle;
