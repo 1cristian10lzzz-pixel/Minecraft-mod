@@ -204,7 +204,7 @@ public class MinefadeSettingsScreen extends GuiScreen {
         if (tab == TAB_DIAGNOSTICS) hint = "Indicadores y aspecto de las pantallas.";
         else if (tab == TAB_PERFORMANCE) hint = "Optimización visual opcional y reversible.";
         else if (tab == TAB_WATER) hint = "Efectos locales; el agua vanilla conserva su física.";
-        else if (tab == TAB_ITEMS) hint = "Objetos tumbados, flotación, lanzamiento y recogida manual.";
+        else if (tab == TAB_ITEMS) hint = "Objetos tumbados, flotación, lanzamiento y opciones de recogida.";
         else hint = "La generación solo afecta a chunks nuevos del mundo.";
         this.fontRenderer.drawString(hint, panelLeft + 14, panelTop + panelHeight - 47, 0xFFB9A78D, false);
 
