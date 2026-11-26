@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.7.0 — Animaciones, objetos y estabilidad visual
+
+- Added a player model animation layer that runs after vanilla pose calculation and preserves default/slim skin geometry and overlay parts.
+- Fixed dropped-item atlas binding and replaced the pile-of-copies ground presentation with one smaller baked model per dropped stack.
+- Added a server-side pickup recovery check that delegates to vanilla EntityItem pickup logic and respects inventory capacity.
+- Reduced the frequency and search radius of nearby water-surface scans, and increased ripple smoothness while retaining adaptive quality and one batched draw.
+- Reduced optional fluid-buoyancy scan frequency to lower server tick overhead.
+- Preserved the vanilla chunk renderer, fluid blocks, item IDs, block IDs, existing PNG textures and internal mod ID `voxelcore`.
+- Based on Mo' Bends / Realistica / Realistic Finite Fluids as references only; no third-party code or textures bundled.
+
+
 ## 0.6.0 — Física de objetos, render y estilo visual
 
 - Added server-authoritative dropped-item handling: right-click pickup, sprint toss, airborne catch interaction and gentle liquid buoyancy/drag.
