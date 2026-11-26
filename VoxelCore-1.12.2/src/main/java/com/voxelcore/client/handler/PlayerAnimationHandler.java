@@ -15,6 +15,9 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.Map;
+import java.util.WeakHashMap;
+
 /**
  * Installs Minefade's additive player model before vanilla calculates its pose.
  * This keeps vanilla movement, skin geometry, armour layers and hitboxes intact.
@@ -23,6 +26,7 @@ import org.apache.logging.log4j.Logger;
 public final class PlayerAnimationHandler {
     private static final Logger LOGGER = LogManager.getLogger("Minefade");
     private static boolean injectionWarningLogged;
+    private static final Map<RenderPlayer, ModelPlayer> MODEL_CACHE = new WeakHashMap<RenderPlayer, ModelPlayer>();
 
     @SubscribeEvent
     public void onPlayerRenderPre(RenderPlayerEvent.Pre event) {
@@ -33,12 +37,18 @@ public final class PlayerAnimationHandler {
         if (player == null || renderer == null || player.isDead) return;
 
         ModelBase current = renderer.getMainModel();
+        // The model is already installed for this renderer: keep reusing it.
+        if (current instanceof MinefadePlayerModel) return;
         // Do not replace a renderer supplied by another mod.
         if (current == null || current.getClass() != ModelPlayer.class) return;
 
         boolean slim = player instanceof AbstractClientPlayer
                 && "slim".equalsIgnoreCase(((AbstractClientPlayer) player).getSkinType());
-        ModelPlayer minefadeModel = new MinefadePlayerModel(0.0F, slim);
+        ModelPlayer minefadeModel = MODEL_CACHE.get(renderer);
+        if (minefadeModel == null) {
+            minefadeModel = new MinefadePlayerModel(0.0F, slim);
+            MODEL_CACHE.put(renderer, minefadeModel);
+        }
 
         try {
             // field_77045_g is RenderLivingBase's stable SRG field name in 1.12.2.
