@@ -2,7 +2,7 @@
 
 ## 0.7.1 — Animaciones, recogida y rendimiento visual
 
-- Installs an additive player model before vanilla calculates its pose; preserves default/slim skin geometry and armour overlays.
+- Installs an additive player model before vanilla calculates its pose; preserves default/slim skin geometry and armour overlays. Models are cached per renderer to avoid per-frame allocation.
 - Binds the vanilla block texture atlas explicitly and displays each dropped stack as one smaller baked model on the ground.
 - Adds a server-side pickup recovery that delegates to vanilla EntityItem collision logic and retains inventory-capacity rules.
 - Reduces nearby water-surface search frequency/radius and smooths ripple rings while retaining adaptive quality and batched drawing.
