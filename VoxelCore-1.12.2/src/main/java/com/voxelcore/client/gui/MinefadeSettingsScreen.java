@@ -76,7 +76,8 @@ public class MinefadeSettingsScreen extends GuiScreen {
             addToggle(0, left, y, colWidth, "Recorte de criaturas lejanas", ModConfig.ENABLE_ENTITY_DISTANCE_CULLING);
             addAdjust(0, right, y, colWidth, "Distancia de criaturas: " + ModConfig.ENTITY_DISTANCE_PERCENT + "%");
             addToggle(1, left, y + rowGap, colWidth, "Partículas mínimas", ModConfig.FORCE_MINIMAL_PARTICLES);
-            addToggle(2, left, y + rowGap * 2, colWidth, "Ocultar objetos lejanos", ModConfig.ENABLE_ITEM_DISTANCE_CULLING);\n            addToggle(3, right, y + rowGap * 2, colWidth, "Animaciones naturales", ModConfig.ENABLE_PLAYER_ANIMATIONS);
+            addToggle(2, left, y + rowGap * 2, colWidth, "Ocultar objetos lejanos", ModConfig.ENABLE_ITEM_DISTANCE_CULLING);
+            addToggle(3, right, y + rowGap * 2, colWidth, "Animaciones naturales", ModConfig.ENABLE_PLAYER_ANIMATIONS);
             addAdjust(1, right, y + rowGap * 2, colWidth, "Radio objetos: " + ModConfig.ITEM_RENDER_RADIUS);
         } else if (tab == TAB_WATER) {
             addToggle(0, left, y, colWidth, "Efectos de agua Minefade", ModConfig.ENABLE_WATER_EFFECTS);
@@ -146,7 +147,9 @@ public class MinefadeSettingsScreen extends GuiScreen {
             ModConfig.FORCE_MINIMAL_PARTICLES = !ModConfig.FORCE_MINIMAL_PARTICLES;
         } else if (tab == TAB_PERFORMANCE && button.id == ID_TOGGLE_BASE + 2) {
             ModConfig.ENABLE_ITEM_DISTANCE_CULLING = !ModConfig.ENABLE_ITEM_DISTANCE_CULLING;
-        } else if (tab == TAB_PERFORMANCE && button.id == ID_TOGGLE_BASE + 3) {\n            ModConfig.ENABLE_PLAYER_ANIMATIONS = !ModConfig.ENABLE_PLAYER_ANIMATIONS;\n        } else if (tab == TAB_PERFORMANCE && button.id == ID_ADJUST_BASE) {
+        } else if (tab == TAB_PERFORMANCE && button.id == ID_TOGGLE_BASE + 3) {
+            ModConfig.ENABLE_PLAYER_ANIMATIONS = !ModConfig.ENABLE_PLAYER_ANIMATIONS;
+        } else if (tab == TAB_PERFORMANCE && button.id == ID_ADJUST_BASE) {
             ModConfig.ENTITY_DISTANCE_PERCENT = ModConfig.ENTITY_DISTANCE_PERCENT >= 100 ? 50 : ModConfig.ENTITY_DISTANCE_PERCENT + 10;
         } else if (tab == TAB_PERFORMANCE && button.id == ID_ADJUST_BASE + 1) {
             ModConfig.ITEM_RENDER_RADIUS = ModConfig.ITEM_RENDER_RADIUS >= 128 ? 16 : ModConfig.ITEM_RENDER_RADIUS + 16;
