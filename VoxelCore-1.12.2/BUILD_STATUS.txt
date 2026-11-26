@@ -1,27 +1,29 @@
-Minefade Mod 0.6.0 build status
+Minefade Mod 0.7.1 build status
 
 Forge compilation: PASSED.
-GitHub Actions run: #47
-Run ID: 45705530398
-Run URL: https://github.com/1cristian10lzzz-pixel/Minecraft-mod/actions/runs/45705530398
-Build commit: 838cdcde479a61143cd7a38cb24d7b780c7904f7
+GitHub Actions run: #53
+Run ID: 45838678259
+Run URL: https://github.com/1cristian10lzzz-pixel/Minecraft-mod/actions/runs/45838678259
+Build commit: f215437f1e8927493f90b9a57feaa853fb9d683f
 Toolchain: Minecraft 1.12.2 / Forge 14.23.5.2847, JDK 8, Gradle 4.10.3, ForgeGradle 2.3.
 Resource validation: PASSED with tools/validate_assets.py.
-JAR artifact: minefade-0.6.0.jar (97,424 bytes).
-GitHub Actions artifact name: minefade-mod-minecraft-1.12.2-v0.6.0
-GitHub Actions artifact ID: 15065261525 (30-day retention).
-JAR SHA-256: 67ebad56ddcb7473b8a14a79a0f3dfb8c0224cd300cc6ba6ba2bf7ac5f194212
+JAR artifact: minefade-0.7.1.jar (101,998 bytes).
+GitHub Actions artifact name: minefade-mod-minecraft-1.12.2-v0.7.1
+GitHub Actions artifact ID: 15126578103 (30-day retention).
+JAR SHA-256: 949ab73eae7c68f374f14d32a2926dc0335a2bfaf691fa48249f928493f675ed
+Artifact ZIP SHA-256: 03eaa561aa4658ddc8362f2698dda068c4b71aad7e27af0fddaf6f347e2b1e74
 
-The artifact ZIP and extracted JAR passed CRC/integrity checks. The JAR contains the expected main mod, DroppedItemPhysicsHandler, MinefadeDroppedItemRenderer, settings/configuration classes, original GUI textures and 32x32 Resonite icons. Manifest and mcmod.info report version 0.6.0; mcmod.info confirms modid "voxelcore" and Minecraft 1.12.2.
+The GitHub Actions artifact ZIP and extracted JAR passed ZIP/CRC integrity checks. The JAR contains the expected main mod, PlayerAnimationHandler, MinefadePlayerModel, DroppedItemPhysicsHandler, MinefadeDroppedItemRenderer and WaterEffectsHandler. Manifest and mcmod.info report version 0.7.1; mcmod.info confirms modid "voxelcore" and Minecraft 1.12.2.
 
-0.6.0 changes:
-- Server-authoritative dropped-item pickup, sprint toss, catch interaction and fluid buoyancy/drag.
-- Ground-flat dropped-item rendering using vanilla baked models and lighting.
-- Optional item distance culling, disabled by default.
-- Original 32x32 Resonite item/block icons, leather/aged-metal UI panels and OBJETOS settings tab.
-- Retains 0.5.0 batched water rendering and adaptive water effects.
-- Applies selective Sodium-inspired culling and reduced work without replacing the vanilla chunk renderer.
+0.7.1 changes:
+- Installs the player animation model before vanilla pose calculation and caches it per renderer to avoid per-frame allocation. Default/slim skin geometry and overlays are preserved.
+- Ground item rendering binds Minecraft's item atlas, uses one reduced-size baked model per dropped stack and retains the model's GROUND transform.
+- Adds a server-side proximity recovery that delegates to EntityItem.onCollideWithPlayer, preserving vanilla pickup delay, inventory capacity and transfer rules.
+- Reduces nearby water surface scan frequency/radius, smooths ripple rings, retains batched drawing and adaptive quality.
+- Throttles optional liquid buoyancy scans.
+- Existing PNG files were not changed; no images were created or added.
+- Preserves internal mod ID "voxelcore", Minecraft/Forge targets, and existing registry IDs.
 
-Runtime inside a real Minecraft client or LAN server: NOT TESTED in this environment. Successful Forge compilation and archive validation do not guarantee in-game compatibility.
+Runtime inside an actual Minecraft client, dedicated server or LAN world: NOT TESTED in this environment. Successful compilation and archive checks do not guarantee absence of runtime interaction bugs.
 
-Install: copy Minefade-Mod-0.6.0-Forge-1.12.2.jar into .minecraft/mods with Minecraft Java 1.12.2 and Forge 14.23.5.2847. Internal mod ID remains "voxelcore".
+Install: copy Minefade-Mod-0.7.1-Forge-1.12.2.jar into .minecraft/mods with Minecraft Java 1.12.2 and Forge 14.23.5.2847. Internal mod ID remains "voxelcore".

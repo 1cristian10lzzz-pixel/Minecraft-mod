@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.7.1 — Animaciones, recogida y rendimiento visual
+
+- Installs an additive player model before vanilla calculates its pose; preserves default/slim skin geometry and armour overlays. Models are cached per renderer to avoid per-frame allocation.
+- Binds the vanilla block texture atlas explicitly and displays each dropped stack as one smaller baked model on the ground.
+- Adds a server-side pickup recovery that delegates to vanilla EntityItem collision logic and retains inventory-capacity rules.
+- Reduces nearby water-surface search frequency/radius and smooths ripple rings while retaining adaptive quality and batched drawing.
+- Throttles optional liquid buoyancy work to reduce world-tick scanning.
+- Keeps existing PNG files untouched; does not generate, edit or add images.
+- Preserves vanilla water blocks, vanilla chunk rendering, all registered item/block IDs and the mod ID `voxelcore`.
+
+
 ## 0.6.0 — Física de objetos, render y estilo visual
 
 - Added server-authoritative dropped-item handling: right-click pickup, sprint toss, airborne catch interaction and gentle liquid buoyancy/drag.
