@@ -99,7 +99,7 @@ public class MinefadeSettingsScreen extends GuiScreen {
         } else {
             addToggle(0, left, y, colWidth, "Física realista de objetos", ModConfig.ENABLE_REALISTIC_ITEM_PHYSICS);
             addToggle(1, right, y, colWidth, "Objetos tumbados", ModConfig.FLAT_GROUND_ITEMS);
-            addToggle(2, left, y + rowGap, colWidth, "Recoger también con clic derecho", ModConfig.MANUAL_ITEM_PICKUP);
+            addToggle(2, left, y + rowGap, colWidth, "Recogida adicional con clic derecho", ModConfig.MANUAL_ITEM_PICKUP);
             addToggle(3, right, y + rowGap, colWidth, "Lanzar al correr", ModConfig.ENABLE_SPRINT_TOSS);
             addToggle(4, left, y + rowGap * 2, colWidth, "Flotar en agua y lava", ModConfig.FLOAT_ITEMS_IN_FLUIDS);
             addAdjust(0, right, y + rowGap * 2, colWidth, "Fuerza de lanzamiento: " + ModConfig.ITEM_TOSS_STRENGTH + "%");
