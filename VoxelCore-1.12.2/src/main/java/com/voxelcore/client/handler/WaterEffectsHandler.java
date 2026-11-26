@@ -323,9 +323,9 @@ public class WaterEffectsHandler {
 
                 double radius = (0.22D + progress * 2.4D) * ripple.scale;
                 int a = MathHelper.clamp((int) (alpha * 255.0F), 0, 255);
-                appendRing(buffer, ripple.x, ripple.y, ripple.z, radius, a, segments);
+                appendRing(buffer, ripple.x, ripple.y, ripple.z, radius, a, segments, 110, 204, 236);
                 appendRing(buffer, ripple.x, ripple.y + 0.001D, ripple.z, radius * 0.58D,
-                        Math.max(0, a / 2), segments);
+                        Math.max(0, a / 2), segments, 184, 238, 250);
             }
             tessellator.draw();
         } finally {
@@ -341,12 +341,12 @@ public class WaterEffectsHandler {
 
     /** Adds one complete ring as independent line segments to the shared frame buffer. */
     private static void appendRing(BufferBuilder buffer, double x, double y, double z,
-                                   double radius, int alpha, int segments) {
+                                   double radius, int alpha, int segments, int red, int green, int blue) {
         for (int i = 0; i < segments; i++) {
             double a0 = Math.PI * 2.0D * i / segments;
             double a1 = Math.PI * 2.0D * (i + 1) / segments;
             buffer.pos(x + Math.cos(a0) * radius, y, z + Math.sin(a0) * radius)
-                    .color(125, 220, 242, alpha).endVertex();
+                    .color(red, green, blue, alpha).endVertex();
             buffer.pos(x + Math.cos(a1) * radius, y, z + Math.sin(a1) * radius)
                     .color(125, 220, 242, alpha).endVertex();
         }
