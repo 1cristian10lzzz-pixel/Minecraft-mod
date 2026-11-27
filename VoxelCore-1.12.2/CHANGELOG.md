@@ -2,9 +2,9 @@
 
 ## 0.8.0 — Realismo ambiental, materiales y animaciones
 
-- Adds deterministic procedural mineral-grain highlights to exposed faces of stone, cobblestone, gravel, netherrack, end stone and common ores. Uses cached vertex-colour geometry; vanilla textures, block IDs and states remain unchanged.
+- Adds deterministic procedural mineral-grain highlights to exposed faces of stone (including granite, diorite and andesite variants), cobblestone, gravel, netherrack, end stone, sandstone, red sandstone, obsidian, prismarine, stone bricks, hardened clay, bricks, quartz blocks and common ores. Uses cached vertex-colour geometry; vanilla textures, block IDs and states remain unchanged.
 - Extends the additive player animation layer with improved weight transfer, torso counter-rotation, sprint arm pumping, crouch posture, ladder climbing, swimming paddles, elytra posture, falling pose and subtle idle breathing.
-- Adds lightweight vegetation contact particles when the player walks through tall grass, ferns, vines, dead bushes and foliage.
+- Adds lightweight vegetation contact particles when the player walks through tall grass, ferns, vines, dead bushes and foliage.\n- Adds small block-coloured chips when striking hard surfaces and restrained material particles when walking over stone, dirt, grass, sand, clay and snow.
 - Adds a small block-fragment contact burst when the player lands and receives the vanilla bounce from a slime block; vanilla bounce force and collision are unchanged.
 - Adds a calm custom water surface with biome/depth colour, sky-reflection approximation, view-angle Fresnel response, daylight highlights and shoreline foam; no geometric wave displacement or expanding ring geometry.
 - Adds underwater colour absorption and depth fog, rising bubbles, local splashes/wakes and waterfall mist.
