@@ -31,7 +31,6 @@ public final class MinefadePlayerModel extends ModelPlayer {
         float walk = clamp(limbSwingAmount, 0.0F, 1.0F);
         float phase = limbSwing;
         float stride = (float) Math.sin(phase) * walk;
-        float oppositeStride = (float) Math.sin(phase + Math.PI) * walk;
         float bodyBob = (float) Math.sin(phase * 2.0F) * walk;
         float strafe = clamp(player.moveStrafing, -1.0F, 1.0F);
         float forward = clamp(player.moveForward, -1.0F, 1.0F);
