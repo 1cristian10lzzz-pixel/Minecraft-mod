@@ -48,7 +48,7 @@ public final class NaturalContactHandler {
         double movementSq = dx * dx + dz * dz;
         BlockPos feet = new BlockPos(player.posX,
                 player.getEntityBoundingBox().minY - 0.04D, player.posZ);
-        BlockPos ground = feet.down();
+        BlockPos ground = feet;
 
         if (player.onGround && movementSq > 0.0009D && tick % 4 == 0) {
             spawnVegetationContact(world, player, ground);
@@ -58,7 +58,7 @@ public final class NaturalContactHandler {
         // a small contact burst after a meaningful fall; no extra force is added.
         IBlockState groundState = world.getBlockState(ground);
         if (player.onGround && groundState.getBlock() == Blocks.SLIME_BLOCK
-                && player.fallDistance > 1.5F && tick - lastSlimeLandingTick > 8) {
+                && player.motionY > 0.15D && tick - lastSlimeLandingTick > 8) {
             lastSlimeLandingTick = tick;
             int particleState = net.minecraft.block.Block.getStateId(groundState);
             for (int i = 0; i < 5; i++) {
