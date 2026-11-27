@@ -1,25 +1,35 @@
 Minefade Mod 0.8.0 build status
 
 Source branch: minefade-0.8.0-realistic-water
+Source commit tested: 2bce245860e333dead442f9ec3e7f11f6feefcc7
 Minecraft: Java 1.12.2
 Forge: 14.23.5.2847
 Toolchain: JDK 8, Gradle 4.10.3, ForgeGradle 2.3.
-Resource validation: PENDING.
-Forge compilation: PENDING.
-JAR artifact: PENDING.
+
+Resource validation: PASSED.
+Forge compilation: PASSED.
+GitHub Actions run: #61
+Run ID: 45954678406
+Run URL: https://github.com/1cristian10lzzz-pixel/Minecraft-mod/actions/runs/45954678406
+JAR artifact: minefade-0.8.0.jar (109,941 bytes).
+GitHub Actions artifact: minefade-mod-minecraft-1.12.2-v0.8.0
+Artifact ID: 15178541272
+JAR SHA-256: 10d303524a5deeea3f094efcd1d153ace0771f0c2eb25660c8536d664ec0109f
+
 Runtime inside a real Minecraft client, dedicated server or LAN world: NOT TESTED.
 
 0.8.0 changes:
-- New batched custom water surface overlay with animated procedural mesh, biome/depth colour, Fresnel-like sky reflection and specular approximation, shore foam and adaptive low-FPS mesh detail.
-- Old expanding ripple-ring renderer removed; no ring geometry is used as a substitute for the water surface.
-- Underwater colour absorption and depth-based fog, rising bubbles, splashes, wakes and waterfall mist retained/refined.
-- Water remains vanilla in block identity, flow, level, collision, world state and server simulation; Minefade changes the visible surface and underwater presentation only.
+- Custom calm surface mesh over exposed Minecraft water with shared smoothed corner heights.
+- Biome/depth colour absorption, sky reflection approximation, view-angle Fresnel response, daylight-dependent specular highlights and shoreline foam.
+- No geometric wave displacement and no expanding circular ring geometry. Reflections/highlights and foam brightness can change without moving the surface.
+- Underwater colour absorption and depth-based fog, rising bubbles, local splashes/wakes and waterfall mist.
+- Water remains vanilla in block identity, flow, level, collision, bucket interactions, world state and server simulation; Minefade changes client-side presentation only.
 - Dropped-item buoyancy uses gentler drag/lift and damping near the surface to reduce bobbing jitter.
-- Swimming animation now includes alternating leg kicks.
+- Swimming animation includes alternating leg kicks.
 - No GUI or interface files changed. No images or textures created, modified or added.
 - Mod ID remains "voxelcore"; Minecraft/Forge version and existing item/block registry IDs remain compatible.
 
 Important rendering limit:
-The custom surface uses procedural vertex geometry and a sky-colour/specular approximation. It does not provide full screen-space reflections, true refraction or a physically based fluid simulation. Those require a full shader/framebuffer or chunk-renderer integration and would carry substantially higher Forge 1.12.2 compatibility risk.
+The custom surface uses procedural vertex geometry and a sky-colour/specular approximation. It does not provide full screen-space reflections, true refraction or a physically based fluid simulation. Those require full shader/framebuffer or chunk-renderer integration and carry greater Forge 1.12.2 compatibility risk.
 
-A passing build and asset validation do not prove actual in-game behaviour. Client rendering and dedicated/LAN runtime tests remain required.
+A passing Forge build and asset validation do not prove actual in-game behaviour. Client rendering and dedicated/LAN runtime tests remain required.
