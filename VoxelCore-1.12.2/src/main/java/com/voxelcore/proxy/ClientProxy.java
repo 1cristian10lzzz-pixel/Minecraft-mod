@@ -1,6 +1,7 @@
 package com.voxelcore.proxy;
 
 import com.voxelcore.client.handler.ClientEventHandler;
+import com.voxelcore.client.handler.BlockSurfaceDetailRenderer;
 import com.voxelcore.client.handler.ClientKeyHandler;
 import com.voxelcore.client.handler.ClientModelRegistry;
 import com.voxelcore.client.handler.GuiThemeHandler;
@@ -35,6 +36,7 @@ public class ClientProxy extends CommonProxy {
         });
 
         MinecraftForge.EVENT_BUS.register(new ClientEventHandler());
+        MinecraftForge.EVENT_BUS.register(new BlockSurfaceDetailRenderer());
         MinecraftForge.EVENT_BUS.register(new PlayerAnimationHandler());
         FMLCommonHandler.instance().bus().register(new NaturalContactHandler());
         SurfaceRealismHandler surfaceRealism = new SurfaceRealismHandler();
