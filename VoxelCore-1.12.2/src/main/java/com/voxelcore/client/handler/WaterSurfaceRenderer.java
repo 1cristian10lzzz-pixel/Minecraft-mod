@@ -200,6 +200,7 @@ public final class WaterSurfaceRenderer {
 
         float partialTicks = event.getPartialTicks();
         double worldTime = (mc.world.getTotalWorldTime() + partialTicks) * 0.035D;
+        double celestialAngle = mc.world.getCelestialAngle(partialTicks) * Math.PI * 2.0D;
         // Keep the existing option as a gloss/highlight control for backwards
         // compatibility. It no longer controls geometric waves or ring effects.
         float surfaceGloss = ModConfig.ENABLE_WATER_RIPPLES
@@ -236,7 +237,7 @@ public final class WaterSurfaceRenderer {
                 if (centreDx * centreDx + centreDy * centreDy + centreDz * centreDz
                         > renderRadiusSq + 2.0D) continue;
 
-                drawSurfaceCell(buffer, cell, steps, surfaceGloss,
+                drawSurfaceCell(buffer, cell, steps, surfaceGloss, celestialAngle,
                         cameraX, cameraY, cameraZ, sky, sunlight);
                 drawFoam(buffer, cell, worldTime, surfaceGloss);
             }
@@ -253,7 +254,7 @@ public final class WaterSurfaceRenderer {
     }
 
     private static void drawSurfaceCell(BufferBuilder buffer, SurfaceCell cell, int steps,
-                                        float surfaceGloss,
+                                        float surfaceGloss, double celestialAngle,
                                         double cameraX, double cameraY, double cameraZ,
                                         Vec3d sky, float sunlight) {
         for (int ix = 0; ix < steps; ix++) {
@@ -262,13 +263,13 @@ public final class WaterSurfaceRenderer {
             for (int iz = 0; iz < steps; iz++) {
                 double z0 = iz / (double) steps;
                 double z1 = (iz + 1) / (double) steps;
-                putWaterVertex(buffer, cell, x0, z0, surfaceGloss,
+                putWaterVertex(buffer, cell, x0, z0, surfaceGloss, celestialAngle,
                         cameraX, cameraY, cameraZ, sky, sunlight);
-                putWaterVertex(buffer, cell, x0, z1, surfaceGloss,
+                putWaterVertex(buffer, cell, x0, z1, surfaceGloss, celestialAngle,
                         cameraX, cameraY, cameraZ, sky, sunlight);
-                putWaterVertex(buffer, cell, x1, z1, surfaceGloss,
+                putWaterVertex(buffer, cell, x1, z1, surfaceGloss, celestialAngle,
                         cameraX, cameraY, cameraZ, sky, sunlight);
-                putWaterVertex(buffer, cell, x1, z0, surfaceGloss,
+                putWaterVertex(buffer, cell, x1, z0, surfaceGloss, celestialAngle,
                         cameraX, cameraY, cameraZ, sky, sunlight);
             }
         }
@@ -276,6 +277,7 @@ public final class WaterSurfaceRenderer {
 
     private static void putWaterVertex(BufferBuilder buffer, SurfaceCell cell,
                                        double localX, double localZ, float surfaceGloss,
+                                       double celestialAngle,
                                        double cameraX, double cameraY, double cameraZ,
                                        Vec3d sky, float sunlight) {
         // Bilinear interpolation of the shared corner heights creates one
@@ -306,8 +308,6 @@ public final class WaterSurfaceRenderer {
         double fresnel = Math.pow(1.0D - viewDot, 4.0D);
 
         // A moving sun direction changes the highlight, not the surface shape.
-        double celestialAngle = Minecraft.getMinecraft().world.getCelestialAngle(0.0F)
-                * Math.PI * 2.0D;
         double lightX = Math.cos(celestialAngle) * 0.42D;
         double lightY = 0.78D;
         double lightZ = Math.sin(celestialAngle) * 0.42D;
