@@ -26,9 +26,9 @@ import java.util.List;
  */
 @SideOnly(Side.CLIENT)
 public final class BlockSurfaceDetailRenderer {
-    private static final int HORIZONTAL_RADIUS = 8;
-    private static final int VERTICAL_RADIUS = 6;
-    private static final int MAX_DETAILS = 1200;
+    private static final int HORIZONTAL_RADIUS = 7;
+    private static final int VERTICAL_RADIUS = 5;
+    private static final int MAX_DETAILS = 600;
     private static final List<DetailBlock> DETAILS = new ArrayList<DetailBlock>();
     private static final float[][] LIGHT_COLOURS = {
             {0.72F, 0.72F, 0.72F}, {0.72F, 0.66F, 0.53F},
