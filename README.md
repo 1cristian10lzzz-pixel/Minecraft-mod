@@ -2,29 +2,29 @@
 
 Current source line: **0.8.0** · Forge 14.23.5.2847
 
-Minefade focuses on the legacy client rendering path, water appearance, player animation, dropped items, performance diagnostics and Resonite content.
+Minefade improves the legacy client presentation while retaining vanilla block identities, collision and server simulation.
 
 ## Minefade Mod 0.8.0
 
-- **Custom realistic water surface:** the old ring-only effect is removed. A batched procedural mesh covers exposed Minecraft water with smoothly shared corner heights, biome-aware colour, depth absorption, sky reflection, view-angle Fresnel response, sunlight highlights and shoreline foam.
-- **No geometric waves:** the water surface does not rise and fall, and there are no expanding circular rings. Reflections and highlights respond to the sky, camera angle and daylight; small splash/bubble particles remain local contact effects.
-- **Underwater presentation:** deeper red/green light absorption, custom fog density and rising air bubbles. Entry splashes, wakes and waterfall mist remain.
-- **Preserved fluid simulation:** Minecraft's existing water blocks, levels, flow, collision, source/flowing states, buckets and server simulation are not replaced. Minefade changes the client-side appearance and underwater presentation only.
-- **Performance:** nearby surface positions are cached, rendered in one batch, and use adaptive mesh detail when FPS remains low.
-- **Dropped items:** fluid buoyancy is damped near the surface to reduce bobbing jitter while retaining existing server-side pickup rules.
-- **Player animation:** adds alternating leg kicks while swimming to the existing additive player animation.
-- **Assets and interfaces:** all existing PNGs are kept untouched. No images/textures were created, modified or added. No GUI or interface files were changed.
+- **Water:** calm custom surface mesh, biome/depth colour, sky-reflection approximation, Fresnel response, daylight highlights and shoreline foam. No geometric waves or expanding ring geometry.
+- **Vegetation contact:** subtle client-side block-fragment particles when walking through tall grass, ferns, vines, dead bushes and leaves. Effects are throttled and restricted to a tiny area around the player.
+- **Slime contact:** a small particle burst on landing from a vanilla slime-block bounce. Vanilla bounce physics are not changed.
+- **Underwater:** biome-aware colour absorption, depth fog, bubbles, entry splashes, wakes and waterfall mist.
+- **Movement and items:** additive swimming leg kicks and gentler dropped-item buoyancy near fluid surfaces.
+- **Performance:** cached nearby water surfaces, batched water drawing and adaptive mesh detail.
 
-## Water rendering limits
+## Preserved behaviour and scope
 
-The new appearance uses a procedural surface, biome/depth colour, and a sky-colour/specular approximation. It is not full screen-space reflection, physically accurate refraction or a new finite-water simulation. A full shader/framebuffer path would require deeper rendering integration and carry greater compatibility risk on Forge 1.12.2.
+Minecraft 1.12.2 water, grass, leaves, vines, slime blocks, collision, block drops, harvesting and server simulation remain vanilla. The new vegetation/slime contact layer is visual feedback, not full vertex bending or a replacement foliage renderer. No GUI/interface files changed. No images, textures or resource packs were created or modified.
+
+## Rendering limits
+
+The water reflection is a sky-colour/specular approximation, not full screen-space reflection or physically accurate refraction. Vegetation contact is represented by particles; foliage meshes do not yet physically bend. A full shader/framebuffer and foliage vertex-animation system requires deeper render-pipeline integration and compatibility testing on Forge 1.12.2.
 
 ## Build status
 
-Resource validation and Forge 1.12.2 compilation passed in GitHub Actions run #61: https://github.com/1cristian10lzzz-pixel/Minecraft-mod/actions/runs/45954678406
-
-The workflow uploaded artifact minefade-mod-minecraft-1.12.2-v0.8.0 (artifact ID 15178541272). Its installable JAR reports version 0.8.0, mod ID voxelcore and Minecraft 1.12.2. Runtime tests inside a real Minecraft client and dedicated/LAN server have not been performed.
+The previous 0.8.0 source build passed Forge compilation and resource validation. The latest vegetation/slime changes require a new CI build and in-game runtime tests before they can be called verified.
 
 ## Install
 
-Copy the finished "Minefade-Mod-0.8.0-Forge-1.12.2.jar" into .minecraft/mods with Minecraft Java 1.12.2 and Forge 14.23.5.2847. The internal mod ID remains "voxelcore".
+Use the installable Minefade 0.8.0 JAR with Minecraft Java 1.12.2 and Forge 14.23.5.2847. The internal mod id remains "voxelcore".
