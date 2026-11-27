@@ -19,16 +19,18 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
- * Replaces the visible vanilla water top-face appearance with a procedural,
- * animated surface. It does not change water blocks, flow, levels, collisions,
- * lighting, chunk meshes or server simulation.
+ * Renders a calm, custom water surface over Minecraft's existing water blocks.
+ * It does not change block states, flow, levels, collisions or server simulation.
  *
- * The cached surface is rebuilt infrequently; the continuous wave, Fresnel-like
- * sky reflection, specular response and shore foam are calculated in one batched
- * draw call at render time. No PNGs, resource packs or external shaders are used.
+ * The surface geometry is deliberately stationary: there are no expanding rings
+ * and no sine-wave displacement. Appearance comes from biome/depth absorption,
+ * sky reflection, view-angle Fresnel response, sunlight highlights and shoreline
+ * foam. Nearby surface cells are cached and drawn in a single batched pass.
  */
 @SideOnly(Side.CLIENT)
 public final class WaterSurfaceRenderer {
@@ -116,9 +118,51 @@ public final class WaterSurfaceRenderer {
                     break;
                 }
 
-                if (SURFACES.size() >= MAX_CACHED_SURFACES) return;
+                if (SURFACES.size() >= MAX_CACHED_SURFACES) {
+                    smoothSharedCorners();
+                    return;
+                }
             }
         }
+        smoothSharedCorners();
+    }
+
+    /**
+     * Derive each vertex from all water columns sharing that corner. Adjacent
+     * tiles therefore meet at the same height and form a softer continuous
+     * surface, including where source and flowing water levels vary.
+     */
+    private static void smoothSharedCorners() {
+        Map<Long, SurfaceCell> byPosition = new HashMap<Long, SurfaceCell>(SURFACES.size() * 2);
+        for (SurfaceCell cell : SURFACES) {
+            byPosition.put(positionKey(cell.x, cell.z), cell);
+        }
+
+        for (SurfaceCell cell : SURFACES) {
+            cell.northWestHeight = sharedCornerHeight(byPosition, cell.x, cell.z, cell.surfaceY);
+            cell.northEastHeight = sharedCornerHeight(byPosition, cell.x + 1, cell.z, cell.surfaceY);
+            cell.southEastHeight = sharedCornerHeight(byPosition, cell.x + 1, cell.z + 1, cell.surfaceY);
+            cell.southWestHeight = sharedCornerHeight(byPosition, cell.x, cell.z + 1, cell.surfaceY);
+        }
+    }
+
+    private static double sharedCornerHeight(Map<Long, SurfaceCell> cells,
+                                             int cornerX, int cornerZ, double fallback) {
+        double sum = 0.0D;
+        int count = 0;
+        for (int dx = -1; dx <= 0; dx++) {
+            for (int dz = -1; dz <= 0; dz++) {
+                SurfaceCell adjacent = cells.get(positionKey(cornerX + dx, cornerZ + dz));
+                if (adjacent == null) continue;
+                sum += adjacent.surfaceY;
+                count++;
+            }
+        }
+        return count == 0 ? fallback : sum / count;
+    }
+
+    private static long positionKey(int x, int z) {
+        return (((long) x) << 32) ^ (z & 0xffffffffL);
     }
 
     private static int measureDepth(World world, int x, int y, int z) {
@@ -156,7 +200,9 @@ public final class WaterSurfaceRenderer {
 
         float partialTicks = event.getPartialTicks();
         double worldTime = (mc.world.getTotalWorldTime() + partialTicks) * 0.035D;
-        float waveStrength = ModConfig.ENABLE_WATER_RIPPLES
+        // Keep the existing option as a gloss/highlight control for backwards
+        // compatibility. It no longer controls geometric waves or ring effects.
+        float surfaceGloss = ModConfig.ENABLE_WATER_RIPPLES
                 ? ModConfig.WATER_WAVE_STRENGTH / 100.0F : 0.0F;
         int steps = reducedQuality ? LOW_GRID_STEPS : NORMAL_GRID_STEPS;
         float sunlight = mc.world.getSunBrightness(partialTicks);
@@ -190,9 +236,9 @@ public final class WaterSurfaceRenderer {
                 if (centreDx * centreDx + centreDy * centreDy + centreDz * centreDz
                         > renderRadiusSq + 2.0D) continue;
 
-                drawSurfaceCell(buffer, cell, steps, worldTime, waveStrength,
+                drawSurfaceCell(buffer, cell, steps, surfaceGloss,
                         cameraX, cameraY, cameraZ, sky, sunlight);
-                drawFoam(buffer, cell, worldTime, waveStrength);
+                drawFoam(buffer, cell, worldTime, surfaceGloss);
             }
             tessellator.draw();
         } finally {
@@ -207,53 +253,45 @@ public final class WaterSurfaceRenderer {
     }
 
     private static void drawSurfaceCell(BufferBuilder buffer, SurfaceCell cell, int steps,
-                                        double time, float waveStrength,
+                                        float surfaceGloss,
                                         double cameraX, double cameraY, double cameraZ,
                                         Vec3d sky, float sunlight) {
         for (int ix = 0; ix < steps; ix++) {
-            double x0 = cell.x + ix / (double) steps;
-            double x1 = cell.x + (ix + 1) / (double) steps;
+            double x0 = ix / (double) steps;
+            double x1 = (ix + 1) / (double) steps;
             for (int iz = 0; iz < steps; iz++) {
-                double z0 = cell.z + iz / (double) steps;
-                double z1 = cell.z + (iz + 1) / (double) steps;
-                putWaterVertex(buffer, cell, x0, z0, time, waveStrength,
+                double z0 = iz / (double) steps;
+                double z1 = (iz + 1) / (double) steps;
+                putWaterVertex(buffer, cell, x0, z0, surfaceGloss,
                         cameraX, cameraY, cameraZ, sky, sunlight);
-                putWaterVertex(buffer, cell, x0, z1, time, waveStrength,
+                putWaterVertex(buffer, cell, x0, z1, surfaceGloss,
                         cameraX, cameraY, cameraZ, sky, sunlight);
-                putWaterVertex(buffer, cell, x1, z1, time, waveStrength,
+                putWaterVertex(buffer, cell, x1, z1, surfaceGloss,
                         cameraX, cameraY, cameraZ, sky, sunlight);
-                putWaterVertex(buffer, cell, x1, z0, time, waveStrength,
+                putWaterVertex(buffer, cell, x1, z0, surfaceGloss,
                         cameraX, cameraY, cameraZ, sky, sunlight);
             }
         }
     }
 
     private static void putWaterVertex(BufferBuilder buffer, SurfaceCell cell,
-                                       double x, double z, double time, float strength,
+                                       double localX, double localZ, float surfaceGloss,
                                        double cameraX, double cameraY, double cameraZ,
                                        Vec3d sky, float sunlight) {
-        double p1 = x * 0.115D + z * 0.061D + time * 0.78D;
-        double p2 = z * 0.173D - x * 0.087D - time * 0.57D;
-        double p3 = (x - z) * 0.205D + time * 1.08D;
+        // Bilinear interpolation of the shared corner heights creates one
+        // continuous surface across neighboring water blocks without waves.
+        double front = lerp(cell.northWestHeight, cell.northEastHeight, localX);
+        double back = lerp(cell.southWestHeight, cell.southEastHeight, localX);
+        double surfaceY = lerp(front, back, localZ) + 0.004D;
+        double x = cell.x + localX;
+        double z = cell.z + localZ;
 
-        double s1 = Math.sin(p1);
-        double s2 = Math.sin(p2);
-        double s3 = Math.sin(p3);
-        double wave = strength * (s1 * 0.018D + s2 * 0.010D + s3 * 0.0035D);
-        double dHdx = strength * (Math.cos(p1) * 0.115D * 0.018D
-                - Math.cos(p2) * 0.087D * 0.010D + Math.cos(p3) * 0.205D * 0.0035D);
-        double dHdz = strength * (Math.cos(p1) * 0.061D * 0.018D
-                + Math.cos(p2) * 0.173D * 0.010D - Math.cos(p3) * 0.205D * 0.0035D);
-
-        double nx = -dHdx;
+        // Calm-water normal: all visual movement comes from changing reflected
+        // light and the day/sky colour, never from moving the water geometry.
+        double nx = 0.0D;
         double ny = 1.0D;
-        double nz = -dHdz;
-        double normalLength = Math.sqrt(nx * nx + ny * ny + nz * nz);
-        nx /= normalLength;
-        ny /= normalLength;
-        nz /= normalLength;
+        double nz = 0.0D;
 
-        double surfaceY = cell.surfaceY + wave + 0.004D;
         double vx = cameraX - x;
         double vy = cameraY - surfaceY;
         double vz = cameraZ - z;
@@ -267,9 +305,12 @@ public final class WaterSurfaceRenderer {
                 Math.abs(nx * vx + ny * vy + nz * vz)));
         double fresnel = Math.pow(1.0D - viewDot, 4.0D);
 
-        double lightX = Math.sin(time * 0.035D) * 0.42D;
+        // A moving sun direction changes the highlight, not the surface shape.
+        double celestialAngle = Minecraft.getMinecraft().world.getCelestialAngle(0.0F)
+                * Math.PI * 2.0D;
+        double lightX = Math.cos(celestialAngle) * 0.42D;
         double lightY = 0.78D;
-        double lightZ = Math.cos(time * 0.035D) * 0.42D;
+        double lightZ = Math.sin(celestialAngle) * 0.42D;
         double hx = vx + lightX;
         double hy = vy + lightY;
         double hz = vz + lightZ;
@@ -279,35 +320,44 @@ public final class WaterSurfaceRenderer {
             hy /= halfLength;
             hz /= halfLength;
         }
-        double specular = Math.pow(Math.max(0.0D, nx * hx + ny * hy + nz * hz), 28.0D)
-                * (0.10D + sunlight * 0.70D);
+        double specular = Math.pow(Math.max(0.0D, nx * hx + ny * hy + nz * hz), 34.0D)
+                * (0.10D + sunlight * 0.80D);
 
         float depth = MathHelper.clamp((cell.depth - 1) / 9.0F, 0.0F, 1.0F);
         float biomeR = ((cell.waterColor >> 16) & 255) / 255.0F;
         float biomeG = ((cell.waterColor >> 8) & 255) / 255.0F;
         float biomeB = (cell.waterColor & 255) / 255.0F;
 
-        float ambient = 0.72F + sunlight * 0.22F;
-        float red = biomeR * (0.84F - depth * 0.44F) * ambient + 0.045F;
-        float green = biomeG * (0.86F - depth * 0.20F) * ambient + 0.065F;
-        float blue = biomeB * (0.82F - depth * 0.08F) * ambient + 0.075F;
+        // Red light is absorbed first, followed by green; deep water shifts
+        // toward blue and loses brightness progressively.
+        float ambient = 0.70F + sunlight * 0.24F;
+        float red = biomeR * (0.82F - depth * 0.52F) * ambient + 0.025F;
+        float green = biomeG * (0.84F - depth * 0.29F) * ambient + 0.055F;
+        float blue = biomeB * (0.82F - depth * 0.13F) * ambient + 0.085F;
 
-        float reflection = (float) (0.045D + fresnel * 0.46D);
+        float reflection = (float) (0.07D + fresnel * 0.56D);
+        reflection *= 0.78F + surfaceGloss * 0.22F;
         red = red * (1.0F - reflection) + (float) sky.x * reflection;
         green = green * (1.0F - reflection) + (float) sky.y * reflection;
         blue = blue * (1.0F - reflection) + (float) sky.z * reflection;
 
-        float highlight = (float) Math.min(0.78D, specular * 0.74D);
-        red += highlight * 0.82F;
-        green += highlight * 0.91F;
+        float highlight = (float) Math.min(0.72D, specular * (0.22D + surfaceGloss * 0.72D));
+        red += highlight * 0.78F;
+        green += highlight * 0.90F;
         blue += highlight;
 
-        int alpha = 232 + (int) (fresnel * 16.0D);
-        buffer.pos(x, surfaceY, z).color(toByte(red), toByte(green), toByte(blue), alpha).endVertex();
+        int alpha = 230 + (int) (fresnel * 18.0D);
+        buffer.pos(x, surfaceY, z)
+                .color(toByte(red), toByte(green), toByte(blue), alpha)
+                .endVertex();
+    }
+
+    private static double lerp(double start, double end, double amount) {
+        return start + (end - start) * amount;
     }
 
     private static void drawFoam(BufferBuilder buffer, SurfaceCell cell,
-                                 double time, float waveStrength) {
+                                 double time, float surfaceGloss) {
         if (!cell.north && !cell.south && !cell.west && !cell.east) return;
         double x0 = cell.x + 0.02D;
         double x1 = cell.x + 0.98D;
@@ -315,34 +365,31 @@ public final class WaterSurfaceRenderer {
         double z1 = cell.z + 0.98D;
         double band = 0.065D;
 
+        // Foam stays attached to the shore. Its brightness softly breathes;
+        // no vertex is vertically displaced and no radial ring is created.
+        float pulse = 0.90F + 0.10F * (float) Math.sin(time * 0.42D
+                + cell.x * 0.13D + cell.z * 0.17D);
+        int brightAlpha = (int) (112.0F * pulse);
+        int softAlpha = (int) (82.0F * pulse);
+
         if (cell.north) appendFoam(buffer, x0, x1, cell.z + 0.025D, cell.z + band,
-                cell.surfaceY, time, waveStrength);
+                cell.surfaceY, brightAlpha, softAlpha);
         if (cell.south) appendFoam(buffer, x0, x1, cell.z + 1.0D - band, cell.z + 0.975D,
-                cell.surfaceY, time, waveStrength);
+                cell.surfaceY, brightAlpha, softAlpha);
         if (cell.west) appendFoam(buffer, cell.x + 0.025D, cell.x + band, z0, z1,
-                cell.surfaceY, time, waveStrength);
+                cell.surfaceY, brightAlpha, softAlpha);
         if (cell.east) appendFoam(buffer, cell.x + 1.0D - band, cell.x + 0.975D, z0, z1,
-                cell.surfaceY, time, waveStrength);
+                cell.surfaceY, brightAlpha, softAlpha);
     }
 
     private static void appendFoam(BufferBuilder buffer, double x0, double x1,
-                                   double z0, double z1, double y, double time,
-                                   float strength) {
-        double y00 = y + waveHeight(x0, z0, time, strength) + 0.008D;
-        double y01 = y + waveHeight(x0, z1, time, strength) + 0.008D;
-        double y11 = y + waveHeight(x1, z1, time, strength) + 0.008D;
-        double y10 = y + waveHeight(x1, z0, time, strength) + 0.008D;
-        buffer.pos(x0, y00, z0).color(188, 235, 243, 118).endVertex();
-        buffer.pos(x0, y01, z1).color(210, 244, 248, 86).endVertex();
-        buffer.pos(x1, y11, z1).color(210, 244, 248, 86).endVertex();
-        buffer.pos(x1, y10, z0).color(188, 235, 243, 118).endVertex();
-    }
-
-    private static double waveHeight(double x, double z, double time, float strength) {
-        if (strength <= 0.0F) return 0.0D;
-        return strength * (Math.sin(x * 0.115D + z * 0.061D + time * 0.78D) * 0.018D
-                + Math.sin(z * 0.173D - x * 0.087D - time * 0.57D) * 0.010D
-                + Math.sin((x - z) * 0.205D + time * 1.08D) * 0.0035D);
+                                   double z0, double z1, double y,
+                                   int brightAlpha, int softAlpha) {
+        double surfaceY = y + 0.009D;
+        buffer.pos(x0, surfaceY, z0).color(188, 235, 243, brightAlpha).endVertex();
+        buffer.pos(x0, surfaceY, z1).color(210, 244, 248, softAlpha).endVertex();
+        buffer.pos(x1, surfaceY, z1).color(210, 244, 248, softAlpha).endVertex();
+        buffer.pos(x1, surfaceY, z0).color(188, 235, 243, brightAlpha).endVertex();
     }
 
     private static int toByte(float value) {
@@ -362,6 +409,10 @@ public final class WaterSurfaceRenderer {
         private final int x;
         private final int z;
         private final double surfaceY;
+        private double northWestHeight;
+        private double northEastHeight;
+        private double southEastHeight;
+        private double southWestHeight;
         private final int depth;
         private final int waterColor;
         private final boolean north;
@@ -374,6 +425,10 @@ public final class WaterSurfaceRenderer {
             this.x = x;
             this.z = z;
             this.surfaceY = surfaceY;
+            this.northWestHeight = surfaceY;
+            this.northEastHeight = surfaceY;
+            this.southEastHeight = surfaceY;
+            this.southWestHeight = surfaceY;
             this.depth = depth;
             this.waterColor = waterColor;
             this.north = north;
