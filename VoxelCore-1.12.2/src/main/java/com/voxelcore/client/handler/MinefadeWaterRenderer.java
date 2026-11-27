@@ -9,8 +9,6 @@ import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.color.BlockColors;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.init.Blocks;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
@@ -49,7 +47,10 @@ public final class MinefadeWaterRenderer extends BlockFluidRenderer {
                                BlockPos blockPosIn, BufferBuilder bufferBuilderIn) {
         boolean vanillaRendered = super.renderFluid(blockAccess, blockStateIn, blockPosIn, bufferBuilderIn);
 
+        // Restrict the custom height calculation to BlockLiquid implementations;
+        // other mods sometimes use Material.WATER without the vanilla LEVEL property.
         if (!ModConfig.ENABLE_WATER_EFFECTS
+                || !(blockStateIn.getBlock() instanceof BlockLiquid)
                 || blockStateIn.getMaterial() != Material.WATER
                 || !isTopExposed(blockAccess, blockPosIn)) {
             return vanillaRendered;
@@ -109,13 +110,13 @@ public final class MinefadeWaterRenderer extends BlockFluidRenderer {
 
                 // Smoothly interpolate the four shared corner heights. The
                 // surface is calm: only its light pattern changes over time.
-                addTopVertex(world, pos, buffer, sprite, x0, z0, h00, h10, h11, h01,
+                addTopVertex(pos, buffer, sprite, x0, z0, h00, h10, h11, h01,
                         baseRed, baseGreen, baseBlue, deep, causticStrength, time, lightU, lightV);
-                addTopVertex(world, pos, buffer, sprite, x0, z1, h00, h10, h11, h01,
+                addTopVertex(pos, buffer, sprite, x0, z1, h00, h10, h11, h01,
                         baseRed, baseGreen, baseBlue, deep, causticStrength, time, lightU, lightV);
-                addTopVertex(world, pos, buffer, sprite, x1, z1, h00, h10, h11, h01,
+                addTopVertex(pos, buffer, sprite, x1, z1, h00, h10, h11, h01,
                         baseRed, baseGreen, baseBlue, deep, causticStrength, time, lightU, lightV);
-                addTopVertex(world, pos, buffer, sprite, x1, z0, h00, h10, h11, h01,
+                addTopVertex(pos, buffer, sprite, x1, z0, h00, h10, h11, h01,
                         baseRed, baseGreen, baseBlue, deep, causticStrength, time, lightU, lightV);
             }
         }
@@ -134,7 +135,8 @@ public final class MinefadeWaterRenderer extends BlockFluidRenderer {
             for (int dx = -1; dx <= 0; dx++) {
                 cursor.setPos(cornerX + dx, y, cornerZ + dz);
                 IBlockState sample = world.getBlockState(cursor);
-                if (sample.getMaterial() != Material.WATER) continue;
+                if (!(sample.getBlock() instanceof BlockLiquid)
+                        || sample.getMaterial() != Material.WATER) continue;
 
                 total += BlockLiquid.getBlockLiquidHeight(sample, world, cursor);
                 samples++;
@@ -149,13 +151,15 @@ public final class MinefadeWaterRenderer extends BlockFluidRenderer {
         int depth = 1;
         for (int y = 1; y <= 10; y++) {
             cursor.setPos(pos.getX(), pos.getY() - y, pos.getZ());
-            if (world.getBlockState(cursor).getMaterial() != Material.WATER) break;
+            IBlockState sample = world.getBlockState(cursor);
+            if (!(sample.getBlock() instanceof BlockLiquid)
+                    || sample.getMaterial() != Material.WATER) break;
             depth++;
         }
         return depth;
     }
 
-    private static void addTopVertex(IBlockAccess world, BlockPos pos, BufferBuilder buffer,
+    private static void addTopVertex(BlockPos pos, BufferBuilder buffer,
                                      TextureAtlasSprite sprite, float x, float z,
                                      float h00, float h10, float h11, float h01,
                                      float baseRed, float baseGreen, float baseBlue,
