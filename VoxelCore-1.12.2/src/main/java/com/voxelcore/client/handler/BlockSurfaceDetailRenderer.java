@@ -28,8 +28,24 @@ import java.util.List;
 public final class BlockSurfaceDetailRenderer {
     private static final int HORIZONTAL_RADIUS = 8;
     private static final int VERTICAL_RADIUS = 6;
-    private static final int MAX_DETAILS = 1500;
+    private static final int MAX_DETAILS = 1200;
     private static final List<DetailBlock> DETAILS = new ArrayList<DetailBlock>();
+    private static final float[][] LIGHT_COLOURS = {
+            {0.72F, 0.72F, 0.72F}, {0.72F, 0.66F, 0.53F},
+            {0.62F, 0.31F, 0.25F}, {0.88F, 0.84F, 0.61F},
+            {0.28F, 0.28F, 0.29F}, {0.72F, 0.56F, 0.42F},
+            {0.94F, 0.76F, 0.30F}, {0.90F, 0.24F, 0.19F},
+            {0.34F, 0.48F, 0.86F}, {0.34F, 0.88F, 0.91F},
+            {0.35F, 0.82F, 0.39F}, {0.92F, 0.88F, 0.77F}
+    };
+    private static final float[][] DARK_COLOURS = {
+            {0.34F, 0.35F, 0.36F}, {0.38F, 0.34F, 0.28F},
+            {0.28F, 0.12F, 0.10F}, {0.49F, 0.45F, 0.31F},
+            {0.08F, 0.08F, 0.09F}, {0.36F, 0.25F, 0.18F},
+            {0.49F, 0.35F, 0.10F}, {0.42F, 0.07F, 0.06F},
+            {0.10F, 0.17F, 0.39F}, {0.08F, 0.38F, 0.43F},
+            {0.09F, 0.34F, 0.13F}, {0.47F, 0.43F, 0.36F}
+    };
 
     private World cachedWorld;
     private int lastScanTick = Integer.MIN_VALUE;
@@ -172,7 +188,7 @@ public final class BlockSurfaceDetailRenderer {
         // Two tiny mineral flecks per exposed face; deterministic positions avoid shimmer.
         for (int face = 0; face < 6; face++) {
             if ((detail.faces & (1 << face)) == 0) continue;
-            for (int grain = 0; grain < 2; grain++) {
+            for (int grain = 0; grain < 1; grain++) {
                 int seed = mix(detail.seed + face * 19349663 + grain * 83492791);
                 double u = 0.16D + unit(seed) * 0.68D;
                 double v = 0.16D + unit(mix(seed + 31)) * 0.68D;
@@ -226,28 +242,8 @@ public final class BlockSurfaceDetailRenderer {
     }
 
     private static float[] colour(int palette, boolean bright) {
-        switch (palette) {
-            case 1: return bright ? new float[]{0.72F, 0.66F, 0.53F} : new float[]{0.38F, 0.34F, 0.28F};
-            case 2: return bright ? new float[]{0.62F, 0.31F, 0.25F} : new float[]{0.28F, 0.12F, 0.10F};
-            case 3: return bright ? new float[]{0.88F, 0.84F, 0.61F} : new float[]{0.49F, 0.45F, 0.31F};
-            case 4: return bright ? new float[]{0.28F, 0.28F, 0.29F} : new float[]{0.08F, 0.08F, 0.09F};
-            case 5: return bright ? new float[]{0.72F, 0.56F, 0.42F} : new float[]{0.36F, 0.25F, 0.18F};
-            case 6: return bright ? new float[]{0.94F, 0.76F, 0.30F} : new float[]{0.49F, 0.35F, 0.10F};
-            case 7: return bright ? new float[]{0.90F, 0.24F, 0.19F} : new float[]{0.42F, 0.07F, 0.06F};
-            case 8: return bright ? new float[]{0.34F, 0.48F, 0.86F} : new float[]{0.10F, 0.17F, 0.39F};
-            case 9: return bright ? new float[]{0.34F, 0.88F, 0.91F} : new float[]{0.08F, 0.38F, 0.43F};
-            case 10: return bright ? new float[]{0.35F, 0.82F, 0.39F} : new float[]{0.09F, 0.34F, 0.13F};
-            case 11: return bright ? new float[]{0.92F, 0.88F, 0.77F} : new float[]{0.47F, 0.43F, 0.36F};
-            case 12: return bright ? new float[]{0.83F, 0.72F, 0.52F} : new float[]{0.43F, 0.34F, 0.21F};
-            case 13: return bright ? new float[]{0.88F, 0.47F, 0.27F} : new float[]{0.46F, 0.20F, 0.11F};
-            case 14: return bright ? new float[]{0.48F, 0.43F, 0.55F} : new float[]{0.13F, 0.11F, 0.18F};
-            case 15: return bright ? new float[]{0.42F, 0.78F, 0.73F} : new float[]{0.13F, 0.36F, 0.35F};
-            case 16: return bright ? new float[]{0.72F, 0.70F, 0.66F} : new float[]{0.34F, 0.33F, 0.31F};
-            case 17: return bright ? new float[]{0.78F, 0.55F, 0.38F} : new float[]{0.39F, 0.25F, 0.15F};
-            case 18: return bright ? new float[]{0.74F, 0.37F, 0.27F} : new float[]{0.35F, 0.13F, 0.10F};
-            case 19: return bright ? new float[]{0.95F, 0.92F, 0.83F} : new float[]{0.52F, 0.49F, 0.43F};
-            default: return bright ? new float[]{0.72F, 0.72F, 0.72F} : new float[]{0.34F, 0.35F, 0.36F};
-        }
+        int safePalette = Math.max(0, Math.min(LIGHT_COLOURS.length - 1, palette));
+        return bright ? LIGHT_COLOURS[safePalette] : DARK_COLOURS[safePalette];
     }
 
     private static int mix(int value) {
