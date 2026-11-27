@@ -61,9 +61,9 @@ public final class SurfaceRealismHandler {
         double y = pos.getY() + 0.5D;
         double z = pos.getZ() + 0.5D;
         if (face != null) {
-            x += face.getFrontOffsetX() * 0.49D;
-            y += face.getFrontOffsetY() * 0.49D;
-            z += face.getFrontOffsetZ() * 0.49D;
+            x += face.getXOffset() * 0.49D;
+            y += face.getYOffset() * 0.49D;
+            z += face.getZOffset() * 0.49D;
         }
 
         int stateId = net.minecraft.block.Block.getStateId(state);
@@ -73,9 +73,9 @@ public final class SurfaceRealismHandler {
             double vy = 0.025D + world.rand.nextDouble() * 0.075D;
             double vz = (world.rand.nextDouble() - 0.5D) * 0.10D;
             if (face != null) {
-                vx += face.getFrontOffsetX() * 0.045D;
-                vy += face.getFrontOffsetY() * 0.045D;
-                vz += face.getFrontOffsetZ() * 0.045D;
+                vx += face.getXOffset() * 0.045D;
+                vy += face.getYOffset() * 0.045D;
+                vz += face.getZOffset() * 0.045D;
             }
             world.spawnParticle(EnumParticleTypes.BLOCK_CRACK,
                     x, y, z, vx, vy, vz, stateId);
