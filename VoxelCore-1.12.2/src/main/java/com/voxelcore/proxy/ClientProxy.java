@@ -9,6 +9,7 @@ import com.voxelcore.client.handler.ConfigChangedHandler;
 import com.voxelcore.client.handler.MinefadeDroppedItemRenderer;
 import com.voxelcore.client.handler.NaturalContactHandler;
 import com.voxelcore.client.handler.PlayerAnimationHandler;
+import com.voxelcore.client.handler.SurfaceRealismHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
@@ -36,6 +37,9 @@ public class ClientProxy extends CommonProxy {
         MinecraftForge.EVENT_BUS.register(new ClientEventHandler());
         MinecraftForge.EVENT_BUS.register(new PlayerAnimationHandler());
         FMLCommonHandler.instance().bus().register(new NaturalContactHandler());
+        SurfaceRealismHandler surfaceRealism = new SurfaceRealismHandler();
+        MinecraftForge.EVENT_BUS.register(surfaceRealism);
+        FMLCommonHandler.instance().bus().register(surfaceRealism);
         MinecraftForge.EVENT_BUS.register(new ClientModelRegistry());
         MinecraftForge.EVENT_BUS.register(new GuiThemeHandler());
 
