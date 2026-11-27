@@ -125,7 +125,7 @@ public final class BlockSurfaceDetailRenderer {
                     pos.setPos(x, y, z);
                     if (!world.isBlockLoaded(pos)) continue;
                     IBlockState state = world.getBlockState(pos);
-                    int palette = paletteFor(state.getBlock());
+                    int palette = paletteFor(state);
                     if (palette < 0) continue;
 
                     int faces = 0;
@@ -159,9 +159,17 @@ public final class BlockSurfaceDetailRenderer {
     }
 
     /** Returns a procedural material palette, or -1 for blocks left untouched. */
-    private static int paletteFor(Block block) {
-        if (block == Blocks.STONE || block == Blocks.COBBLESTONE
-                || block == Blocks.MOSSY_COBBLESTONE) return 0;
+    private static int paletteFor(IBlockState state) {
+        Block block = state.getBlock();
+        if (block == Blocks.STONE) {
+            // BlockStone metadata distinguishes the granite, diorite and andesite families.
+            int variant = block.getMetaFromState(state);
+            if (variant == 1 || variant == 2) return 12;
+            if (variant == 3 || variant == 4) return 13;
+            if (variant == 5 || variant == 6) return 14;
+            return 0;
+        }
+        if (block == Blocks.COBBLESTONE || block == Blocks.MOSSY_COBBLESTONE) return 0;
         if (block == Blocks.GRAVEL) return 1;
         if (block == Blocks.NETHERRACK) return 2;
         if (block == Blocks.END_STONE) return 3;
