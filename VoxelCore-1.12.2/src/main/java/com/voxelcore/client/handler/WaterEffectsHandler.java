@@ -20,8 +20,9 @@ import java.util.Random;
 
 /**
  * Ambient water behaviour for Forge 1.12.2. The old expanding ring renderer is
- * removed: WaterSurfaceRenderer now replaces the visible surface appearance
- * with a continuous animated material, sky reflection response and shore foam.
+ * removed: WaterSurfaceRenderer now renders a calm custom surface with biome
+ * depth colour, sky reflections, sunlight highlights and shoreline foam.
+ * Splashes and bubbles are local contact particles, not water-surface waves.
  * Vanilla water blocks, flow, collision and server state remain untouched.
  */
 @SideOnly(Side.CLIENT)
