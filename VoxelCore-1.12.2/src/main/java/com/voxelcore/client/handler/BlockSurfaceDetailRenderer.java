@@ -157,6 +157,14 @@ public final class BlockSurfaceDetailRenderer {
         if (block == Blocks.DIAMOND_ORE) return 9;
         if (block == Blocks.EMERALD_ORE) return 10;
         if (block == Blocks.QUARTZ_ORE) return 11;
+        if (block == Blocks.SANDSTONE) return 12;
+        if (block == Blocks.RED_SANDSTONE) return 13;
+        if (block == Blocks.OBSIDIAN) return 14;
+        if (block == Blocks.PRISMARINE) return 15;
+        if (block == Blocks.STONEBRICK) return 16;
+        if (block == Blocks.HARDENED_CLAY) return 17;
+        if (block == Blocks.BRICK_BLOCK) return 18;
+        if (block == Blocks.QUARTZ_BLOCK) return 19;
         return -1;
     }
 
