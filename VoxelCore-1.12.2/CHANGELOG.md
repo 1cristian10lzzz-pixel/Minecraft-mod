@@ -1,15 +1,17 @@
 # Changelog
 
-## 0.8.0 — Realismo ambiental ampliado
+## 0.8.0 — Realismo ambiental, materiales y animaciones
 
+- Adds deterministic procedural mineral-grain highlights to exposed faces of stone, cobblestone, gravel, netherrack, end stone and common ores. Uses cached vertex-colour geometry; vanilla textures, block IDs and states remain unchanged.
+- Extends the additive player animation layer with improved weight transfer, torso counter-rotation, sprint arm pumping, crouch posture, ladder climbing, swimming paddles, elytra posture, falling pose and subtle idle breathing.
 - Adds lightweight vegetation contact particles when the player walks through tall grass, ferns, vines, dead bushes and foliage.
 - Adds a small block-fragment contact burst when the player lands and receives the vanilla bounce from a slime block; vanilla bounce force and collision are unchanged.
-- These effects are client-only, limited to a 3x3 footprint and throttled to one small vegetation puff every four ticks.
 - Adds a calm custom water surface with biome/depth colour, sky-reflection approximation, view-angle Fresnel response, daylight highlights and shoreline foam; no geometric wave displacement or expanding ring geometry.
 - Adds underwater colour absorption and depth fog, rising bubbles, local splashes/wakes and waterfall mist.
 - Smooths dropped-item buoyancy near fluid surfaces and adds alternating swimming leg kicks.
 - Keeps vanilla blocks, fluid flow, collision, slime bounce, harvesting, drops and server simulation intact.
 - No GUI/interface files changed. No images, textures or resource packs created or modified.
+- Stone detail and water surface scans are bounded and cached; render work is batched.
 
 ## 0.7.1 — Animaciones, recogida y rendimiento visual
 
