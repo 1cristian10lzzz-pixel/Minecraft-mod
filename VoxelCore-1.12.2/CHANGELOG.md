@@ -1,15 +1,15 @@
 # Changelog
 
-## 0.8.0 — Agua realista sin ondas geométricas
+## 0.8.0 — Realismo ambiental ampliado
 
-- Replaces the old expanding-ring-only water effect with a batched procedural surface mesh over exposed Minecraft water blocks.
-- Smooths shared corner heights between neighboring water columns so the surface transitions more naturally between source and flowing water.
-- Adds biome-aware colour, depth-based light absorption, view-angle sky reflection, daylight-dependent specular highlights and shoreline foam.
-- Keeps the water geometry calm: there is no vertical wave displacement and no expanding circular ripple mesh. Reflected light and foam brightness can change without moving the surface.
-- Adds underwater colour absorption and depth fog, plus rising bubbles, entry splashes, wakes and waterfall mist.
-- Smooths dropped-item buoyancy near the water/lava surface and adds alternating leg kicks to the existing swimming animation.
-- Keeps vanilla water blocks, flow, collision, source/flowing levels, buckets and server simulation intact.
-- Makes no interface changes and creates, edits or adds no images or textures.
+- Adds lightweight vegetation contact particles when the player walks through tall grass, ferns, vines, dead bushes and foliage.
+- Adds a small block-fragment contact burst when the player lands and receives the vanilla bounce from a slime block; vanilla bounce force and collision are unchanged.
+- These effects are client-only, limited to a 3x3 footprint and throttled to one small vegetation puff every four ticks.
+- Adds a calm custom water surface with biome/depth colour, sky-reflection approximation, view-angle Fresnel response, daylight highlights and shoreline foam; no geometric wave displacement or expanding ring geometry.
+- Adds underwater colour absorption and depth fog, rising bubbles, local splashes/wakes and waterfall mist.
+- Smooths dropped-item buoyancy near fluid surfaces and adds alternating swimming leg kicks.
+- Keeps vanilla blocks, fluid flow, collision, slime bounce, harvesting, drops and server simulation intact.
+- No GUI/interface files changed. No images, textures or resource packs created or modified.
 
 ## 0.7.1 — Animaciones, recogida y rendimiento visual
 
@@ -19,7 +19,7 @@
 - Reduces nearby water-surface search frequency/radius and smooths ripple rings while retaining adaptive quality and batched drawing.
 - Throttles optional liquid buoyancy work to reduce world-tick scanning.
 - Keeps existing PNG files untouched; does not generate, edit or add images.
-- Preserves vanilla water blocks, vanilla chunk rendering, all registered item/block IDs and the mod ID "voxelcore".
+- Preserves vanilla water blocks, vanilla chunk rendering, all registered item/block IDs and the mod id "voxelcore".
 
 ## 0.6.0 — Física de objetos, render y estilo visual
 
