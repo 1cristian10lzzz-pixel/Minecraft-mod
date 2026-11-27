@@ -35,33 +35,51 @@ public final class MinefadePlayerModel extends ModelPlayer {
         float strafe = clamp(player.moveStrafing, -1.0F, 1.0F);
         float sprint = player.isSprinting() ? 1.0F : 0.0F;
         float crouch = player.isSneaking() ? 1.0F : 0.0F;
+        boolean swimming = player.isInsideOfMaterial(Material.WATER);
+        boolean airborne = !player.onGround && !player.isElytraFlying() && !swimming;
 
         // Subtle body weight shift and arm counter-swing over vanilla locomotion.
-        bipedBody.rotateAngleX += 0.035F * bob + 0.045F * sprint + 0.018F * crouch;
+        bipedBody.rotateAngleX += 0.050F * bob + 0.075F * sprint + 0.035F * crouch;
+        bipedBody.rotateAngleY += (float) Math.sin(phase * 0.5F) * 0.018F * walk;
+        bipedHead.rotateAngleX += sprint * 0.018F - crouch * 0.025F;
         bipedBody.rotateAngleZ -= strafe * (0.035F + 0.018F * walk);
         bipedHead.rotateAngleZ += strafe * 0.018F;
-        bipedRightArm.rotateAngleZ += -0.028F * sway + strafe * 0.018F;
-        bipedLeftArm.rotateAngleZ += 0.028F * sway + strafe * 0.018F;
-        bipedRightArm.rotateAngleX -= 0.025F * bob;
-        bipedLeftArm.rotateAngleX += 0.025F * bob;
+        bipedRightArm.rotateAngleZ += -0.038F * sway + strafe * 0.025F;
+        bipedLeftArm.rotateAngleZ += 0.038F * sway + strafe * 0.025F;
+        bipedRightArm.rotateAngleX -= 0.040F * bob + sprint * 0.045F;
+        bipedLeftArm.rotateAngleX += 0.040F * bob + sprint * 0.045F;
+        bipedRightLeg.rotateAngleX += 0.018F * bob;
+        bipedLeftLeg.rotateAngleX -= 0.018F * bob;
         bipedRightLeg.rotateAngleZ -= strafe * 0.010F;
         bipedLeftLeg.rotateAngleZ -= strafe * 0.010F;
 
-        if (player.isInsideOfMaterial(Material.WATER)) {
+        if (swimming) {
             float swimPhase = phase * 0.62F;
-            float paddle = (float) Math.sin(swimPhase) * 0.085F;
-            float kick = (float) Math.sin(swimPhase + Math.PI * 0.5D) * 0.11F;
+            float paddle = (float) Math.sin(swimPhase) * 0.12F;
+            float kick = (float) Math.sin(swimPhase + Math.PI * 0.5D) * 0.14F;
             bipedRightArm.rotateAngleX += paddle;
             bipedLeftArm.rotateAngleX -= paddle;
             bipedRightLeg.rotateAngleX += kick;
             bipedLeftLeg.rotateAngleX -= kick;
-            bipedBody.rotateAngleX -= 0.035F;
+            bipedBody.rotateAngleX -= 0.055F;
+            bipedHead.rotateAngleX -= 0.018F;
+        }
+
+        if (airborne) {
+            float fallPose = clamp((float) player.motionY * -0.08F, -0.035F, 0.055F);
+            bipedBody.rotateAngleX += 0.025F + fallPose;
+            bipedRightArm.rotateAngleZ -= 0.025F;
+            bipedLeftArm.rotateAngleZ += 0.025F;
+            bipedRightLeg.rotateAngleX -= 0.025F;
+            bipedLeftLeg.rotateAngleX -= 0.025F;
         }
 
         if (player.isElytraFlying()) {
-            bipedBody.rotateAngleX -= 0.075F;
-            bipedRightArm.rotateAngleZ -= 0.055F;
-            bipedLeftArm.rotateAngleZ += 0.055F;
+            bipedBody.rotateAngleX -= 0.095F;
+            bipedRightArm.rotateAngleZ -= 0.075F;
+            bipedLeftArm.rotateAngleZ += 0.075F;
+            bipedRightArm.rotateAngleX -= 0.035F;
+            bipedLeftArm.rotateAngleX -= 0.035F;
         }
 
         float attack = this.swingProgress;
@@ -76,8 +94,8 @@ public final class MinefadePlayerModel extends ModelPlayer {
         }
 
         double horizontalSpeedSq = player.motionX * player.motionX + player.motionZ * player.motionZ;
-        if (horizontalSpeedSq < 0.0004D && !player.isInsideOfMaterial(Material.WATER)) {
-            float breath = (float) Math.sin(ageInTicks * 0.08F) * 0.006F;
+        if (horizontalSpeedSq < 0.0004D && !swimming) {
+            float breath = (float) Math.sin(ageInTicks * 0.075F) * 0.009F;
             bipedBody.rotateAngleX += breath;
             bipedHead.rotateAngleX += breath * 0.30F;
         }
