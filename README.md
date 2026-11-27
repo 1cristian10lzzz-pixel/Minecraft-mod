@@ -21,7 +21,9 @@ The new appearance uses a procedural surface, biome/depth colour, and a sky-colo
 
 ## Build status
 
-The updated no-wave surface implementation is awaiting its own ForgeGradle build. Runtime tests inside a real Minecraft client and dedicated/LAN server are separate from compilation.
+Resource validation and Forge 1.12.2 compilation passed in GitHub Actions run #61: https://github.com/1cristian10lzzz-pixel/Minecraft-mod/actions/runs/45954678406
+
+The workflow uploaded artifact minefade-mod-minecraft-1.12.2-v0.8.0 (artifact ID 15178541272). Its installable JAR reports version 0.8.0, mod ID voxelcore and Minecraft 1.12.2. Runtime tests inside a real Minecraft client and dedicated/LAN server have not been performed.
 
 ## Install
 
