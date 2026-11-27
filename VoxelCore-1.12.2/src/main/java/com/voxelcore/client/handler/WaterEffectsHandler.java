@@ -3,10 +3,7 @@ package com.voxelcore.client.handler;
 import com.voxelcore.config.ModConfig;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.client.renderer.BlockRendererDispatcher;
 import net.minecraft.entity.item.EntityBoat;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.EnumParticleTypes;
@@ -14,35 +11,30 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.EntityViewRenderEvent;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.client.event.TextureStitchEvent;
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import org.lwjgl.opengl.GL11;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Random;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Client-only water presentation for Forge 1.12.2.
  *
- * The renderer batches every ripple into one GL draw call per frame. Surface
- * lookups and waterfall scans are throttled, while the cached surface follows
- * the player as they move. Vanilla fluid blocks and server world state remain
- * untouched.
+ * The actual Minecraft water blocks and simulation stay authoritative. This
+ * handler installs MinefadeWaterRenderer into Minecraft's existing fluid
+ * renderer, manages lightweight splashes and waterfall mist, and keeps the
+ * underwater colour biome-aware. No ring meshes or radial wave overlays are
+ * generated.
  */
 @SideOnly(Side.CLIENT)
 public class WaterEffectsHandler {
-    private static final int MAX_RIPPLES = 24;
-    private static final int NORMAL_RIPPLE_LIMIT = 20;
-    private static final int LOW_RIPPLE_LIMIT = 9;
-    private static final int NORMAL_RING_SEGMENTS = 40;
-    private static final int LOW_RING_SEGMENTS = 20;
-    private static final List<Ripple> RIPPLES = new ArrayList<Ripple>();
-    private static final Random RANDOM = new Random();
+    private static final Logger LOGGER = LogManager.getLogger("Minefade");
+    private static final java.util.Random RANDOM = new java.util.Random();
+
+    private static volatile boolean reducedQuality;
 
     private double previousX;
     private double previousZ;
@@ -52,16 +44,32 @@ public class WaterEffectsHandler {
     private int qualitySampleTicks;
     private int slowSamples;
     private int recoverySamples;
-    private boolean reducedQuality;
     private BlockPos cachedSurface;
     private World trackedWorld;
+    private BlockRendererDispatcher installedDispatcher;
+    private boolean rendererInstallWarningLogged;
+
+    public static boolean isReducedQuality() {
+        return reducedQuality;
+    }
+
+    @SubscribeEvent
+    public void onTextureStitchPost(TextureStitchEvent.Post event) {
+        MinefadeWaterRenderer.refreshAtlasSprites(event.getMap());
+    }
 
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
 
         Minecraft mc = Minecraft.getMinecraft();
-        if (!ModConfig.ENABLE_WATER_EFFECTS || mc.world == null || mc.player == null) {
+        if (!ModConfig.ENABLE_WATER_EFFECTS) {
+            resetTracking();
+            return;
+        }
+
+        installCustomWaterRenderer(mc);
+        if (mc.world == null || mc.player == null) {
             resetTracking();
             return;
         }
@@ -104,17 +112,19 @@ public class WaterEffectsHandler {
                 spawnEntrySplash(world, player, surface);
             }
 
-            if (movementSq > 0.0008D && ModConfig.ENABLE_WATER_RIPPLES) {
-                double surfaceY = surface.getY() + 1.015D;
-                addRipple(player.posX, surfaceY, player.posZ, ridingBoat ? 1.25F : 0.85F);
-                int wakeInterval = reducedQuality ? 8 : 4;
-                if (ModConfig.ENABLE_WATER_SPLASHES && tickCounter % wakeInterval == 0) {
-                    world.spawnParticle(EnumParticleTypes.WATER_WAKE, player.posX, surfaceY,
-                            player.posZ, -dx * 2.0D, 0.0D, -dz * 2.0D);
-                    if (movementSq > 0.0018D) {
-                        world.spawnParticle(EnumParticleTypes.WATER_SPLASH, player.posX, surfaceY,
-                                player.posZ, dx * 0.7D, 0.025D, dz * 0.7D);
-                    }
+            // Small contact splashes give movement feedback without drawing
+            // expanding circles or disturbing the water geometry.
+            int splashInterval = reducedQuality ? 8 : 4;
+            if (movementSq > 0.0012D && ModConfig.ENABLE_WATER_SPLASHES
+                    && tickCounter % splashInterval == 0) {
+                double surfaceY = surface.getY() + 0.91D;
+                int particles = ridingBoat ? 2 : 1;
+                for (int i = 0; i < particles; i++) {
+                    double offsetX = (RANDOM.nextDouble() - 0.5D) * 0.45D;
+                    double offsetZ = (RANDOM.nextDouble() - 0.5D) * 0.45D;
+                    world.spawnParticle(EnumParticleTypes.WATER_SPLASH,
+                            player.posX + offsetX, surfaceY, player.posZ + offsetZ,
+                            -dx * 0.35D, 0.025D, -dz * 0.35D);
                 }
             }
             previousInWater = true;
@@ -122,6 +132,7 @@ public class WaterEffectsHandler {
             previousInWater = false;
         }
 
+        // Rain produces occasional impact droplets instead of circular rings.
         int rainInterval = reducedQuality ? 18 : 10;
         if (surface != null && ModConfig.ENABLE_RAIN_RIPPLES && world.isRaining()
                 && tickCounter % rainInterval == 0 && RANDOM.nextInt(5) == 0) {
@@ -129,8 +140,9 @@ public class WaterEffectsHandler {
                     surface.getX() + RANDOM.nextInt(5) - 2, surface.getY(),
                     surface.getZ() + RANDOM.nextInt(5) - 2, 1);
             if (rainWater != null && world.canSeeSky(rainWater.up())) {
-                addRipple(rainWater.getX() + 0.5D, rainWater.getY() + 1.015D,
-                        rainWater.getZ() + 0.5D, 0.38F);
+                world.spawnParticle(EnumParticleTypes.WATER_SPLASH,
+                        rainWater.getX() + 0.5D, rainWater.getY() + 0.94D,
+                        rainWater.getZ() + 0.5D, 0.0D, 0.018D, 0.0D);
             }
         }
 
@@ -141,12 +153,33 @@ public class WaterEffectsHandler {
 
         previousX = player.posX;
         previousZ = player.posZ;
-        ageRipples();
+    }
+
+    private void installCustomWaterRenderer(Minecraft mc) {
+        BlockRendererDispatcher dispatcher = mc.getBlockRendererDispatcher();
+        if (dispatcher == null || dispatcher == installedDispatcher) return;
+
+        try {
+            MinefadeWaterRenderer replacement = new MinefadeWaterRenderer(mc.getBlockColors());
+            // 1.12.2 SRG field name for BlockRendererDispatcher.fluidRenderer.
+            // This keeps Minecraft's normal chunk build and translucent pass.
+            ObfuscationReflectionHelper.setPrivateValue(
+                    BlockRendererDispatcher.class, dispatcher, replacement, "field_175025_e");
+            installedDispatcher = dispatcher;
+            MinefadeWaterRenderer.refreshAtlasSprites(mc.getTextureMapBlocks());
+            LOGGER.info("Minefade realistic water surface renderer installed.");
+        } catch (RuntimeException exception) {
+            if (!rendererInstallWarningLogged) {
+                rendererInstallWarningLogged = true;
+                LOGGER.warn("Minefade could not install its optional water renderer; vanilla water rendering will be retained.",
+                        exception);
+            }
+        }
     }
 
     /**
      * Hysteresis keeps visual quality from changing every few frames when FPS
-     * fluctuates around a threshold. It only reduces optional Minefade effects.
+     * fluctuates around a threshold. Only optional surface detail is reduced.
      */
     private void updateAdaptiveQuality() {
         if (!ModConfig.ENABLE_ADAPTIVE_WATER_QUALITY) {
@@ -204,17 +237,13 @@ public class WaterEffectsHandler {
     }
 
     private static void spawnEntrySplash(World world, EntityPlayer player, BlockPos surface) {
-        double y = surface.getY() + 0.96D;
+        double y = surface.getY() + 0.94D;
         int particleCount = Minecraft.getMinecraft().gameSettings.particleSetting == 2 ? 3 : 6;
         for (int i = 0; i < particleCount; i++) {
             double ox = (RANDOM.nextDouble() - 0.5D) * 0.65D;
             double oz = (RANDOM.nextDouble() - 0.5D) * 0.65D;
             world.spawnParticle(EnumParticleTypes.WATER_SPLASH, player.posX + ox, y,
                     player.posZ + oz, ox * 0.12D, 0.10D + RANDOM.nextDouble() * 0.08D, oz * 0.12D);
-        }
-        addRipple(player.posX, surface.getY() + 1.015D, player.posZ, 1.5F);
-        if (Minecraft.getMinecraft().gameSettings.particleSetting != 2) {
-            addRipple(player.posX + 0.35D, surface.getY() + 1.016D, player.posZ - 0.2D, 0.75F);
         }
     }
 
@@ -245,26 +274,7 @@ public class WaterEffectsHandler {
         }
     }
 
-    private static void addRipple(double x, double y, double z, float scale) {
-        if (ModConfig.WATER_WAVE_STRENGTH <= 0) return;
-        int limit = ModConfig.ENABLE_ADAPTIVE_WATER_QUALITY
-                && Minecraft.getDebugFPS() > 0 && Minecraft.getDebugFPS() < 28
-                ? LOW_RIPPLE_LIMIT : NORMAL_RIPPLE_LIMIT;
-        if (RIPPLES.size() >= Math.min(MAX_RIPPLES, limit)) RIPPLES.remove(0);
-        RIPPLES.add(new Ripple(x, y, z, scale));
-    }
-
-    private static void ageRipples() {
-        Iterator<Ripple> iterator = RIPPLES.iterator();
-        while (iterator.hasNext()) {
-            Ripple ripple = iterator.next();
-            ripple.age++;
-            if (ripple.age >= ripple.maxAge) iterator.remove();
-        }
-    }
-
     private void resetTracking() {
-        clearAll();
         trackedWorld = null;
         cachedSurface = null;
         lastSurfaceScanTick = -100;
@@ -277,79 +287,9 @@ public class WaterEffectsHandler {
         reducedQuality = false;
     }
 
+    /** Kept for existing world-unload cleanup calls. There are no ring buffers to clear. */
     public static void clearAll() {
-        RIPPLES.clear();
-    }
-
-    @SubscribeEvent
-    public void onRenderWorldLast(RenderWorldLastEvent event) {
-        Minecraft mc = Minecraft.getMinecraft();
-        if (!ModConfig.ENABLE_WATER_EFFECTS || !ModConfig.ENABLE_WATER_RIPPLES
-                || ModConfig.WATER_WAVE_STRENGTH <= 0 || mc.world == null || mc.player == null
-                || RIPPLES.isEmpty()) return;
-
-        double viewX = mc.getRenderManager().viewerPosX;
-        double viewY = mc.getRenderManager().viewerPosY;
-        double viewZ = mc.getRenderManager().viewerPosZ;
-        int maxDistance = ModConfig.WATER_EFFECT_RADIUS;
-        double maxDistanceSq = (double) maxDistance * (double) maxDistance;
-        float strength = ModConfig.WATER_WAVE_STRENGTH / 100.0F;
-        int segments = reducedQuality ? LOW_RING_SEGMENTS : NORMAL_RING_SEGMENTS;
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder buffer = tessellator.getBuffer();
-
-        GlStateManager.pushMatrix();
-        try {
-            GlStateManager.translate(-viewX, -viewY, -viewZ);
-            GlStateManager.disableTexture2D();
-            GlStateManager.disableLighting();
-            GlStateManager.enableBlend();
-            GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
-            GlStateManager.disableCull();
-            GlStateManager.depthMask(false);
-            GL11.glLineWidth(1.25F);
-
-            buffer.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR);
-            for (Ripple ripple : RIPPLES) {
-                double dx = ripple.x - viewX;
-                double dy = ripple.y - viewY;
-                double dz = ripple.z - viewZ;
-                if (dx * dx + dy * dy + dz * dz > maxDistanceSq) continue;
-
-                float progress = (ripple.age + event.getPartialTicks()) / (float) ripple.maxAge;
-                float fade = Math.max(0.0F, 1.0F - progress);
-                float alpha = fade * strength * 0.58F;
-                if (alpha < 0.015F) continue;
-
-                double radius = (0.22D + progress * 2.55D) * ripple.scale;
-                int a = MathHelper.clamp((int) (alpha * 255.0F), 0, 255);
-                appendRing(buffer, ripple.x, ripple.y, ripple.z, radius, a, segments, 110, 204, 236);
-                appendRing(buffer, ripple.x, ripple.y + 0.001D, ripple.z, radius * 0.58D,
-                        Math.max(0, a / 2), segments, 184, 238, 250);
-            }
-            tessellator.draw();
-        } finally {
-            GlStateManager.depthMask(true);
-            GlStateManager.enableCull();
-            GlStateManager.disableBlend();
-            GlStateManager.enableTexture2D();
-            GlStateManager.enableLighting();
-            GlStateManager.popMatrix();
-            GL11.glLineWidth(1.0F);
-        }
-    }
-
-    /** Adds one complete ring as independent line segments to the shared frame buffer. */
-    private static void appendRing(BufferBuilder buffer, double x, double y, double z,
-                                   double radius, int alpha, int segments, int red, int green, int blue) {
-        for (int i = 0; i < segments; i++) {
-            double a0 = Math.PI * 2.0D * i / segments;
-            double a1 = Math.PI * 2.0D * (i + 1) / segments;
-            buffer.pos(x + Math.cos(a0) * radius, y, z + Math.sin(a0) * radius)
-                    .color(red, green, blue, alpha).endVertex();
-            buffer.pos(x + Math.cos(a1) * radius, y, z + Math.sin(a1) * radius)
-                    .color(125, 220, 242, alpha).endVertex();
-        }
+        reducedQuality = false;
     }
 
     @SubscribeEvent
@@ -364,24 +304,22 @@ public class WaterEffectsHandler {
         float waterGreen = ((waterColor >> 8) & 255) / 255.0F;
         float waterBlue = (waterColor & 255) / 255.0F;
 
-        event.setRed(event.getRed() * 0.28F + waterRed * 0.72F);
-        event.setGreen(event.getGreen() * 0.28F + waterGreen * 0.72F);
-        event.setBlue(event.getBlue() * 0.28F + waterBlue * 0.72F);
-    }
-
-    private static final class Ripple {
-        private final double x;
-        private final double y;
-        private final double z;
-        private final float scale;
-        private final int maxAge = 34;
-        private int age;
-
-        private Ripple(double x, double y, double z, float scale) {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-            this.scale = scale;
+        // The further the player is below the local surface, the cooler and
+        // darker the fog becomes. The scan is bounded to keep it inexpensive.
+        int submergedBlocks = 0;
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+        for (int y = 1; y <= 8; y++) {
+            cursor.setPos(pos.getX(), pos.getY() + y, pos.getZ());
+            if (mc.world.getBlockState(cursor).getMaterial() != Material.WATER) break;
+            submergedBlocks++;
         }
+        float depth = MathHelper.clamp(submergedBlocks / 8.0F, 0.0F, 1.0F);
+        float deepRed = waterRed * (1.0F - depth) + 0.012F * depth;
+        float deepGreen = waterGreen * (1.0F - depth) + 0.075F * depth;
+        float deepBlue = waterBlue * (1.0F - depth) + 0.19F * depth;
+
+        event.setRed(event.getRed() * 0.22F + deepRed * 0.78F);
+        event.setGreen(event.getGreen() * 0.22F + deepGreen * 0.78F);
+        event.setBlue(event.getBlue() * 0.22F + deepBlue * 0.78F);
     }
 }
