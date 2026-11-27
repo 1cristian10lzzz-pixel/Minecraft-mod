@@ -156,7 +156,7 @@ public final class BlockSurfaceDetailRenderer {
         if (block == Blocks.LAPIS_ORE) return 8;
         if (block == Blocks.DIAMOND_ORE) return 9;
         if (block == Blocks.EMERALD_ORE) return 10;
-        if (block == Blocks.NETHER_QUARTZ_ORE) return 11;
+        if (block == Blocks.QUARTZ_ORE) return 11;
         return -1;
     }
 
@@ -230,6 +230,14 @@ public final class BlockSurfaceDetailRenderer {
             case 9: return bright ? new float[]{0.34F, 0.88F, 0.91F} : new float[]{0.08F, 0.38F, 0.43F};
             case 10: return bright ? new float[]{0.35F, 0.82F, 0.39F} : new float[]{0.09F, 0.34F, 0.13F};
             case 11: return bright ? new float[]{0.92F, 0.88F, 0.77F} : new float[]{0.47F, 0.43F, 0.36F};
+            case 12: return bright ? new float[]{0.83F, 0.72F, 0.52F} : new float[]{0.43F, 0.34F, 0.21F};
+            case 13: return bright ? new float[]{0.88F, 0.47F, 0.27F} : new float[]{0.46F, 0.20F, 0.11F};
+            case 14: return bright ? new float[]{0.48F, 0.43F, 0.55F} : new float[]{0.13F, 0.11F, 0.18F};
+            case 15: return bright ? new float[]{0.42F, 0.78F, 0.73F} : new float[]{0.13F, 0.36F, 0.35F};
+            case 16: return bright ? new float[]{0.72F, 0.70F, 0.66F} : new float[]{0.34F, 0.33F, 0.31F};
+            case 17: return bright ? new float[]{0.78F, 0.55F, 0.38F} : new float[]{0.39F, 0.25F, 0.15F};
+            case 18: return bright ? new float[]{0.74F, 0.37F, 0.27F} : new float[]{0.35F, 0.13F, 0.10F};
+            case 19: return bright ? new float[]{0.95F, 0.92F, 0.83F} : new float[]{0.52F, 0.49F, 0.43F};
             default: return bright ? new float[]{0.72F, 0.72F, 0.72F} : new float[]{0.34F, 0.35F, 0.36F};
         }
     }
