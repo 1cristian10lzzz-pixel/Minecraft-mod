@@ -13,6 +13,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -39,6 +40,21 @@ public final class SurfaceRealismHandler {
     private boolean leftFoot = true;
     private World trackedWorld;
     private World impactWorld;
+
+    @SubscribeEvent
+    public void onWorldUnload(WorldEvent.Unload event) {
+        if (event.getWorld() == null || !event.getWorld().isRemote) return;
+        if (trackedWorld == event.getWorld()) {
+            trackedWorld = null;
+            previousX = previousZ = 0.0D;
+            distanceSinceStep = 0.0D;
+            leftFoot = true;
+        }
+        if (impactWorld == event.getWorld()) {
+            impactWorld = null;
+            lastMiningImpact.clear();
+        }
+    }
 
     @SubscribeEvent
     public void onLeftClickBlock(PlayerInteractEvent.LeftClickBlock event) {
