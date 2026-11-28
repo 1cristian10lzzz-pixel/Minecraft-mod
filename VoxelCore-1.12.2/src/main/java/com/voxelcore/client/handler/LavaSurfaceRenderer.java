@@ -111,7 +111,10 @@ public final class LavaSurfaceRenderer {
 
     private void rebuild(World world, int cx, int cy, int cz) {
         SURFACES.clear();
-        int radius = MathHelper.clamp(ModConfig.LAVA_EFFECT_RADIUS / 3, 4, 10);
+        int qualityRadius = ModConfig.LAVA_RENDER_QUALITY <= 0 ? 4
+                : (ModConfig.LAVA_RENDER_QUALITY == 1 ? 7 : 10);
+        int radius = Math.min(qualityRadius,
+                MathHelper.clamp(ModConfig.LAVA_EFFECT_RADIUS / 3, 4, 10));
         if (reducedQuality) radius = Math.max(4, radius - 2);
         int top = Math.min(255, cy + 12);
         int bottom = Math.max(0, cy - 24);
