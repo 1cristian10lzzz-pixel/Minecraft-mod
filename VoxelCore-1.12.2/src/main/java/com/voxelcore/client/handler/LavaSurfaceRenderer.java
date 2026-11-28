@@ -133,31 +133,13 @@ public final class LavaSurfaceRenderer {
                             ? state.getValue(BlockLiquid.LEVEL).intValue() : 0;
                     int adjusted = level >= 8 ? 0 : Math.min(7, level);
                     double height = y + 1.0D - ((adjusted + 1) / 9.0D);
-                    boolean north = isExposedLavaEdge(world, x, y, z - 1);
-                    boolean south = isExposedLavaEdge(world, x, y, z + 1);
-                    boolean west = isExposedLavaEdge(world, x - 1, y, z);
-                    boolean east = isExposedLavaEdge(world, x + 1, y, z);
-                    SURFACES.add(new LavaCell(x, z, height, north, south, west, east,
+                    SURFACES.add(new LavaCell(x, z, height,
                             mix(x * 73428767 ^ z * 438289 ^ y * 912931)));
                     break;
                 }
                 if (SURFACES.size() >= MAX_SURFACES) return;
             }
         }
-    }
-
-    private static boolean isExposedLavaEdge(World world, int x, int y, int z) {
-        BlockPos pos = new BlockPos(x, y, z);
-        return y >= 0 && y < 256 && world.isBlockLoaded(pos)
-                && world.getBlockState(pos).getMaterial()
-                != net.minecraft.block.material.Material.LAVA;
-    }
-
-    private static boolean isLava(World world, int x, int y, int z) {
-        BlockPos pos = new BlockPos(x, y, z);
-        return y >= 0 && y < 256 && world.isBlockLoaded(pos)
-                && world.getBlockState(pos).getMaterial()
-                == net.minecraft.block.material.Material.LAVA;
     }
 
     private void spawnNearbyHeat(Minecraft mc, double px, double py, double pz) {
@@ -296,17 +278,10 @@ public final class LavaSurfaceRenderer {
     private static final class LavaCell {
         final int x, z, seed;
         final double surfaceY;
-        final boolean north, south, west, east;
-
-        LavaCell(int x, int z, double surfaceY,
-                 boolean north, boolean south, boolean west, boolean east, int seed) {
+        LavaCell(int x, int z, double surfaceY, int seed) {
             this.x = x;
             this.z = z;
             this.surfaceY = surfaceY;
-            this.north = north;
-            this.south = south;
-            this.west = west;
-            this.east = east;
             this.seed = seed;
         }
     }
