@@ -1,36 +1,43 @@
 package com.voxelcore.client.gui;
 
-import com.voxelcore.VoxelCore;
 import com.voxelcore.config.ModConfig;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import org.lwjgl.input.Keyboard;
 
 import java.io.IOException;
 
-/** Responsive Minefade control centre with diagnostics, performance, water, world and item tabs. */
-public class MinefadeSettingsScreen extends GuiScreen {
-    private static final int TAB_DIAGNOSTICS = 0;
-    private static final int TAB_PERFORMANCE = 1;
-    private static final int TAB_WATER = 2;
-    private static final int TAB_CONTENT = 3;
-    private static final int TAB_ITEMS = 4;
-    private static final int ID_DIAG = 10;
-    private static final int ID_PERF = 11;
-    private static final int ID_WATER = 12;
-    private static final int ID_CONTENT = 13;
-    private static final int ID_ITEMS = 14;
+/**
+ * OptiFine-inspired video settings layout:
+ * category grid, compact two-column controls, click-to-cycle values and a
+ * separate page for each tuning group. It uses vanilla GuiButton styling and
+ * does not require new GUI images or a new resource pack.
+ */
+public final class MinefadeSettingsScreen extends GuiScreen {
+    private static final int PAGE_QUALITY = 0;
+    private static final int PAGE_DETAILS = 1;
+    private static final int PAGE_PERFORMANCE = 2;
+    private static final int PAGE_ANIMATIONS = 3;
+    private static final int PAGE_FLUIDS = 4;
+    private static final int PAGE_ITEMS = 5;
+    private static final int PAGE_WORLD = 6;
+    private static final int PAGE_OTHER = 7;
+
+    private static final int ID_NAV_BASE = 10;
     private static final int ID_CLOSE = 99;
-    private static final int ID_TOGGLE_BASE = 100;
-    private static final int ID_ADJUST_BASE = 200;
+    private static final int ID_OPTION_BASE = 100;
+
+    private static final String[] PAGE_NAMES = {
+            "Calidad...", "Detalles...", "Rendimiento...", "Animaciones...",
+            "Agua/Lava...", "Objetos...", "Mundo...", "Otros..."
+    };
 
     private final GuiScreen parent;
-    private int tab = TAB_DIAGNOSTICS;
+    private int page = PAGE_QUALITY;
     private int panelLeft;
-    private int panelTop;
     private int panelWidth;
-    private int panelHeight;
+    private int firstOptionY;
+    private int rowGap;
 
     public MinefadeSettingsScreen(GuiScreen parent) {
         this.parent = parent;
@@ -39,80 +46,134 @@ public class MinefadeSettingsScreen extends GuiScreen {
     @Override
     public void initGui() {
         this.buttonList.clear();
-        panelWidth = Math.min(430, this.width - 24);
-        panelHeight = Math.min(292, this.height - 24);
+        panelWidth = Math.min(720, this.width - 20);
         panelLeft = (this.width - panelWidth) / 2;
-        panelTop = (this.height - panelHeight) / 2;
 
-        int tabY = panelTop + 48;
-        int gap = 4;
-        int tabWidth = (panelWidth - 30 - gap * 4) / 5;
-        this.buttonList.add(new MinefadeButton(ID_DIAG, panelLeft + 10, tabY, tabWidth, 20, "INFO"));
-        this.buttonList.add(new MinefadeButton(ID_PERF, panelLeft + 10 + tabWidth + gap, tabY, tabWidth, 20, "REND."));
-        this.buttonList.add(new MinefadeButton(ID_WATER, panelLeft + 10 + (tabWidth + gap) * 2, tabY, tabWidth, 20, "AGUA"));
-        this.buttonList.add(new MinefadeButton(ID_CONTENT, panelLeft + 10 + (tabWidth + gap) * 3, tabY, tabWidth, 20, "MUNDO"));
-        this.buttonList.add(new MinefadeButton(ID_ITEMS, panelLeft + 10 + (tabWidth + gap) * 4, tabY, tabWidth, 20, "OBJETOS"));
+        int gap = 5;
+        int navWidth = (panelWidth - 24 - gap * 3) / 4;
+        for (int i = 0; i < PAGE_NAMES.length; i++) {
+            int column = i % 4;
+            int row = i / 4;
+            int x = panelLeft + 12 + column * (navWidth + gap);
+            int y = 36 + row * 23;
+            this.buttonList.add(new GuiButton(ID_NAV_BASE + i, x, y, navWidth, 20, PAGE_NAMES[i]));
+        }
 
-        int closeY = panelTop + panelHeight - 30;
-        this.buttonList.add(new MinefadeButton(ID_CLOSE, panelLeft + panelWidth - 104, closeY, 92, 20, "CERRAR"));
-        buildTabButtons();
+        firstOptionY = 94;
+        int footerY = this.height - 27;
+        rowGap = Math.max(22, Math.min(28, (footerY - firstOptionY - 22) / 6));
+        buildPageOptions();
+        this.buttonList.add(new GuiButton(ID_CLOSE, this.width / 2 - 100,
+                this.height - 25, 200, 20, "Volver"));
     }
 
-    private void buildTabButtons() {
-        int left = panelLeft + 14;
-        int right = panelLeft + panelWidth / 2 + 2;
-        int y = panelTop + 82;
-        int colWidth = (panelWidth - 36) / 2;
-        int rowGap = 30;
+    private void addToggle(int index, int column, int row, String label, boolean enabled) {
+        addOption(index, column, row, label + ": " + (enabled ? "ON" : "OFF"));
+    }
 
-        if (tab == TAB_DIAGNOSTICS) {
-            addToggle(0, left, y, colWidth, "Tema Minefade", ModConfig.ENABLE_UI_THEME);
-            addToggle(1, right, y, colWidth, "Monitor de rendimiento", ModConfig.SHOW_OVERLAY);
-            addToggle(2, left, y + rowGap, colWidth, "Mostrar memoria", ModConfig.SHOW_MEMORY);
-            addToggle(3, right, y + rowGap, colWidth, "Contar chunks", ModConfig.SHOW_CHUNK_COUNT);
-            addToggle(4, left, y + rowGap * 2, colWidth, "Contar entidades", ModConfig.SHOW_ENTITY_COUNT);
-            addToggle(5, right, y + rowGap * 2, colWidth, "Contar bloques especiales", ModConfig.SHOW_TILE_ENTITY_COUNT);
-        } else if (tab == TAB_PERFORMANCE) {
-            addToggle(0, left, y, colWidth, "Recorte de criaturas lejanas", ModConfig.ENABLE_ENTITY_DISTANCE_CULLING);
-            addAdjust(0, right, y, colWidth, "Distancia de criaturas: " + ModConfig.ENTITY_DISTANCE_PERCENT + "%");
-            addToggle(1, left, y + rowGap, colWidth, "Partículas mínimas", ModConfig.FORCE_MINIMAL_PARTICLES);
-            addToggle(2, left, y + rowGap * 2, colWidth, "Ocultar objetos lejanos", ModConfig.ENABLE_ITEM_DISTANCE_CULLING);
-            addToggle(3, right, y + rowGap * 2, colWidth, "Animaciones naturales", ModConfig.ENABLE_PLAYER_ANIMATIONS);
-            addAdjust(1, right, y + rowGap * 3, colWidth, "Radio objetos: " + ModConfig.ITEM_RENDER_RADIUS);
-        } else if (tab == TAB_WATER) {
-            addToggle(0, left, y, colWidth, "Efectos de agua Minefade", ModConfig.ENABLE_WATER_EFFECTS);
-            addToggle(1, right, y, colWidth, "Ondas y estelas", ModConfig.ENABLE_WATER_RIPPLES);
-            addToggle(2, left, y + rowGap, colWidth, "Salpicaduras al nadar", ModConfig.ENABLE_WATER_SPLASHES);
-            addToggle(3, right, y + rowGap, colWidth, "Aros de lluvia", ModConfig.ENABLE_RAIN_RIPPLES);
-            addToggle(4, left, y + rowGap * 2, colWidth, "Neblina en cascadas", ModConfig.ENABLE_WATERFALL_MIST);
-            addToggle(5, right, y + rowGap * 2, colWidth, "Color submarino por bioma", ModConfig.ENABLE_UNDERWATER_TINT);
-            addAdjust(0, left, y + rowGap * 3, colWidth, "Intensidad de ondas: " + ModConfig.WATER_WAVE_STRENGTH + "%");
-            addAdjust(1, right, y + rowGap * 3, colWidth, "Radio de efectos: " + ModConfig.WATER_EFFECT_RADIUS);
-            addToggle(6, left, y + rowGap * 4, colWidth * 2 + 4,
-                    "Calidad de agua automática", ModConfig.ENABLE_ADAPTIVE_WATER_QUALITY);
-        } else if (tab == TAB_CONTENT) {
-            addToggle(0, left, y, colWidth, "Generar mena de resonita", ModConfig.GENERATE_RESONITE_ORE);
-            addAdjust(0, right, y, colWidth, "Vetas por chunk: " + ModConfig.ORE_VEINS_PER_CHUNK);
-            addAdjust(1, left, y + rowGap, colWidth, "Tamaño de veta: " + ModConfig.ORE_VEIN_SIZE);
-            addAdjust(2, right, y + rowGap, colWidth, "Altura mínima: " + ModConfig.ORE_MIN_Y);
-            addAdjust(3, left, y + rowGap * 2, colWidth, "Altura máxima: " + ModConfig.ORE_MAX_Y);
+    private void addValue(int index, int column, int row, String label, String value) {
+        addOption(index, column, row, label + ": " + value);
+    }
+
+    private void addOption(int index, int column, int row, String label) {
+        int gap = 8;
+        int width = (panelWidth - 28 - gap) / 2;
+        int x = panelLeft + 12 + column * (width + gap);
+        int y = firstOptionY + row * rowGap;
+        this.buttonList.add(new GuiButton(ID_OPTION_BASE + index, x, y, width, 20, label));
+    }
+
+    private void buildPageOptions() {
+        if (page == PAGE_QUALITY) {
+            addToggle(0, 0, 0, "Gráficos detallados", mc.gameSettings.fancyGraphics);
+            addValue(1, 1, 0, "Iluminación suave", mc.gameSettings.ambientOcclusion == 0 ? "OFF"
+                    : (mc.gameSettings.ambientOcclusion == 1 ? "MÍNIMA" : "MÁXIMA"));
+            addToggle(2, 0, 1, "Detalles procedurales de bloques", ModConfig.ENABLE_BLOCK_SURFACE_DETAILS);
+            addValue(3, 1, 1, "Densidad mineral", densityName());
+            addValue(4, 0, 2, "Calidad de agua", qualityName(ModConfig.WATER_RENDER_QUALITY));
+            addToggle(5, 1, 2, "Reflejos sutiles", ModConfig.ENABLE_WATER_HIGHLIGHTS);
+            addToggle(6, 0, 3, "Espuma de orilla", ModConfig.ENABLE_WATER_FOAM);
+            addToggle(7, 1, 3, "Color submarino", ModConfig.ENABLE_UNDERWATER_TINT);
+        } else if (page == PAGE_DETAILS) {
+            addToggle(0, 0, 0, "Contacto con vegetación", ModConfig.ENABLE_VEGETATION_CONTACT);
+            addToggle(1, 1, 0, "Impactos de slime", ModConfig.ENABLE_SLIME_CONTACT);
+            addToggle(2, 0, 1, "Huellas por material", ModConfig.ENABLE_MATERIAL_FOOTSTEPS);
+            addToggle(3, 1, 1, "Salpicaduras al entrar/nadar", ModConfig.ENABLE_WATER_SPLASHES);
+            addToggle(4, 0, 2, "Impactos de lluvia", ModConfig.ENABLE_RAIN_RIPPLES);
+            addToggle(5, 1, 2, "Neblina de cascadas", ModConfig.ENABLE_WATERFALL_MIST);
+            addToggle(6, 0, 3, "Chispas de lava", ModConfig.ENABLE_LAVA_EMBERS);
+        } else if (page == PAGE_PERFORMANCE) {
+            addValue(0, 0, 0, "Distancia de render Minefade", ModConfig.WATER_EFFECT_RADIUS + " bloques");
+            addValue(1, 1, 0, "Distancia de criaturas", ModConfig.ENTITY_DISTANCE_PERCENT + "%");
+            addValue(2, 0, 1, "Radio de objetos", ModConfig.ITEM_RENDER_RADIUS + " bloques");
+            addValue(3, 1, 1, "FPS máximo", mc.gameSettings.limitFramerate == 260
+                    ? "ILIMITADO" : String.valueOf(mc.gameSettings.limitFramerate));
+            addValue(4, 0, 2, "Distancia de render", mc.gameSettings.renderDistanceChunks + " chunks");
+            addValue(5, 1, 2, "Partículas", particleName());
+            addToggle(6, 0, 3, "Calidad adaptativa de agua", ModConfig.ENABLE_ADAPTIVE_WATER_QUALITY);
+            addToggle(7, 1, 3, "Partículas mínimas", ModConfig.FORCE_MINIMAL_PARTICLES);
+            addToggle(8, 0, 4, "Recorte de criaturas lejanas", ModConfig.ENABLE_ENTITY_DISTANCE_CULLING);
+            addToggle(9, 1, 4, "Recorte de objetos lejanos", ModConfig.ENABLE_ITEM_DISTANCE_CULLING);
+            addToggle(10, 0, 5, "Sincronización vertical", mc.gameSettings.enableVsync);
+        } else if (page == PAGE_ANIMATIONS) {
+            addToggle(0, 0, 0, "Animaciones del jugador", ModConfig.ENABLE_PLAYER_ANIMATIONS);
+            addValue(1, 1, 0, "Intensidad del movimiento", ModConfig.PLAYER_ANIMATION_STRENGTH + "%");
+            addToggle(2, 0, 1, "Microbrillos animados del agua", ModConfig.ENABLE_WATER_HIGHLIGHTS);
+            addValue(3, 1, 1, "Calidad de superficie de lava", qualityName(ModConfig.LAVA_RENDER_QUALITY));
+            addToggle(4, 0, 2, "Partículas de lava", ModConfig.ENABLE_LAVA_EMBERS);
+            addToggle(5, 1, 2, "Salpicaduras y estelas", ModConfig.ENABLE_WATER_SPLASHES);
+        } else if (page == PAGE_FLUIDS) {
+            addToggle(0, 0, 0, "Efectos de agua", ModConfig.ENABLE_WATER_EFFECTS);
+            addToggle(1, 1, 0, "Detalles de superficie", ModConfig.ENABLE_WATER_HIGHLIGHTS);
+            addToggle(2, 0, 1, "Espuma de orilla", ModConfig.ENABLE_WATER_FOAM);
+            addToggle(3, 1, 1, "Estelas y salpicaduras", ModConfig.ENABLE_WATER_SPLASHES);
+            addToggle(4, 0, 2, "Aros de lluvia", ModConfig.ENABLE_RAIN_RIPPLES);
+            addToggle(5, 1, 2, "Niebla submarina", ModConfig.ENABLE_UNDERWATER_TINT);
+            addValue(6, 0, 3, "Calidad del agua", qualityName(ModConfig.WATER_RENDER_QUALITY));
+            addValue(7, 1, 3, "Radio del agua", ModConfig.WATER_EFFECT_RADIUS + " bloques");
+            addToggle(8, 0, 4, "Superficie de lava", ModConfig.ENABLE_LAVA_EFFECTS);
+            addToggle(9, 1, 4, "Humo y brasas", ModConfig.ENABLE_LAVA_EMBERS);
+            addValue(10, 0, 5, "Calidad de lava", qualityName(ModConfig.LAVA_RENDER_QUALITY));
+            addValue(11, 1, 5, "Radio de lava", ModConfig.LAVA_EFFECT_RADIUS + " bloques");
+        } else if (page == PAGE_ITEMS) {
+            addToggle(0, 0, 0, "Física de objetos", ModConfig.ENABLE_REALISTIC_ITEM_PHYSICS);
+            addToggle(1, 1, 0, "Objetos tumbados", ModConfig.FLAT_GROUND_ITEMS);
+            addToggle(2, 0, 1, "Recogida con clic derecho", ModConfig.MANUAL_ITEM_PICKUP);
+            addToggle(3, 1, 1, "Lanzamiento al correr", ModConfig.ENABLE_SPRINT_TOSS);
+            addToggle(4, 0, 2, "Flotar en agua y lava", ModConfig.FLOAT_ITEMS_IN_FLUIDS);
+            addValue(5, 1, 2, "Fuerza de lanzamiento", ModConfig.ITEM_TOSS_STRENGTH + "%");
+        } else if (page == PAGE_WORLD) {
+            addToggle(0, 0, 0, "Generar mena de resonita", ModConfig.GENERATE_RESONITE_ORE);
+            addValue(1, 1, 0, "Vetas por chunk", String.valueOf(ModConfig.ORE_VEINS_PER_CHUNK));
+            addValue(2, 0, 1, "Tamaño de veta", String.valueOf(ModConfig.ORE_VEIN_SIZE));
+            addValue(3, 1, 1, "Altura mínima", "Y " + ModConfig.ORE_MIN_Y);
+            addValue(4, 0, 2, "Altura máxima", "Y " + ModConfig.ORE_MAX_Y);
         } else {
-            addToggle(0, left, y, colWidth, "Física realista de objetos", ModConfig.ENABLE_REALISTIC_ITEM_PHYSICS);
-            addToggle(1, right, y, colWidth, "Objetos tumbados", ModConfig.FLAT_GROUND_ITEMS);
-            addToggle(2, left, y + rowGap, colWidth, "Recogida adicional con clic derecho", ModConfig.MANUAL_ITEM_PICKUP);
-            addToggle(3, right, y + rowGap, colWidth, "Lanzar al correr", ModConfig.ENABLE_SPRINT_TOSS);
-            addToggle(4, left, y + rowGap * 2, colWidth, "Flotar en agua y lava", ModConfig.FLOAT_ITEMS_IN_FLUIDS);
-            addAdjust(0, right, y + rowGap * 2, colWidth, "Fuerza de lanzamiento: " + ModConfig.ITEM_TOSS_STRENGTH + "%");
+            addToggle(0, 0, 0, "Tema de interfaz Minefade", ModConfig.ENABLE_UI_THEME);
+            addToggle(1, 1, 0, "Monitor de rendimiento", ModConfig.SHOW_OVERLAY);
+            addToggle(2, 0, 1, "Mostrar memoria", ModConfig.SHOW_MEMORY);
+            addToggle(3, 1, 1, "Contar chunks", ModConfig.SHOW_CHUNK_COUNT);
+            addToggle(4, 0, 2, "Contar entidades", ModConfig.SHOW_ENTITY_COUNT);
+            addToggle(5, 1, 2, "Contar bloques especiales", ModConfig.SHOW_TILE_ENTITY_COUNT);
         }
     }
 
-    private void addToggle(int index, int x, int y, int width, String label, boolean enabled) {
-        String mark = enabled ? "[ON] " : "[OFF] ";
-        this.buttonList.add(new MinefadeButton(ID_TOGGLE_BASE + index, x, y, width, 22, mark + label));
+    private static String densityName() {
+        switch (ModConfig.BLOCK_DETAIL_DENSITY) {
+            case 0: return "OFF";
+            case 1: return "BAJA";
+            case 3: return "ALTA";
+            default: return "MEDIA";
+        }
     }
 
-    private void addAdjust(int index, int x, int y, int width, String label) {
-        this.buttonList.add(new MinefadeButton(ID_ADJUST_BASE + index, x, y, width, 22, label + "  CAMBIAR"));
+    private static String qualityName(int quality) {
+        return quality <= 0 ? "BAJA" : (quality == 1 ? "MEDIA" : "ALTA");
+    }
+
+    private String particleName() {
+        return mc.gameSettings.particleSetting == 0 ? "TODAS"
+                : (mc.gameSettings.particleSetting == 1 ? "REDUCIDAS" : "MÍNIMAS");
     }
 
     @Override
@@ -121,19 +182,99 @@ public class MinefadeSettingsScreen extends GuiScreen {
             mc.displayGuiScreen(parent);
             return;
         }
-        if (button.id == ID_DIAG || button.id == ID_PERF || button.id == ID_WATER
-                || button.id == ID_CONTENT || button.id == ID_ITEMS) {
-            if (button.id == ID_DIAG) tab = TAB_DIAGNOSTICS;
-            else if (button.id == ID_PERF) tab = TAB_PERFORMANCE;
-            else if (button.id == ID_WATER) tab = TAB_WATER;
-            else if (button.id == ID_CONTENT) tab = TAB_CONTENT;
-            else tab = TAB_ITEMS;
+        if (button.id >= ID_NAV_BASE && button.id < ID_NAV_BASE + PAGE_NAMES.length) {
+            page = button.id - ID_NAV_BASE;
             initGui();
             return;
         }
+        if (button.id < ID_OPTION_BASE) return;
 
-        if (tab == TAB_DIAGNOSTICS && button.id >= ID_TOGGLE_BASE && button.id < ID_TOGGLE_BASE + 6) {
-            switch (button.id - ID_TOGGLE_BASE) {
+        int option = button.id - ID_OPTION_BASE;
+        applyOption(option);
+        ModConfig.save();
+        mc.gameSettings.saveOptions();
+        initGui();
+    }
+
+    private void applyOption(int option) {
+        if (page == PAGE_QUALITY) {
+            switch (option) {
+                case 0: mc.gameSettings.fancyGraphics = !mc.gameSettings.fancyGraphics; break;
+                case 1: mc.gameSettings.ambientOcclusion = (mc.gameSettings.ambientOcclusion + 1) % 3; break;
+                case 2: ModConfig.ENABLE_BLOCK_SURFACE_DETAILS = !ModConfig.ENABLE_BLOCK_SURFACE_DETAILS; break;
+                case 3: ModConfig.BLOCK_DETAIL_DENSITY = (ModConfig.BLOCK_DETAIL_DENSITY + 1) % 4; break;
+                case 4: ModConfig.WATER_RENDER_QUALITY = (ModConfig.WATER_RENDER_QUALITY + 1) % 3; break;
+                case 5: ModConfig.ENABLE_WATER_HIGHLIGHTS = !ModConfig.ENABLE_WATER_HIGHLIGHTS; break;
+                case 6: ModConfig.ENABLE_WATER_FOAM = !ModConfig.ENABLE_WATER_FOAM; break;
+                case 7: ModConfig.ENABLE_UNDERWATER_TINT = !ModConfig.ENABLE_UNDERWATER_TINT; break;
+            }
+        } else if (page == PAGE_DETAILS) {
+            switch (option) {
+                case 0: ModConfig.ENABLE_VEGETATION_CONTACT = !ModConfig.ENABLE_VEGETATION_CONTACT; break;
+                case 1: ModConfig.ENABLE_SLIME_CONTACT = !ModConfig.ENABLE_SLIME_CONTACT; break;
+                case 2: ModConfig.ENABLE_MATERIAL_FOOTSTEPS = !ModConfig.ENABLE_MATERIAL_FOOTSTEPS; break;
+                case 3: ModConfig.ENABLE_WATER_SPLASHES = !ModConfig.ENABLE_WATER_SPLASHES; break;
+                case 4: ModConfig.ENABLE_RAIN_RIPPLES = !ModConfig.ENABLE_RAIN_RIPPLES; break;
+                case 5: ModConfig.ENABLE_WATERFALL_MIST = !ModConfig.ENABLE_WATERFALL_MIST; break;
+                case 6: ModConfig.ENABLE_LAVA_EMBERS = !ModConfig.ENABLE_LAVA_EMBERS; break;
+            }
+        } else if (page == PAGE_PERFORMANCE) {
+            switch (option) {
+                case 0: ModConfig.WATER_EFFECT_RADIUS = ModConfig.WATER_EFFECT_RADIUS >= 64 ? 8 : ModConfig.WATER_EFFECT_RADIUS + 8; break;
+                case 1: ModConfig.ENTITY_DISTANCE_PERCENT = ModConfig.ENTITY_DISTANCE_PERCENT >= 100 ? 50 : ModConfig.ENTITY_DISTANCE_PERCENT + 10; break;
+                case 2: ModConfig.ITEM_RENDER_RADIUS = ModConfig.ITEM_RENDER_RADIUS >= 128 ? 16 : ModConfig.ITEM_RENDER_RADIUS + 16; break;
+                case 3: mc.gameSettings.limitFramerate = mc.gameSettings.limitFramerate >= 260 ? 30 : mc.gameSettings.limitFramerate + 30; break;
+                case 4: mc.gameSettings.renderDistanceChunks = mc.gameSettings.renderDistanceChunks >= 32 ? 4 : mc.gameSettings.renderDistanceChunks + 2; break;
+                case 5: mc.gameSettings.particleSetting = (mc.gameSettings.particleSetting + 1) % 3; break;
+                case 6: ModConfig.ENABLE_ADAPTIVE_WATER_QUALITY = !ModConfig.ENABLE_ADAPTIVE_WATER_QUALITY; break;
+                case 7: ModConfig.FORCE_MINIMAL_PARTICLES = !ModConfig.FORCE_MINIMAL_PARTICLES; break;
+                case 8: ModConfig.ENABLE_ENTITY_DISTANCE_CULLING = !ModConfig.ENABLE_ENTITY_DISTANCE_CULLING; break;
+                case 9: ModConfig.ENABLE_ITEM_DISTANCE_CULLING = !ModConfig.ENABLE_ITEM_DISTANCE_CULLING; break;
+                case 10: mc.gameSettings.enableVsync = !mc.gameSettings.enableVsync; break;
+            }
+        } else if (page == PAGE_ANIMATIONS) {
+            switch (option) {
+                case 0: ModConfig.ENABLE_PLAYER_ANIMATIONS = !ModConfig.ENABLE_PLAYER_ANIMATIONS; break;
+                case 1: ModConfig.PLAYER_ANIMATION_STRENGTH = ModConfig.PLAYER_ANIMATION_STRENGTH >= 100 ? 0 : ModConfig.PLAYER_ANIMATION_STRENGTH + 10; break;
+                case 2: ModConfig.ENABLE_WATER_HIGHLIGHTS = !ModConfig.ENABLE_WATER_HIGHLIGHTS; break;
+                case 3: ModConfig.LAVA_RENDER_QUALITY = (ModConfig.LAVA_RENDER_QUALITY + 1) % 3; break;
+                case 4: ModConfig.ENABLE_LAVA_EMBERS = !ModConfig.ENABLE_LAVA_EMBERS; break;
+                case 5: ModConfig.ENABLE_WATER_SPLASHES = !ModConfig.ENABLE_WATER_SPLASHES; break;
+            }
+        } else if (page == PAGE_FLUIDS) {
+            switch (option) {
+                case 0: ModConfig.ENABLE_WATER_EFFECTS = !ModConfig.ENABLE_WATER_EFFECTS; break;
+                case 1: ModConfig.ENABLE_WATER_HIGHLIGHTS = !ModConfig.ENABLE_WATER_HIGHLIGHTS; break;
+                case 2: ModConfig.ENABLE_WATER_FOAM = !ModConfig.ENABLE_WATER_FOAM; break;
+                case 3: ModConfig.ENABLE_WATER_SPLASHES = !ModConfig.ENABLE_WATER_SPLASHES; break;
+                case 4: ModConfig.ENABLE_RAIN_RIPPLES = !ModConfig.ENABLE_RAIN_RIPPLES; break;
+                case 5: ModConfig.ENABLE_UNDERWATER_TINT = !ModConfig.ENABLE_UNDERWATER_TINT; break;
+                case 6: ModConfig.WATER_RENDER_QUALITY = (ModConfig.WATER_RENDER_QUALITY + 1) % 3; break;
+                case 7: ModConfig.WATER_EFFECT_RADIUS = ModConfig.WATER_EFFECT_RADIUS >= 64 ? 8 : ModConfig.WATER_EFFECT_RADIUS + 8; break;
+                case 8: ModConfig.ENABLE_LAVA_EFFECTS = !ModConfig.ENABLE_LAVA_EFFECTS; break;
+                case 9: ModConfig.ENABLE_LAVA_EMBERS = !ModConfig.ENABLE_LAVA_EMBERS; break;
+                case 10: ModConfig.LAVA_RENDER_QUALITY = (ModConfig.LAVA_RENDER_QUALITY + 1) % 3; break;
+                case 11: ModConfig.LAVA_EFFECT_RADIUS = ModConfig.LAVA_EFFECT_RADIUS >= 32 ? 6 : ModConfig.LAVA_EFFECT_RADIUS + 4; break;
+            }
+        } else if (page == PAGE_ITEMS) {
+            switch (option) {
+                case 0: ModConfig.ENABLE_REALISTIC_ITEM_PHYSICS = !ModConfig.ENABLE_REALISTIC_ITEM_PHYSICS; break;
+                case 1: ModConfig.FLAT_GROUND_ITEMS = !ModConfig.FLAT_GROUND_ITEMS; break;
+                case 2: ModConfig.MANUAL_ITEM_PICKUP = !ModConfig.MANUAL_ITEM_PICKUP; break;
+                case 3: ModConfig.ENABLE_SPRINT_TOSS = !ModConfig.ENABLE_SPRINT_TOSS; break;
+                case 4: ModConfig.FLOAT_ITEMS_IN_FLUIDS = !ModConfig.FLOAT_ITEMS_IN_FLUIDS; break;
+                case 5: ModConfig.ITEM_TOSS_STRENGTH = ModConfig.ITEM_TOSS_STRENGTH >= 140 ? 30 : ModConfig.ITEM_TOSS_STRENGTH + 10; break;
+            }
+        } else if (page == PAGE_WORLD) {
+            switch (option) {
+                case 0: ModConfig.GENERATE_RESONITE_ORE = !ModConfig.GENERATE_RESONITE_ORE; break;
+                case 1: ModConfig.ORE_VEINS_PER_CHUNK = ModConfig.ORE_VEINS_PER_CHUNK >= 16 ? 0 : ModConfig.ORE_VEINS_PER_CHUNK + 1; break;
+                case 2: ModConfig.ORE_VEIN_SIZE = ModConfig.ORE_VEIN_SIZE >= 12 ? 1 : ModConfig.ORE_VEIN_SIZE + 1; break;
+                case 3: ModConfig.ORE_MIN_Y = ModConfig.ORE_MIN_Y >= ModConfig.ORE_MAX_Y - 1 ? 1 : ModConfig.ORE_MIN_Y + 1; break;
+                case 4: ModConfig.ORE_MAX_Y = ModConfig.ORE_MAX_Y >= 255 ? Math.max(ModConfig.ORE_MIN_Y + 1, 2) : ModConfig.ORE_MAX_Y + 1; break;
+            }
+        } else {
+            switch (option) {
                 case 0: ModConfig.ENABLE_UI_THEME = !ModConfig.ENABLE_UI_THEME; break;
                 case 1: ModConfig.SHOW_OVERLAY = !ModConfig.SHOW_OVERLAY; break;
                 case 2: ModConfig.SHOW_MEMORY = !ModConfig.SHOW_MEMORY; break;
@@ -141,73 +282,15 @@ public class MinefadeSettingsScreen extends GuiScreen {
                 case 4: ModConfig.SHOW_ENTITY_COUNT = !ModConfig.SHOW_ENTITY_COUNT; break;
                 case 5: ModConfig.SHOW_TILE_ENTITY_COUNT = !ModConfig.SHOW_TILE_ENTITY_COUNT; break;
             }
-        } else if (tab == TAB_PERFORMANCE && button.id == ID_TOGGLE_BASE) {
-            ModConfig.ENABLE_ENTITY_DISTANCE_CULLING = !ModConfig.ENABLE_ENTITY_DISTANCE_CULLING;
-        } else if (tab == TAB_PERFORMANCE && button.id == ID_TOGGLE_BASE + 1) {
-            ModConfig.FORCE_MINIMAL_PARTICLES = !ModConfig.FORCE_MINIMAL_PARTICLES;
-        } else if (tab == TAB_PERFORMANCE && button.id == ID_TOGGLE_BASE + 2) {
-            ModConfig.ENABLE_ITEM_DISTANCE_CULLING = !ModConfig.ENABLE_ITEM_DISTANCE_CULLING;
-        } else if (tab == TAB_PERFORMANCE && button.id == ID_TOGGLE_BASE + 3) {
-            ModConfig.ENABLE_PLAYER_ANIMATIONS = !ModConfig.ENABLE_PLAYER_ANIMATIONS;
-        } else if (tab == TAB_PERFORMANCE && button.id == ID_ADJUST_BASE) {
-            ModConfig.ENTITY_DISTANCE_PERCENT = ModConfig.ENTITY_DISTANCE_PERCENT >= 100 ? 50 : ModConfig.ENTITY_DISTANCE_PERCENT + 10;
-        } else if (tab == TAB_PERFORMANCE && button.id == ID_ADJUST_BASE + 1) {
-            ModConfig.ITEM_RENDER_RADIUS = ModConfig.ITEM_RENDER_RADIUS >= 128 ? 16 : ModConfig.ITEM_RENDER_RADIUS + 16;
-        } else if (tab == TAB_WATER) {
-            if (button.id == ID_TOGGLE_BASE) ModConfig.ENABLE_WATER_EFFECTS = !ModConfig.ENABLE_WATER_EFFECTS;
-            else if (button.id == ID_TOGGLE_BASE + 1) ModConfig.ENABLE_WATER_RIPPLES = !ModConfig.ENABLE_WATER_RIPPLES;
-            else if (button.id == ID_TOGGLE_BASE + 2) ModConfig.ENABLE_WATER_SPLASHES = !ModConfig.ENABLE_WATER_SPLASHES;
-            else if (button.id == ID_TOGGLE_BASE + 3) ModConfig.ENABLE_RAIN_RIPPLES = !ModConfig.ENABLE_RAIN_RIPPLES;
-            else if (button.id == ID_TOGGLE_BASE + 4) ModConfig.ENABLE_WATERFALL_MIST = !ModConfig.ENABLE_WATERFALL_MIST;
-            else if (button.id == ID_TOGGLE_BASE + 5) ModConfig.ENABLE_UNDERWATER_TINT = !ModConfig.ENABLE_UNDERWATER_TINT;
-            else if (button.id == ID_TOGGLE_BASE + 6) ModConfig.ENABLE_ADAPTIVE_WATER_QUALITY = !ModConfig.ENABLE_ADAPTIVE_WATER_QUALITY;
-            else if (button.id == ID_ADJUST_BASE) ModConfig.WATER_WAVE_STRENGTH = ModConfig.WATER_WAVE_STRENGTH >= 100 ? 0 : ModConfig.WATER_WAVE_STRENGTH + 10;
-            else if (button.id == ID_ADJUST_BASE + 1) ModConfig.WATER_EFFECT_RADIUS = ModConfig.WATER_EFFECT_RADIUS >= 64 ? 8 : ModConfig.WATER_EFFECT_RADIUS + 8;
-        } else if (tab == TAB_CONTENT) {
-            if (button.id == ID_TOGGLE_BASE) ModConfig.GENERATE_RESONITE_ORE = !ModConfig.GENERATE_RESONITE_ORE;
-            else if (button.id == ID_ADJUST_BASE) ModConfig.ORE_VEINS_PER_CHUNK = ModConfig.ORE_VEINS_PER_CHUNK >= 16 ? 0 : ModConfig.ORE_VEINS_PER_CHUNK + 1;
-            else if (button.id == ID_ADJUST_BASE + 1) ModConfig.ORE_VEIN_SIZE = ModConfig.ORE_VEIN_SIZE >= 12 ? 1 : ModConfig.ORE_VEIN_SIZE + 1;
-            else if (button.id == ID_ADJUST_BASE + 2) ModConfig.ORE_MIN_Y = ModConfig.ORE_MIN_Y >= ModConfig.ORE_MAX_Y - 1 ? 1 : ModConfig.ORE_MIN_Y + 1;
-            else if (button.id == ID_ADJUST_BASE + 3) ModConfig.ORE_MAX_Y = ModConfig.ORE_MAX_Y >= 255 ? Math.max(ModConfig.ORE_MIN_Y + 1, 2) : ModConfig.ORE_MAX_Y + 1;
-        } else if (tab == TAB_ITEMS) {
-            if (button.id == ID_TOGGLE_BASE) ModConfig.ENABLE_REALISTIC_ITEM_PHYSICS = !ModConfig.ENABLE_REALISTIC_ITEM_PHYSICS;
-            else if (button.id == ID_TOGGLE_BASE + 1) ModConfig.FLAT_GROUND_ITEMS = !ModConfig.FLAT_GROUND_ITEMS;
-            else if (button.id == ID_TOGGLE_BASE + 2) ModConfig.MANUAL_ITEM_PICKUP = !ModConfig.MANUAL_ITEM_PICKUP;
-            else if (button.id == ID_TOGGLE_BASE + 3) ModConfig.ENABLE_SPRINT_TOSS = !ModConfig.ENABLE_SPRINT_TOSS;
-            else if (button.id == ID_TOGGLE_BASE + 4) ModConfig.FLOAT_ITEMS_IN_FLUIDS = !ModConfig.FLOAT_ITEMS_IN_FLUIDS;
-            else if (button.id == ID_ADJUST_BASE) ModConfig.ITEM_TOSS_STRENGTH = ModConfig.ITEM_TOSS_STRENGTH >= 140 ? 30 : ModConfig.ITEM_TOSS_STRENGTH + 10;
         }
-
-        ModConfig.save();
-        initGui();
     }
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         drawDefaultBackground();
-        drawGradientRect(0, 0, width, height, 0xD9081118, 0xF0080C12);
-
-        mc.getTextureManager().bindTexture(new net.minecraft.util.ResourceLocation(VoxelCore.MODID, "textures/gui/panel_leather.png"));
-        drawModalRectWithCustomSizedTexture(panelLeft, panelTop, 0.0F, 0.0F,
-                panelWidth, panelHeight, 128.0F, 128.0F);
-        Gui.drawRect(panelLeft, panelTop, panelLeft + panelWidth, panelTop + 2, 0xFFD4AD7A);
-        Gui.drawRect(panelLeft + 1, panelTop + 1, panelLeft + panelWidth - 1, panelTop + panelHeight - 1, 0x221FFFFF);
-        Gui.drawRect(panelLeft + 10, panelTop + 37, panelLeft + panelWidth - 10, panelTop + 38, 0x663D5B69);
-
-        this.fontRenderer.drawString("MINEFADE", panelLeft + 14, panelTop + 12, 0xFFE3C18B, false);
-        this.fontRenderer.drawString("Centro de control", panelLeft + 14, panelTop + 25, 0xFFB6C6D0, false);
-        String version = "1.12.2  •  " + VoxelCore.VERSION;
-        this.fontRenderer.drawString(version, panelLeft + panelWidth - this.fontRenderer.getStringWidth(version) - 14,
-                panelTop + 17, 0xFF8195A3, false);
-
-        String hint;
-        if (tab == TAB_DIAGNOSTICS) hint = "Indicadores y aspecto de las pantallas.";
-        else if (tab == TAB_PERFORMANCE) hint = "Optimización visual opcional y reversible.";
-        else if (tab == TAB_WATER) hint = "Efectos locales; el agua vanilla conserva su física.";
-        else if (tab == TAB_ITEMS) hint = "Objetos tumbados, flotación, lanzamiento y opciones de recogida.";
-        else hint = "La generación solo afecta a chunks nuevos del mundo.";
-        this.fontRenderer.drawString(hint, panelLeft + 14, panelTop + panelHeight - 47, 0xFFB9A78D, false);
-
+        drawCenteredString(this.fontRenderer, "Video Settings", this.width / 2, 10, 0xFFFFFF);
+        drawCenteredString(this.fontRenderer, PAGE_NAMES[page].replace("...", ""),
+                this.width / 2, 23, 0xD0D0D0);
         super.drawScreen(mouseX, mouseY, partialTicks);
     }
 
