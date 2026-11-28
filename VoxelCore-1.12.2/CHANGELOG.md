@@ -1,3 +1,19 @@
+## 0.11.0 — Mejoras generales de estabilidad y rendimiento
+
+- Corrige el contador de chunks para separar correctamente las coordenadas por dimensión (Overworld, Nether, End).
+- Limpia las cachés de agua, lava y detalles minerales al descargar mundos/dimensiones; restablece el monitor de rendimiento y la preferencia original de partículas.
+- Conecta el modo de partículas mínimas al ciclo de ticks del cliente; lo aplica solo durante la partida y restaura/guarda la preferencia del usuario al desactivarlo o salir del mundo.
+- Cachea la profundidad submarina durante cuatro ticks y comparte el resultado entre eventos de color/densidad de niebla.
+- Reutiliza BlockPos.MutableBlockPos en las búsquedas de agua, cascadas, vecinos de materiales y física de objetos en fluidos para reducir asignaciones temporales.
+- Adapta radio e intervalo de escaneo de las superficies de agua y lava a la calidad seleccionada y a la reducción adaptativa por FPS.
+- Alinea los brillos y la espuma del agua con las alturas suavizadas de la superficie en vez de dibujarlos a una altura plana.
+- Precalcula las franjas laterales de las grietas de lava para quitar raíces cuadradas del renderizado por fotograma; limita el escaneo al tope del mundo y añade un leve tinte cálido al entrar en lava sin sustituir la densidad de niebla vanilla.
+- Corrige los contactos de slime para detectar la transición de caída a suelo y mantiene actualizado el estado del jugador aunque los efectos estén desactivados.
+- Corrige la limpieza del enfriamiento de partículas al cambiar de mundo o retroceder el tiempo del mundo.
+- Reduce a la mitad la frecuencia de la recuperación de recogida de objetos en servidor y hace estable el intervalo de flotación por mundo.
+- Mantiene el mod ID `voxelcore`, todos los IDs registrados, el contenido Resonite y la simulación vanilla de fluidos. No crea ni modifica imágenes, texturas ni resource packs.
+- Compila contra Minecraft 1.12.2 / Forge 14.23.5.2864 con ForgeGradle 3.x, Gradle 5.6.4 y Java 8. Las pruebas visuales dentro del juego, GPU y multijugador siguen siendo necesarias.
+
 ## 0.10.0 — Superficie de fluidos, renderizado y estabilidad
 
 - Actualiza la configuración de compilación a Minecraft Forge 1.12.2-14.23.5.2864 y migra a ForgeGradle 3.x/UserDev 3 con Gradle 5.6.4, ya que ForgeGradle 2.3 no resuelve el artefacto UserDev publicado para Forge 2864.
