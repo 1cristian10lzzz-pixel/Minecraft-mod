@@ -1,60 +1,65 @@
-# Minefade Mod 0.6.0 — Minecraft Java 1.12.2
+# Minefade Mod 0.9.0 — Minecraft Java 1.12.2
 
 Forge 14.23.5.2847 · Java 8 · ForgeGradle 2.3 · Gradle 4.10.3
 
-## Dropped item physics
+Minefade 0.9.0 is a client-rendering and gameplay polish update. It keeps the existing `voxelcore` mod ID, registered block/item IDs, vanilla fluid simulation and world content.
 
-Minefade 0.6.0 adds original Forge 1.12.2 behaviour inspired by Realistic Item Drops:
+## Water rendering
 
-- Dropped items lie horizontally on the ground instead of hovering and spinning.
-- Right-click pickup replaces automatic walk-over collection when enabled.
-- Sprinting when dropping an item adds a forward throw impulse.
-- Airborne items can be caught with the same right-click interaction.
-- Dropped items receive gentle buoyancy and drag in water and lava.
-- The OBJETOS tab exposes separate controls and throw strength.
+- The previous near-opaque white/blue overlay has been replaced by a low-alpha surface treatment. The vanilla water texture and its animated flow remain visible underneath.
+- Surface tint is based on biome water colour and measured local depth; sky reflection and specular response are deliberately restrained.
+- Small elongated highlights glide across the surface. They are not expanding rings and do not displace the water mesh.
+- Shore foam is thin, low-alpha and limited to exposed edges.
+- The custom pass draws one quad per cached water column instead of subdividing every block into sixteen sub-quads.
+- The search radius, vertical scan range, cache size and refresh interval are bounded. Null search results are cached too, avoiding repeated water searches while walking on dry land.
+- Underwater tint/fog, bubbles, entry splashes, wakes, rain impacts and waterfall mist remain separate local effects.
 
-The server handles pickup, toss and liquid motion so multiplayer state remains authoritative. Minefade uses its own implementation and does not copy the reference mod's code.
+**Rendering limit:** reflections are an approximation based on sky colour and viewing angle. This is not screen-space reflection, physical refraction or a full shader pipeline.
 
-## Rendering and performance
+## Lava
 
-The custom EntityItem renderer keeps Minecraft's baked item models, item texture atlas and standard lighting. It adds a ground transform for resting drops and optional item-distance culling.
+- A new client-only molten-surface pass draws restrained, moving orange/yellow vein streaks over exposed vanilla lava.
+- Sparse smoke/ember particles are emitted near nearby lava surfaces.
+- Quality and radius can be configured separately from water.
+- Vanilla lava texture animation, flow, light, collision, damage and server state remain authoritative.
 
-Minefade also retains the 0.5.0 water rendering improvements: ripple geometry is batched, nearby water surfaces are cached, and optional water effects reduce their detail when FPS remains low.
+**Rendering limit:** the molten pattern is a procedural overlay, not a replacement lava material or a heat-distortion shader.
 
-Sodium-derived Forge renderers such as Zorya rewrite more of the chunk rendering path and use techniques including face culling, chunk multi-draw, vertex arrays and compact vertex formats. Those are engine-level changes and can conflict with other renderer mods. Minefade therefore applies narrower optimizations without replacing the vanilla chunk renderer. It is not a full Sodium implementation.
+## Animations
 
-## Textures and interface
+The player model now uses a smaller additive animation layer. It leaves vanilla's base pose in control and adds restrained body weight shift, sprint follow-through, climbing reach, swimming stroke/kicks, subtle attack counter-motion and idle breathing. The default crouch, jump, fall and Elytra poses are no longer replaced with large absolute-angle overrides. Clothing overlays are synchronized after the animation offsets.
 
-Minefade now includes original 32x32 item/block icons for Resonite tools, armour and materials, plus original leather and aged-metal panel/button textures. A new OBJETOS tab controls dropped-item physics.
+The animation strength can be set from 0 to 100 in the new video settings pages.
 
-Realstuff64 (64x, Minecraft 1.12.2) served as a visual reference for realistic texture density and palette. Its files are not bundled or copied. This update changes Minefade's own assets, not every vanilla item texture.
+## Video settings — OptiFine-inspired layout
 
-## Water and atmosphere
+The Minefade settings page follows the familiar video-settings structure:
+- Quality
+- Details
+- Performance
+- Animations
+- Water/Lava
+- Items
+- World
+- Other
 
-The 0.5.0 water effects remain available: surface rings, wakes, entry splashes, rain ripples, waterfall mist and biome-aware underwater tint. These are client-side visual effects. Vanilla fluid blocks and server water states are unchanged.
+Options use compact two-column vanilla buttons with click-to-cycle values. The page exposes existing Minefade settings plus vanilla graphics, smooth lighting, render distance, FPS limit, particles and VSync. No new GUI textures or images are used. This is an OptiFine-inspired arrangement; it does not include OptiFine code or claim full OptiFine feature parity.
 
-## Controls and settings
+## Material details and existing systems
 
-- **O:** open the Minefade control centre.
-- **K:** toggle Minefade water effects.
-- **F8:** toggle the performance monitor.
-- **F7:** toggle distant-living-entity culling.
-- **F6:** toggle minimal particles.
+- Procedural micro-grain accents remain available for vanilla stone families, cobblestone, gravel, netherrack, end stone, sandstone, red sandstone, obsidian, prismarine, stone bricks, hardened clay, bricks, quartz blocks and ores.
+- Contact effects for vegetation, slime landings, hard-block impacts and material footstep particles now have separate config switches.
+- Existing dropped-item ground rendering, sprint toss, pickup recovery, buoyancy/drag, Resonite content and world generation are retained.
+- Diagnostic P95 frame-time calculation uses a reusable scratch array; chunk tracking uses compact packed chunk coordinates instead of allocated dimension/key strings.
 
-The settings centre includes INFO, REND., AGUA, MUNDO and OBJETOS.
+## Compatibility and non-goals
 
-## Build, verify and install
+Vanilla water/lava blocks retain their IDs, metadata, textures, collision, flow, harvesting, drops and server simulation. No registered content IDs are changed. No images, textures or resource packs are created or modified. The vanilla chunk renderer is not replaced.
 
-**Forge build passed:** [GitHub Actions run #47](https://github.com/1cristian10lzzz-pixel/Minecraft-mod/actions/runs/45705530398).
+The current water and lava effects are client-side overlays. They do not add physically simulated surface waves, true fluid refraction, screen-space reflections, deformable foliage meshes or a complete shader-based lighting system.
 
-- JAR: `minefade-0.6.0.jar`
-- Size: 97,424 bytes
-- SHA-256: `67ebad56ddcb7473b8a14a79a0f3dfb8c0224cd300cc6ba6ba2bf7ac5f194212`
+## Build and testing
 
-The downloaded JAR passed archive-integrity checks and includes the item physics handler, custom dropped-item renderer, OBJETOS settings screen, original textures and 0.6.0 metadata.
+Target runtime: Minecraft Java 1.12.2, Forge 14.23.5.2847, Java 8.
 
-Install the compiled JAR in `.minecraft/mods` with Minecraft Java 1.12.2 and Forge 14.23.5.2847.
-
-## Compatibility notes
-
-The internal mod ID remains `voxelcore`. Optional item-distance culling is disabled by default. Vanilla item models and fluid blocks are retained. A live Minecraft client launch and multiplayer runtime test have not been performed in this build environment.
+CI compilation confirms source/API compatibility only. A live Minecraft launch, GPU-specific visual check, multiplayer session and long-duration performance test still need to be performed in-game.
