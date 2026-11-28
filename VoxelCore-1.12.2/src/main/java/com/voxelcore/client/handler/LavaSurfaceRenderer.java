@@ -128,9 +128,12 @@ public final class LavaSurfaceRenderer {
                     pos.setPos(x, y, z);
                     IBlockState state = world.getBlockState(pos);
                     if (state.getMaterial() != net.minecraft.block.material.Material.LAVA) continue;
-                    pos.setPos(x, y + 1, z);
-                    if (world.getBlockState(pos).getMaterial()
-                            == net.minecraft.block.material.Material.LAVA) continue;
+                    if (y < 255) {
+                        pos.setPos(x, y + 1, z);
+                        if (world.isBlockLoaded(pos)
+                                && world.getBlockState(pos).getMaterial()
+                                == net.minecraft.block.material.Material.LAVA) continue;
+                    }
 
                     // Use the same liquid-height routine as the vanilla 1.12.2 renderer.
                     pos.setPos(x, y, z);
