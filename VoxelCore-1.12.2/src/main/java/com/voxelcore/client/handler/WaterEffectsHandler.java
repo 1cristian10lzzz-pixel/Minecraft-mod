@@ -1,6 +1,8 @@
 package com.voxelcore.client.handler;
 
 import com.voxelcore.config.ModConfig;
+import net.minecraft.block.BlockLiquid;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.item.EntityBoat;
@@ -112,7 +114,7 @@ public class WaterEffectsHandler {
             if (movementSq > 0.0008D) {
                 int wakeInterval = reducedQuality ? 8 : 4;
                 if (ModConfig.ENABLE_WATER_SPLASHES && tickCounter % wakeInterval == 0) {
-                    double surfaceY = surface.getY() + 0.90D;
+                    double surfaceY = getWaterSurfaceY(world, surface) + 0.012D;
                     world.spawnParticle(EnumParticleTypes.WATER_WAKE, player.posX, surfaceY,
                             player.posZ, -dx * 2.0D, 0.0D, -dz * 2.0D);
                     if (movementSq > 0.0018D) {
@@ -147,7 +149,7 @@ public class WaterEffectsHandler {
                     surface.getZ() + RANDOM.nextInt(5) - 2, 1);
             if (rainWater != null && world.canSeeSky(rainWater.up())) {
                 world.spawnParticle(EnumParticleTypes.WATER_SPLASH,
-                        rainWater.getX() + 0.5D, rainWater.getY() + 0.90D,
+                        rainWater.getX() + 0.5D, getWaterSurfaceY(world, rainWater) + 0.012D,
                         rainWater.getZ() + 0.5D,
                         (RANDOM.nextDouble() - 0.5D) * 0.035D, 0.015D,
                         (RANDOM.nextDouble() - 0.5D) * 0.035D);
@@ -215,16 +217,19 @@ public class WaterEffectsHandler {
                     int blockZ = originZ + dz;
                     if (blockY < 0 || blockY >= 255) continue;
                     pos.setPos(blockX, blockY, blockZ);
-                    if (!world.isBlockLoaded(pos)
-                            || world.getBlockState(pos).getMaterial() != Material.WATER) continue;
+                    if (!world.isBlockLoaded(pos)) continue;
+                    IBlockState waterState = world.getBlockState(pos);
+                    if (waterState.getMaterial() != Material.WATER) continue;
 
                     pos.setY(blockY + 1);
                     if (!world.isBlockLoaded(pos)
                             || world.getBlockState(pos).getMaterial() == Material.WATER) continue;
 
+                    pos.setPos(blockX, blockY, blockZ);
+                    double surfaceY = BlockLiquid.getLiquidHeight(waterState, world, pos);
                     double cx = blockX + 0.5D - x;
                     double cz = blockZ + 0.5D - z;
-                    double cy = blockY + 0.9D - y;
+                    double cy = surfaceY - y;
                     double distance = cx * cx + cz * cz + cy * cy * 0.5D;
                     if (distance < bestDistance) {
                         bestDistance = distance;
@@ -239,8 +244,20 @@ public class WaterEffectsHandler {
         return found ? new BlockPos(bestX, bestY, bestZ) : null;
     }
 
+    /**
+     * Uses the level-aware vanilla fluid height, not a fixed 0.9-block guess.
+     * Flowing water (levels 1-7), source blocks and falling water therefore
+     * place wakes and splashes on the actual visible surface.
+     */
+    private static double getWaterSurfaceY(World world, BlockPos surface) {
+        if (surface == null || !world.isBlockLoaded(surface)) return 0.0D;
+        IBlockState state = world.getBlockState(surface);
+        if (state.getMaterial() != Material.WATER) return surface.getY() + 0.9D;
+        return BlockLiquid.getLiquidHeight(state, world, surface);
+    }
+
     private static void spawnEntrySplash(World world, EntityPlayer player, BlockPos surface) {
-        double y = surface.getY() + 0.86D;
+        double y = getWaterSurfaceY(world, surface) + 0.018D;
         int particleCount = Minecraft.getMinecraft().gameSettings.particleSetting == 2 ? 3 : 7;
         for (int i = 0; i < particleCount; i++) {
             double ox = (RANDOM.nextDouble() - 0.5D) * 0.65D;
