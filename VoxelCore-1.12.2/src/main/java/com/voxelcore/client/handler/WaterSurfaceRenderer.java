@@ -107,10 +107,10 @@ public final class WaterSurfaceRenderer {
                     BlockPos pos = new BlockPos(x, y, z);
                     int tint = world.getBiome(pos).getWaterColorMultiplier();
 
-                    boolean north = !isWater(world, x, y, z - 1);
-                    boolean south = !isWater(world, x, y, z + 1);
-                    boolean west = !isWater(world, x - 1, y, z);
-                    boolean east = !isWater(world, x + 1, y, z);
+                    boolean north = isExposedWaterEdge(world, x, y, z - 1);
+                    boolean south = isExposedWaterEdge(world, x, y, z + 1);
+                    boolean west = isExposedWaterEdge(world, x - 1, y, z);
+                    boolean east = isExposedWaterEdge(world, x + 1, y, z);
 
                     double top = y + fluidHeight;
                     SURFACES.add(new SurfaceCell(x, z, top, depth,
@@ -174,6 +174,13 @@ public final class WaterSurfaceRenderer {
             depth++;
         }
         return depth;
+    }
+
+    private static boolean isExposedWaterEdge(World world, int x, int y, int z) {
+        BlockPos pos = new BlockPos(x, y, z);
+        return y >= 0 && y < 256 && world.isBlockLoaded(pos)
+                && world.getBlockState(pos).getMaterial()
+                != net.minecraft.block.material.Material.WATER;
     }
 
     private static boolean isWater(World world, int x, int y, int z) {
