@@ -121,7 +121,7 @@ public final class ModConfig {
         ENABLE_ADAPTIVE_WATER_QUALITY = configuration.get(CAT_WATER, "adaptiveQuality", true,
                 "Automatically reduce optional water and lava effect frequency and detail when FPS stays low.").getBoolean(true);
         WATER_WAVE_STRENGTH = configuration.get(CAT_WATER, "waveStrength", 70,
-                "Intensity of subtle, non-displacing water-surface highlights.", 0, 100).getInt(70);
+                "Intensity of subtle micro-height movement and water-surface lighting variations.", 0, 100).getInt(70);
         WATER_EFFECT_RADIUS = configuration.get(CAT_WATER, "effectRadius", 32,
                 "Maximum radius for nearby water effects.", 8, 64).getInt(32);
         ENABLE_WATER_HIGHLIGHTS = configuration.get(CAT_WATER, "surfaceHighlights", true,
