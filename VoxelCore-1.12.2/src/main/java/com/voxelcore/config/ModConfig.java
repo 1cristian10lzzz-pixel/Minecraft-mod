@@ -51,6 +51,7 @@ public final class ModConfig {
     public static int LAVA_EFFECT_RADIUS = 20;
 
     public static boolean ENABLE_BLOCK_SURFACE_DETAILS = true;
+    public static boolean ENABLE_MATERIAL_IMPACTS = true;
     public static int BLOCK_DETAIL_DENSITY = 2;
     public static boolean ENABLE_VEGETATION_CONTACT = true;
     public static boolean ENABLE_SLIME_CONTACT = true;
@@ -153,6 +154,8 @@ public final class ModConfig {
                 "Maximum radius for nearby lava details and embers.", 6, 32).getInt(20);
         ENABLE_BLOCK_SURFACE_DETAILS = configuration.get(CAT_MATERIALS, "proceduralSurfaceDetails", true,
                 "Render small procedural mineral accents on exposed vanilla stone materials.").getBoolean(true);
+        ENABLE_MATERIAL_IMPACTS = configuration.get(CAT_MATERIALS, "materialImpacts", true,
+                "Add material-specific chips and particles when striking hard blocks.").getBoolean(true);
         BLOCK_DETAIL_DENSITY = configuration.get(CAT_MATERIALS, "detailDensity", 2,
                 "Procedural block detail density: 0 off, 1 low, 2 balanced, 3 high.", 0, 3).getInt(2);
         ENABLE_VEGETATION_CONTACT = configuration.get(CAT_MATERIALS, "vegetationContact", true,
@@ -224,6 +227,7 @@ public final class ModConfig {
         LAVA_RENDER_QUALITY = configuration.get(CAT_LAVA, "surfaceQuality", 1).getInt(1);
         LAVA_EFFECT_RADIUS = configuration.get(CAT_LAVA, "effectRadius", 20).getInt(20);
         ENABLE_BLOCK_SURFACE_DETAILS = configuration.get(CAT_MATERIALS, "proceduralSurfaceDetails", true).getBoolean(true);
+        ENABLE_MATERIAL_IMPACTS = configuration.get(CAT_MATERIALS, "materialImpacts", true).getBoolean(true);
         BLOCK_DETAIL_DENSITY = configuration.get(CAT_MATERIALS, "detailDensity", 2).getInt(2);
         ENABLE_VEGETATION_CONTACT = configuration.get(CAT_MATERIALS, "vegetationContact", true).getBoolean(true);
         ENABLE_SLIME_CONTACT = configuration.get(CAT_MATERIALS, "slimeContact", true).getBoolean(true);
@@ -317,6 +321,7 @@ public final class ModConfig {
         configuration.get(CAT_LAVA, "surfaceQuality", 1).set(LAVA_RENDER_QUALITY);
         configuration.get(CAT_LAVA, "effectRadius", 20).set(LAVA_EFFECT_RADIUS);
         configuration.get(CAT_MATERIALS, "proceduralSurfaceDetails", true).set(ENABLE_BLOCK_SURFACE_DETAILS);
+        configuration.get(CAT_MATERIALS, "materialImpacts", true).set(ENABLE_MATERIAL_IMPACTS);
         configuration.get(CAT_MATERIALS, "detailDensity", 2).set(BLOCK_DETAIL_DENSITY);
         configuration.get(CAT_MATERIALS, "vegetationContact", true).set(ENABLE_VEGETATION_CONTACT);
         configuration.get(CAT_MATERIALS, "slimeContact", true).set(ENABLE_SLIME_CONTACT);
