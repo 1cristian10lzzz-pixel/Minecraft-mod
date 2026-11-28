@@ -29,6 +29,7 @@ public class GuiThemeHandler {
     public void onGuiInit(GuiScreenEvent.InitGuiEvent.Post event) {
         if (!ModConfig.ENABLE_UI_THEME) return;
         GuiScreen screen = event.getGui();
+        if (screen instanceof MinefadeSettingsScreen) return;
         List<GuiButton> buttons = event.getButtonList();
         ListIterator<GuiButton> iterator = buttons.listIterator();
 
@@ -63,7 +64,7 @@ public class GuiThemeHandler {
     public void onGuiDraw(GuiScreenEvent.DrawScreenEvent.Post event) {
         if (!ModConfig.ENABLE_UI_THEME) return;
         GuiScreen screen = event.getGui();
-        if (screen == null || screen instanceof GuiChat) return;
+        if (screen == null || screen instanceof GuiChat || screen instanceof MinefadeSettingsScreen) return;
 
         // A very small identity strip stays in the outer margin and does not cover container slots.
         int width = screen.width;
