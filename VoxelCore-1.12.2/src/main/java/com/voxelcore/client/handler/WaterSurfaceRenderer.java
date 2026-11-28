@@ -448,30 +448,34 @@ public final class WaterSurfaceRenderer {
                 + cell.x * 0.13D + cell.z * 0.17D);
         int brightAlpha = (int) (26.0F * pulse);
         int softAlpha = (int) (16.0F * pulse);
-        if (cell.north) {
-            double y = surfaceHeightAt(cell, 0.5D, 0.015D) + 0.008D;
-            emitQuad(buffer, x0, y, cell.z + 0.012D,
-                x0, y, cell.z + band, x1, y, cell.z + band, x1, y, cell.z + 0.012D,
+        double offset = 0.008D;
+
+        // Each foam vertex samples the same smoothed surface function as the
+        // water mesh. This keeps the shore band attached on sloped/falling edges.
+        if (cell.north) emitQuad(buffer,
+                x0, surfaceHeightAt(cell, 0.03D, 0.015D) + offset, cell.z + 0.012D,
+                x0, surfaceHeightAt(cell, 0.03D, band) + offset, cell.z + band,
+                x1, surfaceHeightAt(cell, 0.97D, band) + offset, cell.z + band,
+                x1, surfaceHeightAt(cell, 0.97D, 0.015D) + offset, cell.z + 0.012D,
                 180, 220, 225, brightAlpha);
-        }
-        if (cell.south) {
-            double y = surfaceHeightAt(cell, 0.5D, 0.985D) + 0.008D;
-            emitQuad(buffer, x0, y, cell.z + 1.0D - band,
-                x0, y, cell.z + 0.988D, x1, y, cell.z + 0.988D, x1, y, cell.z + 1.0D - band,
+        if (cell.south) emitQuad(buffer,
+                x0, surfaceHeightAt(cell, 0.03D, 1.0D - band) + offset, cell.z + 1.0D - band,
+                x0, surfaceHeightAt(cell, 0.03D, 0.985D) + offset, cell.z + 0.988D,
+                x1, surfaceHeightAt(cell, 0.97D, 0.985D) + offset, cell.z + 0.988D,
+                x1, surfaceHeightAt(cell, 0.97D, 1.0D - band) + offset, cell.z + 1.0D - band,
                 190, 228, 232, softAlpha);
-        }
-        if (cell.west) {
-            double y = surfaceHeightAt(cell, 0.015D, 0.5D) + 0.008D;
-            emitQuad(buffer, cell.x + 0.012D, y, z0,
-                cell.x + band, y, z0, cell.x + band, y, z1, cell.x + 0.012D, y, z1,
+        if (cell.west) emitQuad(buffer,
+                cell.x + 0.012D, surfaceHeightAt(cell, 0.015D, 0.03D) + offset, z0,
+                cell.x + band, surfaceHeightAt(cell, band, 0.03D) + offset, z0,
+                cell.x + band, surfaceHeightAt(cell, band, 0.97D) + offset, z1,
+                cell.x + 0.012D, surfaceHeightAt(cell, 0.015D, 0.97D) + offset, z1,
                 180, 220, 225, brightAlpha);
-        }
-        if (cell.east) {
-            double y = surfaceHeightAt(cell, 0.985D, 0.5D) + 0.008D;
-            emitQuad(buffer, cell.x + 1.0D - band, y, z0,
-                cell.x + 0.988D, y, z0, cell.x + 0.988D, y, z1, cell.x + 1.0D - band, y, z1,
+        if (cell.east) emitQuad(buffer,
+                cell.x + 1.0D - band, surfaceHeightAt(cell, 1.0D - band, 0.03D) + offset, z0,
+                cell.x + 0.988D, surfaceHeightAt(cell, 0.985D, 0.03D) + offset, z0,
+                cell.x + 0.988D, surfaceHeightAt(cell, 0.985D, 0.97D) + offset, z1,
+                cell.x + 1.0D - band, surfaceHeightAt(cell, 1.0D - band, 0.97D) + offset, z1,
                 190, 228, 232, softAlpha);
-        }
     }
 
     private static double surfaceHeightAt(SurfaceCell cell, double u, double v) {
