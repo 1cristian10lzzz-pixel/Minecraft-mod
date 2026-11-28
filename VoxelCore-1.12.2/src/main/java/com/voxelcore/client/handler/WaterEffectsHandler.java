@@ -40,6 +40,9 @@ public class WaterEffectsHandler {
     private boolean reducedQuality;
     private BlockPos cachedSurface;
     private World trackedWorld;
+    private int lastLookupX = Integer.MIN_VALUE;
+    private int lastLookupY = Integer.MIN_VALUE;
+    private int lastLookupZ = Integer.MIN_VALUE;
 
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
@@ -55,6 +58,7 @@ public class WaterEffectsHandler {
         World world = mc.world;
         if (trackedWorld != world) {
             clearAll();
+            lastLookupX = lastLookupY = lastLookupZ = Integer.MIN_VALUE;
             trackedWorld = world;
             cachedSurface = null;
             lastSurfaceScanTick = -100;
@@ -67,14 +71,22 @@ public class WaterEffectsHandler {
         updateAdaptiveQuality();
         WaterSurfaceRenderer.updateCache(mc, tickCounter, reducedQuality);
 
-        int scanInterval = reducedQuality ? 10 : 5;
-        boolean movedToAnotherArea = cachedSurface == null
-                || Math.abs(player.posX - cachedSurface.getX()) > 5.0D
-                || Math.abs(player.posZ - cachedSurface.getZ()) > 5.0D
-                || Math.abs(player.posY - cachedSurface.getY()) > 7.0D;
+        int scanInterval = reducedQuality ? 24 : 12;
+        int lookupX = MathHelper.floor(player.posX);
+        int lookupY = MathHelper.floor(player.posY);
+        int lookupZ = MathHelper.floor(player.posZ);
+        boolean movedToAnotherArea = lastLookupX == Integer.MIN_VALUE
+                || Math.abs(lookupX - lastLookupX) >= 3
+                || Math.abs(lookupY - lastLookupY) >= 6
+                || Math.abs(lookupZ - lastLookupZ) >= 3;
+        // Cache null results too. Without this guard, dry land triggered a full
+        // nearby-water scan every tick because cachedSurface stayed null.
         if (movedToAnotherArea || tickCounter - lastSurfaceScanTick >= scanInterval) {
-            cachedSurface = findNearbyWaterSurface(world, player.posX, player.posY, player.posZ, 2);
+            cachedSurface = findNearbyWaterSurface(world, player.posX, player.posY, player.posZ, 1);
             lastSurfaceScanTick = tickCounter;
+            lastLookupX = lookupX;
+            lastLookupY = lookupY;
+            lastLookupZ = lookupZ;
         }
 
         boolean ridingBoat = player.getRidingEntity() instanceof EntityBoat;
@@ -248,6 +260,7 @@ public class WaterEffectsHandler {
         trackedWorld = null;
         cachedSurface = null;
         lastSurfaceScanTick = -100;
+        lastLookupX = lastLookupY = lastLookupZ = Integer.MIN_VALUE;
         previousInWater = false;
         previousX = 0.0D;
         previousZ = 0.0D;
