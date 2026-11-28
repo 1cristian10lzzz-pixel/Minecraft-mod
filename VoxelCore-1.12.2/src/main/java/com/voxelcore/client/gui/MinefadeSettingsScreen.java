@@ -367,7 +367,7 @@ public final class MinefadeSettingsScreen extends GuiScreen {
                 case 9: return "Activa las partículas de humo y brasas";
                 case 10: return "Más vetas y detalles de lava requieren más dibujo";
                 case 11: return "Distancia máxima para las vetas y partículas de lava";
-                case 12: return "Intensidad del brillo de agua; no desplaza la geometría";
+                case 12: return "Intensidad de microondulación y variación de luz; el agua no forma olas grandes";
                 case 13: return "Activa la respuesta dinámica del brillo del agua";
             }
         } else if (page == PAGE_ITEMS) {
