@@ -29,12 +29,12 @@ jobs:
           java-version: '8'
       - name: Validate models, recipes, textures and translations
         run: python3 tools/validate_assets.py
-      - name: Set up Gradle 4.10.3
+      - name: Set up Gradle 5.6.4
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '4.10.3'
+          gradle-version: '5.6.4'
       - name: Build Forge 1.12.2 mod
-        run: gradle setupCIWorkspace build --no-daemon
+        run: gradle build --no-daemon
       - name: Upload installable JAR
         uses: actions/upload-artifact@v4
         with:
