@@ -8,6 +8,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -26,6 +27,19 @@ public final class NaturalContactHandler {
     private boolean wasOnGround;
     private double previousMotionY;
     private World trackedWorld;
+
+    @SubscribeEvent
+    public void onWorldUnload(WorldEvent.Unload event) {
+        if (event.getWorld() == null || !event.getWorld().isRemote) return;
+        if (trackedWorld == event.getWorld()) {
+            trackedWorld = null;
+            previousX = previousZ = 0.0D;
+            tick = 0;
+            lastSlimeLandingTick = -100;
+            wasOnGround = false;
+            previousMotionY = 0.0D;
+        }
+    }
 
     @SubscribeEvent
     public void onPlayerTick(TickEvent.PlayerTickEvent event) {
