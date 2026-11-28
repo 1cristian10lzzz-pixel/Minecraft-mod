@@ -9,7 +9,6 @@ import net.minecraft.init.Blocks;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -220,6 +219,8 @@ public final class SurfaceRealismHandler {
         return material == Material.ROCK || material == Material.GROUND
                 || material == Material.GRASS || material == Material.SAND
                 || material == Material.CLAY || material == Material.SNOW
+                || material == Material.WOOD || material == Material.ICE
+                || material == Material.PACKED_ICE
                 || block == Blocks.LEAVES || block == Blocks.LEAVES2
                 || block == Blocks.VINE;
     }
