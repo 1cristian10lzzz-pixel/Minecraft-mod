@@ -1,32 +1,27 @@
 # Minefade Mod — Minecraft Java 1.12.2
 
-Current source line: **0.8.0** · Forge 14.23.5.2847
+Current source line: **0.9.0** · Forge 14.23.5.2847 · Java 8
 
-Minefade improves the legacy client presentation while retaining vanilla block identities, collision and server simulation.
+Minefade improves existing Minecraft 1.12.2 rendering and gameplay systems while retaining the `voxelcore` mod ID, registered content IDs, vanilla fluid simulation and original gameplay content.
 
-## Minefade Mod 0.8.0
+## 0.9.0 update
 
-- **Stone and mineral surfaces:** deterministic procedural micro-grain highlights on exposed faces of stone, cobblestone, gravel, netherrack, end stone and common ores. Uses a small cached vertex-colour pass; no texture replacement or block-state changes.
-- **Player animation:** more natural weight transfer, torso counter-rotation, sprint arm pumping, crouch posture, ladder climbing, swimming paddles, elytra pose, falling posture and subtle idle breathing. Vanilla calculates the base pose and Minefade adds motion afterwards.
-- **Water:** calm custom surface mesh, biome/depth colour, sky-reflection approximation, Fresnel response, daylight highlights and shoreline foam. No geometric waves or expanding ring geometry.
-- **Vegetation contact:** subtle client-side block-fragment particles when walking through tall grass, ferns, vines, dead bushes and leaves. Effects are throttled and restricted to a tiny area around the player.
-- **Slime contact:** a small particle burst on landing from a vanilla slime-block bounce. Vanilla bounce physics are not changed.
-- **Underwater:** biome-aware colour absorption, depth fog, bubbles, entry splashes, wakes and waterfall mist.
-- **Movement and items:** additive swimming leg kicks and gentler dropped-item buoyancy near fluid surfaces.
-- **Performance:** cached nearby water surfaces and stone detail candidates, batched water and stone-detail drawing, bounded scan radius and adaptive water mesh detail.
+- **Water:** fixed the over-opaque white/blue surface overlay seen in the submitted screenshot. The water pass now uses low alpha so the vanilla texture and animated flow remain visible. Added restrained sky-colour/specular accents, small animated glints and thin shoreline foam.
+- **Water performance:** one batched quad per visible water column instead of sixteen sub-quads; smaller bounded scan windows; cached empty lookups so dry land no longer triggers a full nearby-water search every tick.
+- **Lava:** new molten vein highlights and sparse ember/smoke effects over vanilla lava. Vanilla flow, lighting, damage and collision remain intact.
+- **Animations:** smaller additive player motion. Vanilla crouch, jump, Elytra and falling poses stay in control; Minefade adds restrained walking, sprint, climbing, swimming and idle motion.
+- **Settings:** an OptiFine-inspired video settings layout with Quality, Details, Performance, Animations, Water/Lava, Items, World and Other pages. Includes new Minefade options and selected vanilla video settings.
+- **Existing content:** preserves Resonite blocks/items/world generation, dropped-item rendering/physics, stone details, vegetation contact, slime bounce feedback and existing registered IDs.
+- **Optimization:** bounded cached fluid/material scans, reduced overlays and fewer recurring allocations in diagnostics/chunk tracking.
 
-## Preserved behaviour and scope
+## Render approach and limits
 
-Minecraft 1.12.2 blocks retain their original IDs, metadata, textures, collision, drops, harvesting and server simulation. The stone detail layer is a subtle procedural surface overlay; it does not replace vanilla textures or create new block variants. Player animations are additive to the vanilla pose. GUI/interface files are unchanged. No images, textures or resource packs were created or modified.
+Water and lava remain vanilla fluids with Minefade client-side surface accents. Water reflection is an approximation, not screen-space reflection or physical refraction. Lava streaks are not a shader or a physically simulated molten surface. The current implementation does not add new images, textures or resource packs, and does not replace the vanilla chunk renderer.
 
-## Rendering limits
+The new menu follows OptiFine's category organization and control style; it is an independent Minefade implementation, not OptiFine code or full feature parity.
 
-The water reflection is a sky-colour/specular approximation, not full screen-space reflection or physically accurate refraction. Stone grains are small vertex-colour details, not a full PBR material or a replacement high-resolution stone texture. Vegetation contact is represented by particles; foliage meshes do not yet physically bend. A full shader/framebuffer and foliage vertex-animation system requires deeper render-pipeline integration and compatibility testing on Forge 1.12.2.
+## Compatibility and verification
 
-## Build and runtime status
+Target: Minecraft Java 1.12.2 · Forge 14.23.5.2847 · Java 8.
 
-The source changes are submitted to the existing pull request and the new Forge CI build is running. Compilation success does not replace in-game visual, multiplayer and compatibility tests.
-
-## Install
-
-Use the installable Minefade 0.8.0 JAR with Minecraft Java 1.12.2 and Forge 14.23.5.2847. The internal mod id remains "voxelcore".
+GitHub Actions compilation is used to validate Forge/API compatibility. It does not replace visual testing in a live game, multiplayer testing or device/GPU-specific performance measurement. The last validated build should be installed as a JAR in the Forge `.minecraft/mods` directory.
