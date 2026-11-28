@@ -1,5 +1,7 @@
 ## 0.10.0 — Superficie de fluidos, renderizado y estabilidad
 
+- Actualiza la configuración de compilación y compatibilidad del proyecto a Minecraft Forge 1.12.2-14.23.5.2864.
+
 - Replaces the flat water overlay with a gently varying micro-surface. Uses vanilla `BlockLiquid.getLiquidHeight` for source/falling-fluid heights and softly shares corners between adjacent columns only when their heights are close; it does not bridge banks or separate pools.
 - Adds small multi-directional surface relief and analytical normals for directional specular response. The effect is deliberately subtle and retains vanilla water texture/flow beneath the low-alpha tint.
 - Moves the frame-wide sun vector calculation out of per-vertex work and uses analytical wave gradients rather than finite-difference sampling; simplifies the Fresnel/specular power operations to reduce repeated expensive math.
