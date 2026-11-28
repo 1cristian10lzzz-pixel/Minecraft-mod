@@ -1,8 +1,8 @@
-# Minefade Mod 0.10.0 — Minecraft Java 1.12.2
+# Minefade Mod 0.11.0 — Minecraft Java 1.12.2
 
 Forge 14.23.5.2864 · Java 8 · ForgeGradle 3.x (UserDev 3) · Gradle 5.6.4
 
-Minefade 0.10.0 is a client-rendering and gameplay polish update. It keeps the existing `voxelcore` mod ID, registered block/item IDs, vanilla fluid simulation and world content.
+Minefade 0.11.0 is a client-rendering and gameplay polish update. It keeps the existing `voxelcore` mod ID, registered block/item IDs, vanilla fluid simulation and world content.
 
 ## Water rendering
 
