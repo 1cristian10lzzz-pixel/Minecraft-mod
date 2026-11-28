@@ -5,6 +5,7 @@ import com.voxelcore.client.handler.BlockSurfaceDetailRenderer;
 import com.voxelcore.client.handler.ClientKeyHandler;
 import com.voxelcore.client.handler.ClientModelRegistry;
 import com.voxelcore.client.handler.GuiThemeHandler;
+import com.voxelcore.client.handler.LavaSurfaceRenderer;
 import com.voxelcore.client.handler.WaterEffectsHandler;
 import com.voxelcore.client.handler.ConfigChangedHandler;
 import com.voxelcore.client.handler.MinefadeDroppedItemRenderer;
@@ -44,6 +45,10 @@ public class ClientProxy extends CommonProxy {
         FMLCommonHandler.instance().bus().register(surfaceRealism);
         MinecraftForge.EVENT_BUS.register(new ClientModelRegistry());
         MinecraftForge.EVENT_BUS.register(new GuiThemeHandler());
+
+        LavaSurfaceRenderer lavaSurface = new LavaSurfaceRenderer();
+        MinecraftForge.EVENT_BUS.register(lavaSurface);
+        FMLCommonHandler.instance().bus().register(lavaSurface);
 
         WaterEffectsHandler waterEffects = new WaterEffectsHandler();
         MinecraftForge.EVENT_BUS.register(waterEffects);
