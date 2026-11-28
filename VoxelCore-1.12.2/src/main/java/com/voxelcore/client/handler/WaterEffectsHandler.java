@@ -337,7 +337,6 @@ public class WaterEffectsHandler {
         }
 
         if (!ModConfig.ENABLE_WATER_EFFECTS || !ModConfig.ENABLE_UNDERWATER_TINT) return;
-        if (!ModConfig.ENABLE_WATER_EFFECTS || !ModConfig.ENABLE_UNDERWATER_TINT) return;
         Minecraft mc = Minecraft.getMinecraft();
         if (mc.player == null || mc.world == null
                 || !mc.player.isInsideOfMaterial(Material.WATER)) return;
