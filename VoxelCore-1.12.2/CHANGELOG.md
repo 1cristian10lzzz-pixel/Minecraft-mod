@@ -6,7 +6,7 @@
 - Replaces the 4x4 subdivided water-cell grid with one batched quad per cached surface column; bounds the surface search/cache and shortens the vertical scan.
 - Adds restrained sky-colour/specular response, small animated streak highlights and low-alpha shoreline foam without geometric waves or expanding ring geometry.
 - Fixes repeated nearby-water scans on dry land by caching empty results and rechecking only after movement thresholds or a timer.
-- Adds a distinct client-only lava renderer with moving molten vein accents and sparse smoke/ember particles. Vanilla lava remains the base texture and retains its flow, light, damage, collision and server state.
+- Adds a distinct client-only lava renderer with moving molten vein accents and sparse smoke/ember particles. Lava quality, scan radius and ember frequency adapt to sustained low FPS. Vanilla lava remains the base texture and retains its flow, light, damage, collision and server state.
 - Reworks player animation into a conservative additive layer that preserves vanilla crouch, jump, Elytra and fall base poses; adds measured walking weight shift, sprint follow-through, climbing, swimming and idle breathing.
 - Replaces the old settings centre with an OptiFine-inspired Video Settings layout: Quality, Details, Performance, Animations, Water/Lava, Items, World and Other pages. Adds controls for new water, lava, material and animation options plus selected vanilla graphics options.
 - Prevents the global GUI skin handler from restyling the new video-settings screen.
