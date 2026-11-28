@@ -1,8 +1,8 @@
-# Minefade Mod 0.9.0 — Minecraft Java 1.12.2
+# Minefade Mod 0.10.0 — Minecraft Java 1.12.2
 
 Forge 14.23.5.2847 · Java 8 · ForgeGradle 2.3 · Gradle 4.10.3
 
-Minefade 0.9.0 is a client-rendering and gameplay polish update. It keeps the existing `voxelcore` mod ID, registered block/item IDs, vanilla fluid simulation and world content.
+Minefade 0.10.0 is a client-rendering and gameplay polish update. It keeps the existing `voxelcore` mod ID, registered block/item IDs, vanilla fluid simulation and world content.
 
 ## Water rendering
 
@@ -10,15 +10,15 @@ Minefade 0.9.0 is a client-rendering and gameplay polish update. It keeps the ex
 - Surface tint is based on biome water colour and measured local depth; sky reflection and specular response are deliberately restrained.
 - Small elongated highlights glide across the surface. They are not expanding rings and do not displace the water mesh.
 - Shore foam is thin, low-alpha and limited to exposed edges.
-- The custom pass draws one quad per cached water column instead of subdividing every block into sixteen sub-quads.
+- The custom pass uses vanilla fluid-height calculations, softly blends neighbouring water-cell corners at similar levels, and uses a tiny multi-directional micro-surface displacement with analytical lighting normals. Tessellation is limited by quality settings and adaptive FPS reduction.
 - The search radius, vertical scan range, cache size and refresh interval are bounded. Null search results are cached too, avoiding repeated water searches while walking on dry land.
 - Underwater tint/fog, bubbles, entry splashes, wakes, rain impacts and waterfall mist remain separate local effects.
 
-**Rendering limit:** reflections are an approximation based on sky colour and viewing angle. This is not screen-space reflection, physical refraction or a full shader pipeline.
+**Rendering limit:** reflections are an approximation based on sky colour and viewing angle; the micro-surface displacement is deliberately very small, not large waves. This is not screen-space reflection, physical refraction or a full shader pipeline.
 
 ## Lava
 
-- A new client-only molten-surface pass draws restrained, moving orange/yellow vein streaks over exposed vanilla lava.
+- A client-only molten-surface pass draws precomputed branching molten fissures with a darker rim, a bright core and a slow pulsing glow.
 - Sparse smoke/ember particles are emitted near nearby lava surfaces.
 - Quality and radius can be configured separately from water.
 - Vanilla lava texture animation, flow, light, collision, damage and server state remain authoritative.
