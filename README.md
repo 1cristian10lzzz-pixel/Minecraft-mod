@@ -1,10 +1,10 @@
 # Minefade Mod — Minecraft Java 1.12.2
 
-Current source line: **0.9.0** · Forge 14.23.5.2847 · Java 8
+Current source line: **0.10.0** · Forge 14.23.5.2847 · Java 8
 
 Minefade improves existing Minecraft 1.12.2 rendering and gameplay systems while retaining the `voxelcore` mod ID, registered content IDs, vanilla fluid simulation and original gameplay content.
 
-## 0.9.0 update
+## 0.10.0 update
 
 - **Water:** fixed the over-opaque white/blue surface overlay seen in the submitted screenshot. The water pass now uses low alpha so the vanilla texture and animated flow remain visible. Added restrained sky-colour/specular accents, small animated glints and thin shoreline foam.
 - **Water performance:** one batched quad per visible water column instead of sixteen sub-quads; smaller bounded scan windows; cached empty lookups so dry land no longer triggers a full nearby-water search every tick.
@@ -16,7 +16,7 @@ Minefade improves existing Minecraft 1.12.2 rendering and gameplay systems while
 
 ## Render approach and limits
 
-Water and lava remain vanilla fluids with Minefade client-side surface accents. Water reflection is an approximation, not screen-space reflection or physical refraction. Lava streaks are not a shader or a physically simulated molten surface. The current implementation does not add new images, textures or resource packs, and does not replace the vanilla chunk renderer.
+Water and lava remain vanilla fluids with Minefade client-side surface accents. Water uses subtle micro-height variation and lighting, but reflections remain a sky-colour approximation rather than screen-space reflection or physical refraction. Lava uses precomputed branching crack geometry with pulsing colour, not a heat-distortion shader or physically simulated molten flow. The current implementation does not add new images, textures or resource packs, and does not replace the vanilla chunk renderer.
 
 The new menu follows OptiFine's category organization and control style; it is an independent Minefade implementation, not OptiFine code or full feature parity.
 
