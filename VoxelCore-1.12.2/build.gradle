@@ -4,23 +4,37 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+        // Forge 14.23.5.2864 publishes UserDev 3 metadata; ForgeGradle 2.3
+        // expects the older forge-userdev.jar and cannot resolve this build.
+        classpath 'net.minecraftforge.gradle:ForgeGradle:3.+'
     }
 }
 
-apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'java'
 
 version = '0.10.0'
 group = 'com.minefade'
 archivesBaseName = 'minefade'
 
-sourceCompatibility = targetCompatibility = '1.8'
+sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
 
 minecraft {
-    version = '1.12.2-14.23.5.2864'
-    runDir = 'run'
-    mappings = 'stable_39'
-    makeObfSourceJar = false
+    // Equivalent to the previous stable_39 mappings under ForgeGradle 2.x.
+    mappings channel: 'stable', version: '39-1.12'
+
+    runs {
+        client {
+            workingDirectory project.file('run')
+        }
+        server {
+            workingDirectory project.file('run/server')
+        }
+    }
+}
+
+dependencies {
+    minecraft 'net.minecraftforge:forge:1.12.2-14.23.5.2864'
 }
 
 compileJava {
@@ -29,11 +43,11 @@ compileJava {
 
 processResources {
     inputs.property 'version', project.version
-    inputs.property 'mcversion', project.minecraft.version
+    inputs.property 'mcversion', '1.12.2'
 
     from(sourceSets.main.resources.srcDirs) {
         include 'mcmod.info'
-        expand 'version': project.version, 'mcversion': project.minecraft.version
+        expand 'version': project.version, 'mcversion': '1.12.2'
     }
     from(sourceSets.main.resources.srcDirs) {
         exclude 'mcmod.info'
@@ -52,3 +66,5 @@ jar {
         ])
     }
 }
+
+jar.finalizedBy('reobfJar')
