@@ -66,14 +66,18 @@ public final class MinefadePlayerModel extends ModelPlayer {
             bipedLeftLeg.rotateAngleX += climb * 0.32F;
         }
 
-        // A slow alternating paddle and kick, blended over the vanilla water pose.
-        if (inWater) {
-            float swimPhase = ageInTicks * 0.105F + phase * 0.16F;
-            float rightStroke = (float) Math.sin(swimPhase) * 0.085F * intensity;
-            float leftStroke = (float) Math.sin(swimPhase + Math.PI) * 0.085F * intensity;
-            float rightKick = (float) Math.sin(swimPhase + Math.PI * 0.5D) * 0.070F * intensity;
-            float leftKick = (float) Math.sin(swimPhase - Math.PI * 0.5D) * 0.070F * intensity;
-            bipedBody.rotateAngleX -= 0.035F * intensity;
+        // Swimming strokes scale with actual movement; an idle underwater player
+        // no longer paddles continuously while standing still.
+        float swimActivity = clamp(Math.abs(forward) + Math.abs(strafe)
+                + Math.min(0.45F, (float) Math.abs(player.motionY) * 1.8F), 0.0F, 1.0F);
+        if (inWater && swimActivity > 0.06F) {
+            float swimBlend = intensity * swimActivity;
+            float swimPhase = ageInTicks * (0.065F + swimActivity * 0.04F) + phase * 0.16F;
+            float rightStroke = (float) Math.sin(swimPhase) * 0.085F * swimBlend;
+            float leftStroke = (float) Math.sin(swimPhase + Math.PI) * 0.085F * swimBlend;
+            float rightKick = (float) Math.sin(swimPhase + Math.PI * 0.5D) * 0.070F * swimBlend;
+            float leftKick = (float) Math.sin(swimPhase - Math.PI * 0.5D) * 0.070F * swimBlend;
+            bipedBody.rotateAngleX -= 0.025F * swimBlend;
             bipedRightArm.rotateAngleX += rightStroke;
             bipedLeftArm.rotateAngleX += leftStroke;
             bipedRightLeg.rotateAngleX += rightKick;
@@ -98,7 +102,8 @@ public final class MinefadePlayerModel extends ModelPlayer {
             bipedHead.rotateAngleX += breath * 0.25F;
         }
 
-        // Match clothing overlays after the additive pose is complete.
+        // Keep every wearable overlay aligned after all additive rotations.
+        copyModelAngles(bipedHead, bipedHeadwear);
         copyModelAngles(bipedBody, bipedBodyWear);
         copyModelAngles(bipedRightArm, bipedRightArmwear);
         copyModelAngles(bipedLeftArm, bipedLeftArmwear);
