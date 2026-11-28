@@ -6,6 +6,7 @@ import net.minecraft.client.gui.GuiScreen;
 import org.lwjgl.input.Keyboard;
 
 import java.io.IOException;
+import java.util.Collections;
 
 /**
  * OptiFine-inspired video settings layout:
@@ -292,10 +293,111 @@ public final class MinefadeSettingsScreen extends GuiScreen {
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         drawDefaultBackground();
-        drawCenteredString(this.fontRenderer, "Video Settings", this.width / 2, 10, 0xFFFFFF);
+        drawCenteredString(this.fontRenderer, "Ajustes de vídeo", this.width / 2, 10, 0xFFFFFF);
         drawCenteredString(this.fontRenderer, PAGE_NAMES[page].replace("...", ""),
                 this.width / 2, 23, 0xD0D0D0);
         super.drawScreen(mouseX, mouseY, partialTicks);
+        for (GuiButton button : this.buttonList) {
+            if (button.visible && button.enabled && button.id >= ID_OPTION_BASE
+                    && mouseX >= button.x && mouseY >= button.y
+                    && mouseX < button.x + button.width && mouseY < button.y + button.height) {
+                String tooltip = tooltipForOption(button.id - ID_OPTION_BASE);
+                if (tooltip != null) drawHoveringText(Collections.singletonList(tooltip), mouseX, mouseY);
+                break;
+            }
+        }
+    }
+
+    private String tooltipForOption(int option) {
+        if (page == PAGE_QUALITY) {
+            switch (option) {
+                case 0: return "Gráficos rápidos reducen el coste visual; detallados conservan más efectos";
+                case 1: return "La iluminación suave mezcla la luz entre bloques; los niveles altos cuestan más";
+                case 2: return "Activa o desactiva los pequeños detalles minerales procedurales";
+                case 3: return "Más densidad añade acentos en superficies y consume más renderizado";
+                case 4: return "Calidad de agua: baja, media o alta; el nivel alto añade más reflejos";
+                case 5: return "Añade brillos finos sin cubrir la textura vanilla del agua";
+                case 6: return "Añade espuma tenue únicamente en los bordes del agua";
+                case 7: return "Ajusta el color de niebla submarina según el bioma y la profundidad";
+            }
+        } else if (page == PAGE_DETAILS) {
+            switch (option) {
+                case 0: return "Partículas locales cuando atraviesas hierba, hojas y vegetación";
+                case 1: return "Efecto visual al rebotar en slime; no cambia la fuerza vanilla";
+                case 2: return "Pequeños restos coloreados según la superficie del suelo";
+                case 3: return "Salpicaduras y estelas alrededor del jugador y las barcas";
+                case 4: return "Pequeños impactos visuales sobre agua expuesta durante la lluvia";
+                case 5: return "Bruma ligera cerca de la base de cascadas";
+                case 6: return "Partículas escasas de humo y brasas cerca de lava";
+            }
+        } else if (page == PAGE_PERFORMANCE) {
+            switch (option) {
+                case 0: return "Radio de la búsqueda y dibujo de efectos de agua";
+                case 1: return "Reduce el dibujo de criaturas alejadas; desactivado mantiene todas visibles";
+                case 2: return "Distancia máxima opcional para los objetos tirados";
+                case 3: return "Límite de cuadros por segundo de Minecraft";
+                case 4: return "Más chunks muestran más mundo, pero elevan el coste de CPU y GPU";
+                case 5: return "Reduce la cantidad de partículas para mejorar el rendimiento";
+                case 6: return "Baja temporalmente los detalles del agua cuando el FPS cae de forma sostenida";
+                case 7: return "Fuerza la opción de partículas mínimas de Minecraft";
+                case 8: return "Omite criaturas lejanas; puede ocultar mobs que estén al borde de la distancia";
+                case 9: return "Omite objetos tirados fuera del radio configurado";
+                case 10: return "Sincroniza la presentación con la frecuencia de refresco de la pantalla";
+            }
+        } else if (page == PAGE_ANIMATIONS) {
+            switch (option) {
+                case 0: return "Activa la capa de animación aditiva del jugador";
+                case 1: return "Aumenta o reduce la intensidad de los movimientos añadidos";
+                case 2: return "Activa las pequeñas líneas de luz deslizantes sobre el agua";
+                case 3: return "Calidad de los detalles móviles de la lava";
+                case 4: return "Humo y brasas locales alrededor de las superficies de lava";
+                case 5: return "Partículas de movimiento al nadar y entrar en el agua";
+            }
+        } else if (page == PAGE_FLUIDS) {
+            switch (option) {
+                case 0: return "Activa la superficie y los efectos ambientales del agua";
+                case 1: return "Brillos superficiales sutiles, sin una lámina opaca sobre el agua";
+                case 2: return "Espuma tenue en los límites entre agua y aire";
+                case 3: return "Estelas y salpicaduras locales; no cambian la física del agua";
+                case 4: return "Pequeños impactos de lluvia sobre la superficie";
+                case 5: return "Color y niebla submarina según bioma y profundidad";
+                case 6: return "Equilibra detalle visual y coste de dibujo";
+                case 7: return "Radio de búsqueda y dibujo de efectos de agua";
+                case 8: return "Activa los detalles procedurales de la superficie de lava";
+                case 9: return "Activa las partículas de humo y brasas";
+                case 10: return "Más vetas y detalles de lava requieren más dibujo";
+                case 11: return "Distancia máxima para las vetas y partículas de lava";
+                case 12: return "Intensidad del brillo de agua; no desplaza la geometría";
+                case 13: return "Activa la respuesta dinámica del brillo del agua";
+            }
+        } else if (page == PAGE_ITEMS) {
+            switch (option) {
+                case 0: return "Activa el comportamiento Minefade de los objetos tirados";
+                case 1: return "Muestra los objetos tumbados al descansar en el suelo";
+                case 2: return "Permite recoger objetos con clic derecho además del método vanilla";
+                case 3: return "Añade impulso al soltar objetos mientras corres";
+                case 4: return "Aplica flotación y resistencia suave en agua y lava";
+                case 5: return "Ajusta el impulso adicional al lanzar objetos corriendo";
+            }
+        } else if (page == PAGE_WORLD) {
+            switch (option) {
+                case 0: return "Activa la generación de resonita en chunks nuevos";
+                case 1: return "Número de intentos de veta por chunk nuevo";
+                case 2: return "Tamaño de cada veta de resonita";
+                case 3: return "Altura mínima de generación";
+                case 4: return "Altura máxima de generación";
+            }
+        } else {
+            switch (option) {
+                case 0: return "Aplica el tema visual Minefade a pantallas compatibles";
+                case 1: return "Muestra el monitor de rendimiento en el HUD";
+                case 2: return "Incluye uso de memoria Java en el monitor";
+                case 3: return "Incluye el recuento de chunks del cliente";
+                case 4: return "Incluye el número de entidades cargadas";
+                case 5: return "Incluye el número de bloques con entidades especiales";
+            }
+        }
+        return null;
     }
 
     @Override
