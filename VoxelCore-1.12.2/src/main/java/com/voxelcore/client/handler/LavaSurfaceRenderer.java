@@ -264,6 +264,11 @@ public final class LavaSurfaceRenderer {
         buffer.pos(x - radius, y, z).color(red, green, blue, alpha).endVertex();
     }
 
+    private static double clampCell(double coordinate, int blockCoordinate) {
+        return Math.max(blockCoordinate + 0.055D,
+                Math.min(blockCoordinate + 0.945D, coordinate));
+    }
+
     private static int mix(int value) {
         value ^= value >>> 16;
         value *= 0x7feb352d;
