@@ -1,4 +1,17 @@
-# Changelog
+## 0.10.0 — Superficie de fluidos, renderizado y estabilidad
+
+- Replaces the flat water overlay with a gently varying micro-surface. Uses vanilla `BlockLiquid.getLiquidHeight` for source/falling-fluid heights and softly shares corners between adjacent columns only when their heights are close; it does not bridge banks or separate pools.
+- Adds small multi-directional surface relief and analytical normals for directional specular response. The effect is deliberately subtle and retains vanilla water texture/flow beneath the low-alpha tint.
+- Moves the frame-wide sun vector calculation out of per-vertex work and uses analytical wave gradients rather than finite-difference sampling; simplifies the Fresnel/specular power operations to reduce repeated expensive math.
+- Replaces sliding lava stripes with precomputed, stationary branching fissure geometry, dark red rims, hot orange cores and slow pulsing junctions. Uses vanilla fluid-height calculations and reuses mutable block positions during scans.
+- Adds shared OpenGL state backup/restore for blend factors, texture, lighting, culling, depth, alpha test, colour material, rescale normal and current colour so Minefade overlays do not leak their render state into later renders.
+- Fixes vegetation contact to inspect plant blocks above the ground support block. Limits each step to one tiny nearby contact puff.
+- Reduces mineral-detail scan radius, vertical range, cache size and refresh frequency.
+- Precomputes lava fissure layout when rebuilding its cache so per-frame work only animates the glow; limits ember sampling attempts.
+- Refines swimming animation so paddling fades out when the player is stationary and synchronizes the headwear overlay with the head pose.
+- Improves grounded item renderer cleanup while retaining vanilla baked models and item atlas.
+- Keeps vanilla fluid simulation, block/item IDs, Resonite content, dropped-item rules and world generation. No images, textures or resource packs are created or modified.
+- CI compilation checks Forge/API compatibility. Visual checks in a live client, GPU profiling, multiplayer and long-session testing remain separate tasks.
 
 ## 0.9.0 — Fluidos, optimización y ajustes de vídeo
 
