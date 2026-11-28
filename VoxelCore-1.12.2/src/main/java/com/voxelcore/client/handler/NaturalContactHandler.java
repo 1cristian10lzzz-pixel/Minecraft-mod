@@ -82,22 +82,25 @@ public final class NaturalContactHandler {
     private static void spawnVegetationContact(World world,
                                                net.minecraft.entity.player.EntityPlayer player,
                                                BlockPos ground) {
-        // Search a tiny footprint around the feet, not the whole chunk.
+        // Plants occupy the block above the supporting ground block. Check the
+        // player's lower two body blocks instead of looking inside the soil.
         for (int dx = -1; dx <= 1; dx++) {
             for (int dz = -1; dz <= 1; dz++) {
-                BlockPos pos = ground.add(dx, 0, dz);
-                if (!world.isBlockLoaded(pos)) continue;
-                IBlockState state = world.getBlockState(pos);
-                if (!isVegetation(state.getBlock())) continue;
+                for (int dy = 1; dy <= 2; dy++) {
+                    BlockPos pos = ground.add(dx, dy, dz);
+                    if (!world.isBlockLoaded(pos)) continue;
+                    IBlockState state = world.getBlockState(pos);
+                    if (!isVegetation(state.getBlock())) continue;
 
-                int particleState = net.minecraft.block.Block.getStateId(state);
-                double x = pos.getX() + 0.5D + (world.rand.nextDouble() - 0.5D) * 0.35D;
-                double z = pos.getZ() + 0.5D + (world.rand.nextDouble() - 0.5D) * 0.35D;
-                world.spawnParticle(EnumParticleTypes.BLOCK_CRACK, x,
-                        pos.getY() + 0.55D, z,
-                        -player.motionX * 0.25D, 0.035D,
-                        -player.motionZ * 0.25D, particleState);
-                return; // one tiny contact puff per step
+                    int particleState = net.minecraft.block.Block.getStateId(state);
+                    double x = pos.getX() + 0.5D + (world.rand.nextDouble() - 0.5D) * 0.35D;
+                    double z = pos.getZ() + 0.5D + (world.rand.nextDouble() - 0.5D) * 0.35D;
+                    world.spawnParticle(EnumParticleTypes.BLOCK_CRACK, x,
+                            pos.getY() + 0.55D, z,
+                            -player.motionX * 0.25D, 0.035D,
+                            -player.motionZ * 0.25D, particleState);
+                    return; // one tiny contact puff per step
+                }
             }
         }
     }
