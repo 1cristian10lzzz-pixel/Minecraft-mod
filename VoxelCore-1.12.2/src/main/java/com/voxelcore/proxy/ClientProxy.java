@@ -41,7 +41,9 @@ public class ClientProxy extends CommonProxy {
         FMLCommonHandler.instance().bus().register(clientEvents);
         MinecraftForge.EVENT_BUS.register(new BlockSurfaceDetailRenderer());
         MinecraftForge.EVENT_BUS.register(new PlayerAnimationHandler());
-        FMLCommonHandler.instance().bus().register(new NaturalContactHandler());
+        NaturalContactHandler naturalContact = new NaturalContactHandler();
+        MinecraftForge.EVENT_BUS.register(naturalContact);
+        FMLCommonHandler.instance().bus().register(naturalContact);
         SurfaceRealismHandler surfaceRealism = new SurfaceRealismHandler();
         MinecraftForge.EVENT_BUS.register(surfaceRealism);
         FMLCommonHandler.instance().bus().register(surfaceRealism);
