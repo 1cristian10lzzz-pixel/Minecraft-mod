@@ -98,10 +98,10 @@ public final class WaterSurfaceRenderer {
 
                     // Ask the 1.12.2 vanilla fluid block for its rendered height.
                     // This includes its falling/source-state and above-fluid rules.
-                    float topY = BlockLiquid.getLiquidHeight(state, world, new BlockPos(x, y, z));
+                    mutable.setPos(x, y, z);
+                    float topY = BlockLiquid.getLiquidHeight(state, world, mutable);
                     int depth = measureDepth(world, x, y, z);
-                    BlockPos pos = new BlockPos(x, y, z);
-                    int tint = world.getBiome(pos).getWaterColorMultiplier();
+                    int tint = world.getBiome(mutable).getWaterColorMultiplier();
 
                     boolean north = isExposedWaterEdge(world, x, y, z - 1);
                     boolean south = isExposedWaterEdge(world, x, y, z + 1);
@@ -114,6 +114,7 @@ public final class WaterSurfaceRenderer {
                 }
 
                 if (SURFACES.size() >= MAX_CACHED_SURFACES) {
+                    smoothSharedCorners();
                     return;
                 }
             }
