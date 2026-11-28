@@ -32,8 +32,8 @@ public final class NaturalContactHandler {
         if (event.phase != TickEvent.Phase.END || event.player == null
                 || event.player != Minecraft.getMinecraft().player) return;
 
-        if (!com.voxelcore.config.ModConfig.ENABLE_VEGETATION_CONTACT
-                && !com.voxelcore.config.ModConfig.ENABLE_SLIME_CONTACT) return;
+        boolean vegetationEnabled = com.voxelcore.config.ModConfig.ENABLE_VEGETATION_CONTACT;
+        boolean slimeEnabled = com.voxelcore.config.ModConfig.ENABLE_SLIME_CONTACT;
         net.minecraft.entity.player.EntityPlayer player = event.player;
         World world = player.world;
         if (!world.isRemote || player.isDead) return;
@@ -56,28 +56,30 @@ public final class NaturalContactHandler {
                 player.getEntityBoundingBox().minY - 0.04D, player.posZ);
         BlockPos ground = feet;
 
-        if (com.voxelcore.config.ModConfig.ENABLE_VEGETATION_CONTACT
-                && player.onGround && movementSq > 0.0009D && tick % 4 == 0) {
+        if (vegetationEnabled && player.onGround
+                && movementSq > 0.0009D && tick % 4 == 0) {
             spawnVegetationContact(world, player, ground);
         }
 
         // Vanilla slime blocks retain their normal bounce. Minefade adds only
-        // a small contact burst after a meaningful fall; no extra force is added.
-        IBlockState groundState = world.getBlockState(ground);
-        boolean landedThisTick = player.onGround && !wasOnGround && previousMotionY < -0.08D;
-        if (com.voxelcore.config.ModConfig.ENABLE_SLIME_CONTACT
-                && landedThisTick && groundState.getBlock() == Blocks.SLIME_BLOCK
-                && tick - lastSlimeLandingTick > 8) {
-            lastSlimeLandingTick = tick;
-            int particleState = net.minecraft.block.Block.getStateId(groundState);
-            int particleCount = Minecraft.getMinecraft().gameSettings.particleSetting == 2 ? 2 : 5;
-            for (int i = 0; i < particleCount; i++) {
-                double ox = (world.rand.nextDouble() - 0.5D) * 0.7D;
-                double oz = (world.rand.nextDouble() - 0.5D) * 0.7D;
-                world.spawnParticle(EnumParticleTypes.BLOCK_CRACK,
-                        player.posX + ox, ground.getY() + 1.02D,
-                        player.posZ + oz, ox * 0.12D, 0.04D,
-                        oz * 0.12D, particleState);
+        // a small contact burst after a falling-to-ground transition.
+        if (slimeEnabled) {
+            IBlockState groundState = world.getBlockState(ground);
+            boolean landedThisTick = player.onGround && !wasOnGround
+                    && previousMotionY < -0.08D;
+            if (landedThisTick && groundState.getBlock() == Blocks.SLIME_BLOCK
+                    && tick - lastSlimeLandingTick > 8) {
+                lastSlimeLandingTick = tick;
+                int particleState = net.minecraft.block.Block.getStateId(groundState);
+                int particleCount = Minecraft.getMinecraft().gameSettings.particleSetting == 2 ? 2 : 5;
+                for (int i = 0; i < particleCount; i++) {
+                    double ox = (world.rand.nextDouble() - 0.5D) * 0.7D;
+                    double oz = (world.rand.nextDouble() - 0.5D) * 0.7D;
+                    world.spawnParticle(EnumParticleTypes.BLOCK_CRACK,
+                            player.posX + ox, ground.getY() + 1.02D,
+                            player.posZ + oz, ox * 0.12D, 0.04D,
+                            oz * 0.12D, particleState);
+                }
             }
         }
 
