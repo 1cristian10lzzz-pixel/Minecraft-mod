@@ -31,7 +31,8 @@ public final class SurfaceRealismHandler {
 
     @SubscribeEvent
     public void onLeftClickBlock(PlayerInteractEvent.LeftClickBlock event) {
-        if (event.getWorld() == null || !event.getWorld().isRemote
+        if (!com.voxelcore.config.ModConfig.ENABLE_BLOCK_SURFACE_DETAILS
+                || event.getWorld() == null || !event.getWorld().isRemote
                 || event.getEntityPlayer() != Minecraft.getMinecraft().player) return;
 
         World world = event.getWorld();
@@ -84,7 +85,8 @@ public final class SurfaceRealismHandler {
 
     @SubscribeEvent
     public void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END || event.player == null
+        if (!com.voxelcore.config.ModConfig.ENABLE_MATERIAL_FOOTSTEPS
+                || event.phase != TickEvent.Phase.END || event.player == null
                 || event.player != Minecraft.getMinecraft().player) return;
 
         net.minecraft.entity.player.EntityPlayer player = event.player;
