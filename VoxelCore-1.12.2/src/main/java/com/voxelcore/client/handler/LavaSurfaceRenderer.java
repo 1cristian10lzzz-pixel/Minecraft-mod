@@ -119,8 +119,8 @@ public final class LavaSurfaceRenderer {
 
         for (int x = cx - radius; x <= cx + radius; x++) {
             for (int z = cz - radius; z <= cz + radius; z++) {
-                BlockPos column = new BlockPos(x, top, z);
-                if (!world.isBlockLoaded(column)) continue;
+                pos.setPos(x, top, z);
+                if (!world.isBlockLoaded(pos)) continue;
                 for (int y = top; y >= bottom; y--) {
                     pos.setPos(x, y, z);
                     IBlockState state = world.getBlockState(pos);
@@ -130,7 +130,8 @@ public final class LavaSurfaceRenderer {
                             == net.minecraft.block.material.Material.LAVA) continue;
 
                     // Use the same liquid-height routine as the vanilla 1.12.2 renderer.
-                    double height = BlockLiquid.getLiquidHeight(state, world, new BlockPos(x, y, z));
+                    pos.setPos(x, y, z);
+                    double height = BlockLiquid.getLiquidHeight(state, world, pos);
                     SURFACES.add(new LavaCell(x, z, height,
                             mix(x * 73428767 ^ z * 438289 ^ y * 912931)));
                     break;
