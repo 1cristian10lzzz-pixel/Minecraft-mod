@@ -1,10 +1,10 @@
 # Minefade Mod — Minecraft Java 1.12.2
 
-Current source line: **0.10.0** · Forge 14.23.5.2864 · ForgeGradle 3.x · Gradle 5.6.4 · Java 8
+Current source line: **0.11.0** · Forge 14.23.5.2864 · ForgeGradle 3.x · Gradle 5.6.4 · Java 8
 
 Minefade improves existing Minecraft 1.12.2 rendering and gameplay systems while retaining the `voxelcore` mod ID, registered content IDs, vanilla fluid simulation and original gameplay content.
 
-## 0.10.0 update
+## 0.11.0 update
 
 - **Water:** fixed the over-opaque white/blue surface overlay seen in the submitted screenshot. The water pass now uses low alpha so the vanilla texture and animated flow remain visible. Added restrained sky-colour/specular accents, small animated glints and thin shoreline foam.
 - **Water performance:** one batched quad per visible water column instead of sixteen sub-quads; smaller bounded scan windows; cached empty lookups so dry land no longer triggers a full nearby-water search every tick.
