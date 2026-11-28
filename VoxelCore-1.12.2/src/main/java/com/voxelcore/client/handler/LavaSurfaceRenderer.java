@@ -225,14 +225,14 @@ public final class LavaSurfaceRenderer {
             int coreAlpha = (int) ((quality == 0 ? 31.0D : 44.0D) + pulse * 38.0D);
             double y = cell.surfaceY + 0.006D + i * 0.0005D;
 
-            drawCrackSegment(buffer, path.x0, path.z0, path.x1, path.z1, y,
-                    path.rimWidth, 148, 35, 10, rimAlpha);
-            drawCrackSegment(buffer, path.x1, path.z1, path.x2, path.z2, y,
-                    path.rimWidth * 0.82D, 148, 35, 10, rimAlpha);
-            drawCrackSegment(buffer, path.x0, path.z0, path.x1, path.z1, y + 0.0005D,
-                    path.coreWidth, 255, (int) (96.0D + pulse * 80.0D), 22, coreAlpha);
-            drawCrackSegment(buffer, path.x1, path.z1, path.x2, path.z2, y + 0.0005D,
-                    path.coreWidth * 0.72D, 255, (int) (118.0D + pulse * 70.0D), 32, coreAlpha);
+            drawPrecomputedCrackSegment(buffer, path.x0, path.z0, path.x1, path.z1, y,
+                    path.rim1X, path.rim1Z, 148, 35, 10, rimAlpha);
+            drawPrecomputedCrackSegment(buffer, path.x1, path.z1, path.x2, path.z2, y,
+                    path.rim2X, path.rim2Z, 148, 35, 10, rimAlpha);
+            drawPrecomputedCrackSegment(buffer, path.x0, path.z0, path.x1, path.z1, y + 0.0005D,
+                    path.core1X, path.core1Z, 255, (int) (96.0D + pulse * 80.0D), 22, coreAlpha);
+            drawPrecomputedCrackSegment(buffer, path.x1, path.z1, path.x2, path.z2, y + 0.0005D,
+                    path.core2X, path.core2Z, 255, (int) (118.0D + pulse * 70.0D), 32, coreAlpha);
 
             double spot = path.junctionRadius + pulse * 0.004D;
             drawHotDiamond(buffer, path.x1, y + 0.001D, path.z1,
@@ -240,20 +240,15 @@ public final class LavaSurfaceRenderer {
         }
     }
 
-    private static void drawCrackSegment(BufferBuilder buffer,
-                                         double x0, double z0, double x1, double z1,
-                                         double y, double halfWidth,
-                                         int red, int green, int blue, int alpha) {
-        double dx = x1 - x0;
-        double dz = z1 - z0;
-        double length = Math.sqrt(dx * dx + dz * dz);
-        if (length < 0.0001D) return;
-        double px = -dz / length * halfWidth;
-        double pz = dx / length * halfWidth;
-        buffer.pos(x0 - px, y, z0 - pz).color(red, green, blue, alpha).endVertex();
-        buffer.pos(x0 + px, y, z0 + pz).color(red, green, blue, alpha).endVertex();
-        buffer.pos(x1 + px, y, z1 + pz).color(red, green, blue, alpha).endVertex();
-        buffer.pos(x1 - px, y, z1 - pz).color(red, green, blue, alpha).endVertex();
+    /** Emits a crack quad using its cached perpendicular half-width vector. */
+    private static void drawPrecomputedCrackSegment(BufferBuilder buffer,
+                                                    double x0, double z0, double x1, double z1,
+                                                    double y, double offsetX, double offsetZ,
+                                                    int red, int green, int blue, int alpha) {
+        buffer.pos(x0 - offsetX, y, z0 - offsetZ).color(red, green, blue, alpha).endVertex();
+        buffer.pos(x0 + offsetX, y, z0 + offsetZ).color(red, green, blue, alpha).endVertex();
+        buffer.pos(x1 + offsetX, y, z1 + offsetZ).color(red, green, blue, alpha).endVertex();
+        buffer.pos(x1 - offsetX, y, z1 - offsetZ).color(red, green, blue, alpha).endVertex();
     }
 
     private static void drawHotDiamond(BufferBuilder buffer, double x, double y, double z,
@@ -317,7 +312,9 @@ public final class LavaSurfaceRenderer {
     /** Immutable geometry precomputed once per cached lava column. */
     private static final class CrackPath {
         final double x0, z0, x1, z1, x2, z2;
-        final double rimWidth, coreWidth, junctionRadius, pulseSpeed, pulsePhase;
+        final double rim1X, rim1Z, rim2X, rim2Z;
+        final double core1X, core1Z, core2X, core2Z;
+        final double junctionRadius, pulseSpeed, pulsePhase;
 
         CrackPath(int blockX, int blockZ, int seed) {
             double xStart = blockX + 0.16D + unit(seed + 3) * 0.68D;
@@ -331,8 +328,25 @@ public final class LavaSurfaceRenderer {
             z1 = clampCell(zStart + Math.sin(angle) * length * 0.55D, blockZ);
             x2 = clampCell(x1 + Math.cos(angle + bend) * length * 0.45D, blockX);
             z2 = clampCell(z1 + Math.sin(angle + bend) * length * 0.45D, blockZ);
-            rimWidth = 0.028D + unit(seed + 29) * 0.006D;
-            coreWidth = 0.007D + unit(seed + 31) * 0.003D;
+
+            double dx1 = x1 - x0;
+            double dz1 = z1 - z0;
+            double invLength1 = 1.0D / Math.max(0.0001D, Math.sqrt(dx1 * dx1 + dz1 * dz1));
+            double dx2 = x2 - x1;
+            double dz2 = z2 - z1;
+            double invLength2 = 1.0D / Math.max(0.0001D, Math.sqrt(dx2 * dx2 + dz2 * dz2));
+
+            double rimWidth = 0.028D + unit(seed + 29) * 0.006D;
+            double coreWidth = 0.007D + unit(seed + 31) * 0.003D;
+            rim1X = -dz1 * invLength1 * rimWidth;
+            rim1Z = dx1 * invLength1 * rimWidth;
+            core1X = -dz1 * invLength1 * coreWidth;
+            core1Z = dx1 * invLength1 * coreWidth;
+            rim2X = -dz2 * invLength2 * rimWidth * 0.82D;
+            rim2Z = dx2 * invLength2 * rimWidth * 0.82D;
+            core2X = -dz2 * invLength2 * coreWidth * 0.72D;
+            core2Z = dx2 * invLength2 * coreWidth * 0.72D;
+
             junctionRadius = 0.012D + unit(seed + 37) * 0.004D;
             pulseSpeed = 0.82D + unit(seed + 41) * 0.44D;
             pulsePhase = unit(seed + 43) * Math.PI * 2.0D;
