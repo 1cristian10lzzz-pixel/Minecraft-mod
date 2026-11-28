@@ -44,6 +44,10 @@ public final class LavaSurfaceRenderer {
     private int lastY = Integer.MIN_VALUE;
     private int lastZ = Integer.MIN_VALUE;
     private int lastEmberTick = -100;
+    private int qualitySampleTicks;
+    private int slowSamples;
+    private int recoverySamples;
+    private boolean reducedQuality;
 
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
@@ -56,6 +60,7 @@ public final class LavaSurfaceRenderer {
         }
 
         tick++;
+        updateAdaptiveQuality();
         Entity view = mc.getRenderViewEntity();
         int cx = MathHelper.floor(view.posX);
         int cy = MathHelper.floor(view.posY);
@@ -71,16 +76,43 @@ public final class LavaSurfaceRenderer {
             lastScanTick = tick;
         }
 
-        if (ModConfig.ENABLE_LAVA_EMBERS && tick - lastEmberTick >= 14
+        if (ModConfig.ENABLE_LAVA_EMBERS && tick - lastEmberTick >= (reducedQuality ? 26 : 14)
                 && mc.gameSettings.particleSetting < 2 && !SURFACES.isEmpty()) {
             spawnNearbyHeat(mc, view.posX, view.posY, view.posZ);
             lastEmberTick = tick;
         }
     }
 
+    private void updateAdaptiveQuality() {
+        if (!ModConfig.ENABLE_ADAPTIVE_WATER_QUALITY) {
+            reducedQuality = false;
+            qualitySampleTicks = 0;
+            slowSamples = 0;
+            recoverySamples = 0;
+            return;
+        }
+        if (++qualitySampleTicks < 40) return;
+        qualitySampleTicks = 0;
+        int fps = Minecraft.getDebugFPS();
+        if (fps <= 0) return;
+        if (fps < 28) {
+            slowSamples++;
+            recoverySamples = 0;
+            if (slowSamples >= 2) reducedQuality = true;
+        } else if (fps > 48) {
+            recoverySamples++;
+            slowSamples = 0;
+            if (recoverySamples >= 3) reducedQuality = false;
+        } else {
+            slowSamples = 0;
+            recoverySamples = 0;
+        }
+    }
+
     private static void rebuild(World world, int cx, int cy, int cz) {
         SURFACES.clear();
         int radius = MathHelper.clamp(ModConfig.LAVA_EFFECT_RADIUS / 3, 4, 10);
+        if (reducedQuality) radius = Math.max(4, radius - 2);
         int top = Math.min(255, cy + 8);
         int bottom = Math.max(0, cy - 28);
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
@@ -192,7 +224,8 @@ public final class LavaSurfaceRenderer {
                 double dy = cell.surfaceY - camY;
                 double dz = cell.z + 0.5D - camZ;
                 if (dx * dx + dy * dy + dz * dz > radiusSq) continue;
-                drawMoltenVeins(buffer, cell, time, quality);
+                drawMoltenVeins(buffer, cell, time,
+                        reducedQuality ? Math.max(0, quality - 1) : quality);
             }
             tessellator.draw();
         } finally {
@@ -253,6 +286,10 @@ public final class LavaSurfaceRenderer {
         cachedWorld = null;
         lastScanTick = -1000;
         lastEmberTick = -100;
+        qualitySampleTicks = 0;
+        slowSamples = 0;
+        recoverySamples = 0;
+        reducedQuality = false;
         lastX = lastY = lastZ = Integer.MIN_VALUE;
     }
 
