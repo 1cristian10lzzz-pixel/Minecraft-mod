@@ -135,6 +135,8 @@ public final class MinefadeSettingsScreen extends GuiScreen {
             addToggle(9, 1, 4, "Humo y brasas", ModConfig.ENABLE_LAVA_EMBERS);
             addValue(10, 0, 5, "Calidad de lava", qualityName(ModConfig.LAVA_RENDER_QUALITY));
             addValue(11, 1, 5, "Radio de lava", ModConfig.LAVA_EFFECT_RADIUS + " bloques");
+            addValue(12, 0, 6, "Intensidad de brillo", ModConfig.WATER_WAVE_STRENGTH + "%");
+            addToggle(13, 1, 6, "Respuesta dinámica del agua", ModConfig.ENABLE_WATER_RIPPLES);
         } else if (page == PAGE_ITEMS) {
             addToggle(0, 0, 0, "Física de objetos", ModConfig.ENABLE_REALISTIC_ITEM_PHYSICS);
             addToggle(1, 1, 0, "Objetos tumbados", ModConfig.FLAT_GROUND_ITEMS);
@@ -255,6 +257,8 @@ public final class MinefadeSettingsScreen extends GuiScreen {
                 case 9: ModConfig.ENABLE_LAVA_EMBERS = !ModConfig.ENABLE_LAVA_EMBERS; break;
                 case 10: ModConfig.LAVA_RENDER_QUALITY = (ModConfig.LAVA_RENDER_QUALITY + 1) % 3; break;
                 case 11: ModConfig.LAVA_EFFECT_RADIUS = ModConfig.LAVA_EFFECT_RADIUS >= 32 ? 6 : ModConfig.LAVA_EFFECT_RADIUS + 4; break;
+                case 12: ModConfig.WATER_WAVE_STRENGTH = ModConfig.WATER_WAVE_STRENGTH >= 100 ? 0 : ModConfig.WATER_WAVE_STRENGTH + 10; break;
+                case 13: ModConfig.ENABLE_WATER_RIPPLES = !ModConfig.ENABLE_WATER_RIPPLES; break;
             }
         } else if (page == PAGE_ITEMS) {
             switch (option) {
