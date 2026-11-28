@@ -122,6 +122,10 @@ public final class BlockSurfaceDetailRenderer {
         }
     }
 
+    public static void clearCache() {
+        DETAILS.clear();
+    }
+
     private static void rebuild(World world, BlockPos centre) {
         DETAILS.clear();
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
