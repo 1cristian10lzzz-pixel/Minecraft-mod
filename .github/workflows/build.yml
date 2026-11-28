@@ -38,7 +38,7 @@ jobs:
       - name: Upload installable JAR
         uses: actions/upload-artifact@v4
         with:
-          name: minefade-mod-minecraft-1.12.2-forge-14.23.5.2864-v0.10.0
+          name: minefade-mod-minecraft-1.12.2-forge-14.23.5.2864-v0.11.0
           path: VoxelCore-1.12.2/build/libs/*.jar
           if-no-files-found: error
           retention-days: 30
