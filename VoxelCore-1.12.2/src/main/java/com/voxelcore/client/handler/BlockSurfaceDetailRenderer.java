@@ -196,10 +196,27 @@ public final class BlockSurfaceDetailRenderer {
         if (block == Blocks.RED_SANDSTONE) return 13;
         if (block == Blocks.OBSIDIAN) return 14;
         if (block == Blocks.PRISMARINE) return 15;
-        if (block == Blocks.STONEBRICK) return 16;
-        if (block == Blocks.HARDENED_CLAY) return 17;
-        if (block == Blocks.BRICK_BLOCK) return 18;
+        if (block == Blocks.STONEBRICK || block == Blocks.NETHER_BRICK) return 16;
+        if (block == Blocks.HARDENED_CLAY || block == Blocks.PURPUR_BLOCK
+                || block == Blocks.PURPUR_PILLAR) return 17;
+        if (block == Blocks.BRICK_BLOCK || block == Blocks.END_BRICKS) return 18;
         if (block == Blocks.QUARTZ_BLOCK) return 19;
+
+        // Extend the same asset-free mineral pass to more vanilla terrain and
+        // architectural blocks. Palette selection is based on the actual state,
+        // so red sand and podzol variants do not inherit the wrong colour.
+        if (block == Blocks.SAND) return block.getMetaFromState(state) == 1 ? 16 : 1;
+        if (block == Blocks.DIRT) return block.getMetaFromState(state) == 2 ? 18 : 1;
+        if (block == Blocks.GRASS || block == Blocks.GRASS_PATH) return 10;
+        if (block == Blocks.MYCELIUM) return 17;
+        if (block == Blocks.SOUL_SAND) return 2;
+        if (block == Blocks.MAGMA || block == Blocks.RED_NETHER_BRICK
+                || block == Blocks.NETHER_WART_BLOCK) return 7;
+        if (block == Blocks.ICE || block == Blocks.PACKED_ICE
+                || block == Blocks.FROSTED_ICE) return 8;
+        if (block == Blocks.BONE_BLOCK) return 13;
+        if (block == Blocks.GLOWSTONE) return 6;
+        if (block == Blocks.SEA_LANTERN) return 9;
         return -1;
     }
 
