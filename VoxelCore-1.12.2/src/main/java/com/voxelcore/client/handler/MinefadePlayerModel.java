@@ -97,9 +97,21 @@ public final class MinefadePlayerModel extends ModelPlayer {
         double horizontalSpeedSq = player.motionX * player.motionX + player.motionZ * player.motionZ;
         if (horizontalSpeedSq < 0.0004D && !inWater && !player.isElytraFlying()
                 && !player.isSneaking() && !onLadder) {
-            float breath = (float) Math.sin(ageInTicks * 0.075F) * 0.0035F * intensity;
+            float breathPhase = ageInTicks * 0.075F + player.getEntityId() * 0.17F;
+            float breath = (float) Math.sin(breathPhase) * 0.0035F * intensity;
             bipedBody.rotateAngleX += breath;
             bipedHead.rotateAngleX += breath * 0.25F;
+
+            // Relaxed arm/shoulder motion only while the hands are free.
+            // Never interfere with item use, blocking, bows or an active attack.
+            if (!player.isHandActive() && this.swingProgress < 0.01F) {
+                float idleSway = (float) Math.sin(breathPhase * 0.72F) * 0.006F * intensity;
+                float idleFollow = (float) Math.cos(breathPhase * 0.72F) * 0.0035F * intensity;
+                bipedRightArm.rotateAngleZ += idleSway;
+                bipedLeftArm.rotateAngleZ -= idleSway;
+                bipedRightArm.rotateAngleX += idleFollow;
+                bipedLeftArm.rotateAngleX += idleFollow;
+            }
         }
 
         // Keep every wearable overlay aligned after all additive rotations.
