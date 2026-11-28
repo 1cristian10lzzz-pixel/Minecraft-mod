@@ -201,6 +201,15 @@ public final class WaterSurfaceRenderer {
         float sunlight = mc.world.getSunBrightness(partialTicks);
         Vec3d sky = mc.world.getSkyColor(view, partialTicks);
         if (sky == null) sky = new Vec3d(0.34D, 0.52D, 0.70D);
+        // The sun direction is identical for every vertex in this frame.
+        // Compute and normalize it once instead of doing trig per water vertex.
+        double sunX = -Math.cos(celestialAngle) * 0.45D;
+        double sunY = 0.78D;
+        double sunZ = -Math.sin(celestialAngle) * 0.45D;
+        double sunLength = Math.sqrt(sunX * sunX + sunY * sunY + sunZ * sunZ);
+        sunX /= sunLength;
+        sunY /= sunLength;
+        sunZ /= sunLength;
 
         WorldRenderStateGuard renderState = WorldRenderStateGuard.capture();
 
@@ -227,8 +236,9 @@ public final class WaterSurfaceRenderer {
                 // replace the vanilla surface with an opaque, untextured white sheet.
                 int gridSegments = ModConfig.WATER_RENDER_QUALITY >= 2
                         && !reducedQuality ? 2 : 1;
-                drawTintedSurface(buffer, cell, gloss, worldTime, celestialAngle,
-                        cameraX, cameraY, cameraZ, sky, sunlight, gridSegments);
+                drawTintedSurface(buffer, cell, gloss, worldTime,
+                        cameraX, cameraY, cameraZ, sky, sunlight,
+                        sunX, sunY, sunZ, gridSegments);
                 if (ModConfig.ENABLE_WATER_HIGHLIGHTS && ModConfig.WATER_RENDER_QUALITY > 0
                         && !reducedQuality) {
                     drawMicroHighlight(buffer, cell, worldTime, gloss, sky, sunlight);
@@ -245,23 +255,24 @@ public final class WaterSurfaceRenderer {
     }
 
     private static void drawTintedSurface(BufferBuilder buffer, SurfaceCell cell,
-                                          float gloss, double time, double celestialAngle,
+                                          float gloss, double time,
                                           double cameraX, double cameraY, double cameraZ,
-                                          Vec3d sky, float sunlight, int segments) {
+                                          Vec3d sky, float sunlight,
+                                          double sunX, double sunY, double sunZ, int segments) {
         for (int gz = 0; gz < segments; gz++) {
             double v0 = gz / (double) segments;
             double v1 = (gz + 1) / (double) segments;
             for (int gx = 0; gx < segments; gx++) {
                 double u0 = gx / (double) segments;
                 double u1 = (gx + 1) / (double) segments;
-                emitWaterVertex(buffer, cell, u0, v0, gloss, time, celestialAngle,
-                        cameraX, cameraY, cameraZ, sky, sunlight);
-                emitWaterVertex(buffer, cell, u0, v1, gloss, time, celestialAngle,
-                        cameraX, cameraY, cameraZ, sky, sunlight);
-                emitWaterVertex(buffer, cell, u1, v1, gloss, time, celestialAngle,
-                        cameraX, cameraY, cameraZ, sky, sunlight);
-                emitWaterVertex(buffer, cell, u1, v0, gloss, time, celestialAngle,
-                        cameraX, cameraY, cameraZ, sky, sunlight);
+                emitWaterVertex(buffer, cell, u0, v0, gloss, time,
+                        cameraX, cameraY, cameraZ, sky, sunlight, sunX, sunY, sunZ);
+                emitWaterVertex(buffer, cell, u0, v1, gloss, time,
+                        cameraX, cameraY, cameraZ, sky, sunlight, sunX, sunY, sunZ);
+                emitWaterVertex(buffer, cell, u1, v1, gloss, time,
+                        cameraX, cameraY, cameraZ, sky, sunlight, sunX, sunY, sunZ);
+                emitWaterVertex(buffer, cell, u1, v0, gloss, time,
+                        cameraX, cameraY, cameraZ, sky, sunlight, sunX, sunY, sunZ);
             }
         }
     }
@@ -281,25 +292,33 @@ public final class WaterSurfaceRenderer {
 
     private static void emitWaterVertex(BufferBuilder buffer, SurfaceCell cell,
                                         double u, double v, float gloss, double time,
-                                        double celestialAngle,
                                         double cameraX, double cameraY, double cameraZ,
-                                        Vec3d sky, float sunlight) {
+                                        Vec3d sky, float sunlight,
+                                        double sunX, double sunY, double sunZ) {
         double x = cell.x + u;
         double z = cell.z + v;
         double north = lerp(cell.northWestHeight, cell.northEastHeight, u);
         double south = lerp(cell.southWestHeight, cell.southEastHeight, u);
         double baseY = lerp(north, south, v);
-        double wave = waveHeight(x, z, time, gloss);
+        double t1 = x * 0.83D + z * 0.51D + time * 1.13D;
+        double t2 = x * 0.34D - z * 0.71D - time * 0.76D;
+        double t3 = x * 1.31D + z * 1.17D - time * 0.43D;
+        double sin1 = Math.sin(t1), cos1 = Math.cos(t1);
+        double sin2 = Math.sin(t2), cos2 = Math.cos(t2);
+        double sin3 = Math.sin(t3), cos3 = Math.cos(t3);
+        double wave = gloss <= 0.001F ? 0.0D
+                : (sin1 * 0.0048D + sin2 * 0.0031D + sin3 * 0.0015D) * gloss;
         double y = baseY + 0.004D + wave;
 
         double baseSlopeX = lerp(cell.northEastHeight - cell.northWestHeight,
                 cell.southEastHeight - cell.southWestHeight, v);
         double baseSlopeZ = south - north;
-        double delta = 0.025D;
-        double waveSlopeX = (waveHeight(x + delta, z, time, gloss)
-                - waveHeight(x - delta, z, time, gloss)) / (delta * 2.0D);
-        double waveSlopeZ = (waveHeight(x, z + delta, time, gloss)
-                - waveHeight(x, z - delta, time, gloss)) / (delta * 2.0D);
+        double waveSlopeX = gloss <= 0.001F ? 0.0D
+                : (cos1 * 0.83D * 0.0048D + cos2 * 0.34D * 0.0031D
+                + cos3 * 1.31D * 0.0015D) * gloss;
+        double waveSlopeZ = gloss <= 0.001F ? 0.0D
+                : (cos1 * 0.51D * 0.0048D - cos2 * 0.71D * 0.0031D
+                + cos3 * 1.17D * 0.0015D) * gloss;
 
         double nx = -(baseSlopeX + waveSlopeX);
         double ny = 1.0D;
@@ -321,11 +340,6 @@ public final class WaterSurfaceRenderer {
             vx = 0.0D; vy = 1.0D; vz = 0.0D;
         }
 
-        double sunX = -Math.cos(celestialAngle) * 0.45D;
-        double sunY = 0.78D;
-        double sunZ = -Math.sin(celestialAngle) * 0.45D;
-        double sunLength = Math.sqrt(sunX * sunX + sunY * sunY + sunZ * sunZ);
-        sunX /= sunLength; sunY /= sunLength; sunZ /= sunLength;
         double halfX = sunX + vx;
         double halfY = sunY + vy;
         double halfZ = sunZ + vz;
@@ -335,9 +349,15 @@ public final class WaterSurfaceRenderer {
         }
 
         double ndotv = Math.max(0.0D, nx * vx + ny * vy + nz * vz);
-        double fresnel = Math.pow(1.0D - ndotv, 5.0D);
+        double fresnelBase = 1.0D - ndotv;
+        double fresnelSq = fresnelBase * fresnelBase;
+        double fresnel = fresnelSq * fresnelSq * fresnelBase;
         double diffuse = Math.max(0.0D, nx * sunX + ny * sunY + nz * sunZ);
-        double specular = Math.pow(Math.max(0.0D, nx * halfX + ny * halfY + nz * halfZ), 28.0D)
+        double specularBase = Math.max(0.0D, nx * halfX + ny * halfY + nz * halfZ);
+        double specularPow4 = specularBase * specularBase;
+        specularPow4 *= specularPow4;
+        double specularPow8 = specularPow4 * specularPow4;
+        double specular = specularPow8 * specularPow8 * specularPow8 * specularPow4
                 * sunlight * (0.04D + gloss * 0.28D);
 
         float depth = MathHelper.clamp((cell.depth - 1) / 11.0F, 0.0F, 1.0F);
