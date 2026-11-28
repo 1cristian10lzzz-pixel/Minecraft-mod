@@ -318,13 +318,12 @@ public final class WaterSurfaceRenderer {
 
     private static void drawMicroHighlight(BufferBuilder buffer, SurfaceCell cell,
                                            double time, Vec3d sky, float sunlight) {
-        int seed = mix(cell.x * 73428767 ^ cell.z * 438289);
-        double phase = unit(seed) * Math.PI * 2.0D;
-        double glide = (time * 0.07D + unit(mix(seed + 13))) % 1.0D;
+        double phase = cell.highlightPhase;
+        double glide = (time * cell.highlightSpeed + cell.highlightOffset) % 1.0D;
         double u = 0.16D + glide * 0.62D;
-        double v = 0.20D + unit(mix(seed + 27)) * 0.60D;
-        double length = 0.14D + unit(mix(seed + 41)) * 0.20D;
-        double width = 0.010D + unit(mix(seed + 59)) * 0.012D;
+        double v = cell.highlightV;
+        double length = cell.highlightLength;
+        double width = cell.highlightWidth;
         double dx = Math.cos(phase) * length;
         double dz = Math.sin(phase) * length;
         double px = -Math.sin(phase) * width;
@@ -417,11 +416,13 @@ public final class WaterSurfaceRenderer {
         private final int x;
         private final int z;
         private final double surfaceY;
-        private double northWestHeight;
-        private double northEastHeight;
-        private double southEastHeight;
-        private double southWestHeight;
         private final int depth;
+        private final double highlightPhase;
+        private final double highlightSpeed;
+        private final double highlightOffset;
+        private final double highlightV;
+        private final double highlightLength;
+        private final double highlightWidth;
         private final int waterColor;
         private final boolean north;
         private final boolean south;
@@ -433,11 +434,14 @@ public final class WaterSurfaceRenderer {
             this.x = x;
             this.z = z;
             this.surfaceY = surfaceY;
-            this.northWestHeight = surfaceY;
-            this.northEastHeight = surfaceY;
-            this.southEastHeight = surfaceY;
-            this.southWestHeight = surfaceY;
             this.depth = depth;
+            int seed = mix(x * 73428767 ^ z * 438289 ^ (int) (surfaceY * 912931.0D));
+            this.highlightPhase = unit(seed) * Math.PI * 2.0D;
+            this.highlightSpeed = 0.055D + unit(mix(seed + 13)) * 0.025D;
+            this.highlightOffset = unit(mix(seed + 27));
+            this.highlightV = 0.20D + unit(mix(seed + 41)) * 0.60D;
+            this.highlightLength = 0.14D + unit(mix(seed + 59)) * 0.20D;
+            this.highlightWidth = 0.010D + unit(mix(seed + 71)) * 0.012D;
             this.waterColor = waterColor;
             this.north = north;
             this.south = south;
