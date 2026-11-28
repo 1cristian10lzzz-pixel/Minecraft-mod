@@ -145,6 +145,15 @@ public final class SurfaceRealismHandler {
         previousX = player.posX;
         previousZ = player.posZ;
 
+        // Local rain impacts complement vanilla weather particles on exposed
+        // ground, while the water renderer handles impacts on open water.
+        if (ModConfig.ENABLE_RAIN_RIPPLES && world.isRaining()
+                && player.ticksExisted % 8 == 0
+                && !player.isInsideOfMaterial(Material.WATER)
+                && !player.isInsideOfMaterial(Material.LAVA)) {
+            spawnRainImpact(world, player);
+        }
+
         if (!ModConfig.ENABLE_MATERIAL_FOOTSTEPS || !player.onGround
                 || player.isSneaking() || player.isInsideOfMaterial(Material.WATER)
                 || player.isInsideOfMaterial(Material.LAVA) || movementSq < 0.0004D) {
@@ -173,6 +182,30 @@ public final class SurfaceRealismHandler {
         spawnFootstepParticles(world, player, underFoot, state, leftFoot);
         leftFoot = !leftFoot;
         distanceSinceStep = Math.max(0.0D, distanceSinceStep - strideLength);
+    }
+
+    private static void spawnRainImpact(World world,
+                                        net.minecraft.entity.player.EntityPlayer player) {
+        BlockPos underPlayer = new BlockPos(player.posX,
+                player.getEntityBoundingBox().minY - 0.06D, player.posZ);
+        if (!world.isBlockLoaded(underPlayer)) return;
+        BlockPos impact = underPlayer.up();
+        if (!world.isRainingAt(impact)) return;
+
+        IBlockState ground = world.getBlockState(underPlayer);
+        if (!ground.getMaterial().isSolid() || ground.getMaterial() == Material.WATER
+                || ground.getMaterial() == Material.LAVA) return;
+
+        int count = Minecraft.getMinecraft().gameSettings.particleSetting == 2 ? 1 : 2;
+        for (int i = 0; i < count; i++) {
+            double x = player.posX + (world.rand.nextDouble() - 0.5D) * 0.65D;
+            double z = player.posZ + (world.rand.nextDouble() - 0.5D) * 0.65D;
+            world.spawnParticle(EnumParticleTypes.WATER_SPLASH,
+                    x, underPlayer.getY() + 1.012D, z,
+                    (world.rand.nextDouble() - 0.5D) * 0.025D,
+                    0.012D + world.rand.nextDouble() * 0.018D,
+                    (world.rand.nextDouble() - 0.5D) * 0.025D);
+        }
     }
 
     private static boolean isHardSurface(Material material) {
