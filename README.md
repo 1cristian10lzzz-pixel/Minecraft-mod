@@ -1,6 +1,6 @@
 # Minefade Mod — Minecraft Java 1.12.2
 
-Current source line: **0.10.0** · Forge 14.23.5.2847 · Java 8
+Current source line: **0.10.0** · Forge 14.23.5.2864 · Java 8
 
 Minefade improves existing Minecraft 1.12.2 rendering and gameplay systems while retaining the `voxelcore` mod ID, registered content IDs, vanilla fluid simulation and original gameplay content.
 
@@ -22,6 +22,6 @@ The new menu follows OptiFine's category organization and control style; it is a
 
 ## Compatibility and verification
 
-Target: Minecraft Java 1.12.2 · Forge 14.23.5.2847 · Java 8.
+Target: Minecraft Java 1.12.2 · Forge 14.23.5.2864 · Java 8.
 
 GitHub Actions compilation is used to validate Forge/API compatibility. It does not replace visual testing in a live game, multiplayer testing or device/GPU-specific performance measurement. The last validated build should be installed as a JAR in the Forge `.minecraft/mods` directory.
