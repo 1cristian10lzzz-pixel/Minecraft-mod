@@ -80,9 +80,9 @@ public final class LavaSurfaceRenderer {
 
     private static void rebuild(World world, int cx, int cy, int cz) {
         SURFACES.clear();
-        int radius = MathHelper.clamp(ModConfig.LAVA_EFFECT_RADIUS / 2, 4, 14);
-        int top = Math.min(255, cy + 12);
-        int bottom = Math.max(0, cy - 36);
+        int radius = MathHelper.clamp(ModConfig.LAVA_EFFECT_RADIUS / 3, 4, 10);
+        int top = Math.min(255, cy + 8);
+        int bottom = Math.max(0, cy - 28);
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
 
         for (int x = cx - radius; x <= cx + radius; x++) {
