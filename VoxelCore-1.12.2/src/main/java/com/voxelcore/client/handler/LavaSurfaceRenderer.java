@@ -101,10 +101,10 @@ public final class LavaSurfaceRenderer {
                             ? state.getValue(BlockLiquid.LEVEL).intValue() : 0;
                     int adjusted = level >= 8 ? 0 : Math.min(7, level);
                     double height = y + 1.0D - ((adjusted + 1) / 9.0D);
-                    boolean north = !isLava(world, x, y, z - 1);
-                    boolean south = !isLava(world, x, y, z + 1);
-                    boolean west = !isLava(world, x - 1, y, z);
-                    boolean east = !isLava(world, x + 1, y, z);
+                    boolean north = isExposedLavaEdge(world, x, y, z - 1);
+                    boolean south = isExposedLavaEdge(world, x, y, z + 1);
+                    boolean west = isExposedLavaEdge(world, x - 1, y, z);
+                    boolean east = isExposedLavaEdge(world, x + 1, y, z);
                     SURFACES.add(new LavaCell(x, z, height, north, south, west, east,
                             mix(x * 73428767 ^ z * 438289 ^ y * 912931)));
                     break;
@@ -112,6 +112,13 @@ public final class LavaSurfaceRenderer {
                 if (SURFACES.size() >= MAX_SURFACES) return;
             }
         }
+    }
+
+    private static boolean isExposedLavaEdge(World world, int x, int y, int z) {
+        BlockPos pos = new BlockPos(x, y, z);
+        return y >= 0 && y < 256 && world.isBlockLoaded(pos)
+                && world.getBlockState(pos).getMaterial()
+                != net.minecraft.block.material.Material.LAVA;
     }
 
     private static boolean isLava(World world, int x, int y, int z) {
