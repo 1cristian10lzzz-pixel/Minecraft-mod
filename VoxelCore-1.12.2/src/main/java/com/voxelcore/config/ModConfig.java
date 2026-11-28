@@ -109,11 +109,11 @@ public final class ModConfig {
         ENABLE_WATER_EFFECTS = configuration.get(CAT_WATER, "enableWaterEffects", true,
                 "Enable Minefade's lightweight client-side water surface effects.").getBoolean(true);
         ENABLE_WATER_RIPPLES = configuration.get(CAT_WATER, "enableWaterRipples", true,
-                "Render expanding ripples when swimmers and boats move through water.").getBoolean(true);
+                "Drive subtle specular highlights and keep wake feedback in localized contact particles.").getBoolean(true);
         ENABLE_WATER_SPLASHES = configuration.get(CAT_WATER, "enableWaterSplashes", true,
                 "Add splash and wake particles when entering or moving through water.").getBoolean(true);
         ENABLE_RAIN_RIPPLES = configuration.get(CAT_WATER, "enableRainRipples", true,
-                "Add small rain rings to nearby exposed water surfaces.").getBoolean(true);
+                "Add lightweight rain-impact particles on nearby exposed water blocks.").getBoolean(true);
         ENABLE_WATERFALL_MIST = configuration.get(CAT_WATER, "enableWaterfallMist", true,
                 "Add a small mist plume near nearby falling-water impacts.").getBoolean(true);
         ENABLE_UNDERWATER_TINT = configuration.get(CAT_WATER, "enableUnderwaterTint", true,
@@ -121,7 +121,7 @@ public final class ModConfig {
         ENABLE_ADAPTIVE_WATER_QUALITY = configuration.get(CAT_WATER, "adaptiveQuality", true,
                 "Automatically reduce optional water effect frequency and detail when FPS stays low.").getBoolean(true);
         WATER_WAVE_STRENGTH = configuration.get(CAT_WATER, "waveStrength", 70,
-                "Strength of Minefade's client-side ripple rings.", 0, 100).getInt(70);
+                "Intensity of subtle, non-displacing water-surface highlights.", 0, 100).getInt(70);
         WATER_EFFECT_RADIUS = configuration.get(CAT_WATER, "effectRadius", 32,
                 "Maximum radius for nearby water effects.", 8, 64).getInt(32);
         ENABLE_WATER_HIGHLIGHTS = configuration.get(CAT_WATER, "surfaceHighlights", true,
