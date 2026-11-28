@@ -10,6 +10,7 @@ import net.minecraft.client.gui.GuiIngameMenu;
 import net.minecraft.client.gui.GuiMainMenu;
 import net.minecraft.client.gui.GuiOptionButton;
 import net.minecraft.client.gui.GuiOptions;
+import net.minecraft.client.gui.GuiVideoSettings;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraftforge.client.event.GuiScreenEvent;
@@ -41,7 +42,8 @@ public class GuiThemeHandler {
             }
         }
 
-        if (screen instanceof GuiMainMenu || screen instanceof GuiIngameMenu || screen instanceof GuiOptions) {
+        if (screen instanceof GuiMainMenu || screen instanceof GuiIngameMenu
+                || screen instanceof GuiOptions || screen instanceof GuiVideoSettings) {
             boolean exists = false;
             for (GuiButton button : buttons) {
                 if (button.id == MINEFADE_BUTTON_ID) exists = true;
