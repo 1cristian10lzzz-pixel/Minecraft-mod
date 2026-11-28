@@ -140,12 +140,12 @@ public final class BlockSurfaceDetailRenderer {
                     if (palette < 0) continue;
 
                     int faces = 0;
-                    if (isExposed(world, pos, EnumFace.UP)) faces |= 1;
-                    if (isExposed(world, pos, EnumFace.DOWN)) faces |= 2;
-                    if (isExposed(world, pos, EnumFace.NORTH)) faces |= 4;
-                    if (isExposed(world, pos, EnumFace.SOUTH)) faces |= 8;
-                    if (isExposed(world, pos, EnumFace.WEST)) faces |= 16;
-                    if (isExposed(world, pos, EnumFace.EAST)) faces |= 32;
+                    if (isExposed(world, pos, x, y, z, EnumFace.UP)) faces |= 1;
+                    if (isExposed(world, pos, x, y, z, EnumFace.DOWN)) faces |= 2;
+                    if (isExposed(world, pos, x, y, z, EnumFace.NORTH)) faces |= 4;
+                    if (isExposed(world, pos, x, y, z, EnumFace.SOUTH)) faces |= 8;
+                    if (isExposed(world, pos, x, y, z, EnumFace.WEST)) faces |= 16;
+                    if (isExposed(world, pos, x, y, z, EnumFace.EAST)) faces |= 32;
                     if (faces != 0) {
                         DETAILS.add(new DetailBlock(x, y, z, faces, palette,
                                 mix(x * 73428767 ^ y * 912931 ^ z * 438289)));
@@ -156,17 +156,17 @@ public final class BlockSurfaceDetailRenderer {
         }
     }
 
-    private static boolean isExposed(World world, BlockPos pos, EnumFace face) {
-        BlockPos adjacent;
+    private static boolean isExposed(World world, BlockPos.MutableBlockPos mutable,
+                                      int x, int y, int z, EnumFace face) {
         switch (face) {
-            case UP: adjacent = pos.up(); break;
-            case DOWN: adjacent = pos.down(); break;
-            case NORTH: adjacent = pos.north(); break;
-            case SOUTH: adjacent = pos.south(); break;
-            case WEST: adjacent = pos.west(); break;
-            default: adjacent = pos.east(); break;
+            case UP: mutable.setPos(x, y + 1, z); break;
+            case DOWN: mutable.setPos(x, y - 1, z); break;
+            case NORTH: mutable.setPos(x, y, z - 1); break;
+            case SOUTH: mutable.setPos(x, y, z + 1); break;
+            case WEST: mutable.setPos(x - 1, y, z); break;
+            default: mutable.setPos(x + 1, y, z); break;
         }
-        return world.isBlockLoaded(adjacent) && !world.getBlockState(adjacent).isOpaqueCube();
+        return world.isBlockLoaded(mutable) && !world.getBlockState(mutable).isOpaqueCube();
     }
 
     /** Returns a procedural material palette, or -1 for blocks left untouched. */
@@ -204,10 +204,10 @@ public final class BlockSurfaceDetailRenderer {
     }
 
     private static void drawBlockGrains(BufferBuilder buffer, DetailBlock detail) {
-        // Two tiny mineral flecks per exposed face; deterministic positions avoid shimmer.
+        // Deterministic positions avoid shimmering, and density is read once per block.
+        int density = Math.max(1, Math.min(3, com.voxelcore.config.ModConfig.BLOCK_DETAIL_DENSITY));
         for (int face = 0; face < 6; face++) {
             if ((detail.faces & (1 << face)) == 0) continue;
-            int density = Math.max(1, Math.min(3, com.voxelcore.config.ModConfig.BLOCK_DETAIL_DENSITY));
             for (int grain = 0; grain < density; grain++) {
                 int seed = mix(detail.seed + face * 19349663 + grain * 83492791);
                 double u = 0.16D + unit(seed) * 0.68D;
