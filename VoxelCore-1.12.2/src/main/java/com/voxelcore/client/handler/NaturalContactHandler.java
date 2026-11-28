@@ -30,6 +30,8 @@ public final class NaturalContactHandler {
         if (event.phase != TickEvent.Phase.END || event.player == null
                 || event.player != Minecraft.getMinecraft().player) return;
 
+        if (!com.voxelcore.config.ModConfig.ENABLE_VEGETATION_CONTACT
+                && !com.voxelcore.config.ModConfig.ENABLE_SLIME_CONTACT) return;
         net.minecraft.entity.player.EntityPlayer player = event.player;
         World world = player.world;
         if (!world.isRemote || player.isDead) return;
@@ -50,14 +52,16 @@ public final class NaturalContactHandler {
                 player.getEntityBoundingBox().minY - 0.04D, player.posZ);
         BlockPos ground = feet;
 
-        if (player.onGround && movementSq > 0.0009D && tick % 4 == 0) {
+        if (com.voxelcore.config.ModConfig.ENABLE_VEGETATION_CONTACT
+                && player.onGround && movementSq > 0.0009D && tick % 4 == 0) {
             spawnVegetationContact(world, player, ground);
         }
 
         // Vanilla slime blocks retain their normal bounce. Minefade adds only
         // a small contact burst after a meaningful fall; no extra force is added.
         IBlockState groundState = world.getBlockState(ground);
-        if (player.onGround && groundState.getBlock() == Blocks.SLIME_BLOCK
+        if (com.voxelcore.config.ModConfig.ENABLE_SLIME_CONTACT
+                && player.onGround && groundState.getBlock() == Blocks.SLIME_BLOCK
                 && player.motionY > 0.15D && tick - lastSlimeLandingTick > 8) {
             lastSlimeLandingTick = tick;
             int particleState = net.minecraft.block.Block.getStateId(groundState);
