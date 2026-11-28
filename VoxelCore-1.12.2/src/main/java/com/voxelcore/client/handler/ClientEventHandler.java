@@ -43,7 +43,9 @@ public class ClientEventHandler {
     @SubscribeEvent
     public void onWorldUnload(WorldEvent.Unload event) {
         if (event.getWorld().isRemote) {
-            ChunkTracker.clear();
+            ChunkTracker.clearDimension(event.getWorld().provider.getDimension());
+            BlockSurfaceDetailRenderer.clearCache();
+            LavaSurfaceRenderer.clearCache();
             WaterEffectsHandler.clearAll();
             resetFrameSamples();
             cachedLines = new String[0];
