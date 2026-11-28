@@ -66,6 +66,12 @@ public final class BlockSurfaceDetailRenderer {
     @SubscribeEvent
     public void onRenderWorldLast(RenderWorldLastEvent event) {
         Minecraft mc = Minecraft.getMinecraft();
+        if (!com.voxelcore.config.ModConfig.ENABLE_BLOCK_SURFACE_DETAILS
+                || com.voxelcore.config.ModConfig.BLOCK_DETAIL_DENSITY <= 0) {
+            DETAILS.clear();
+            cachedWorld = null;
+            return;
+        }
         if (mc.world == null || mc.getRenderViewEntity() == null) {
             DETAILS.clear();
             cachedWorld = null;
@@ -206,7 +212,7 @@ public final class BlockSurfaceDetailRenderer {
         // Two tiny mineral flecks per exposed face; deterministic positions avoid shimmer.
         for (int face = 0; face < 6; face++) {
             if ((detail.faces & (1 << face)) == 0) continue;
-            for (int grain = 0; grain < 1; grain++) {
+            for (int grain = 0; grain < com.voxelcore.config.ModConfig.BLOCK_DETAIL_DENSITY; grain++) {
                 int seed = mix(detail.seed + face * 19349663 + grain * 83492791);
                 double u = 0.16D + unit(seed) * 0.68D;
                 double v = 0.16D + unit(mix(seed + 31)) * 0.68D;
