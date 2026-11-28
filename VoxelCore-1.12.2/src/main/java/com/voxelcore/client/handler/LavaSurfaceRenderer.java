@@ -37,7 +37,7 @@ public final class LavaSurfaceRenderer {
     private static final List<LavaCell> SURFACES = new ArrayList<LavaCell>();
     private static final Random RANDOM = new Random();
 
-    private World cachedWorld;
+    private static World cachedWorld;
     private int tick;
     private int lastScanTick = -1000;
     private int lastX = Integer.MIN_VALUE;
@@ -279,6 +279,11 @@ public final class LavaSurfaceRenderer {
 
     private static double unit(int value) {
         return (value & 0x00ffffff) / 16777215.0D;
+    }
+
+    public static void clearCache() {
+        SURFACES.clear();
+        cachedWorld = null;
     }
 
     public void clear() {
