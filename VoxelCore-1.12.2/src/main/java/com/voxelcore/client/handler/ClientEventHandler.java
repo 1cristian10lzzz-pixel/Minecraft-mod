@@ -12,6 +12,7 @@ import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -31,6 +32,13 @@ public class ClientEventHandler {
     private String[] cachedLines = new String[0];
 
     @SubscribeEvent
+    public void onClientTick(TickEvent.ClientTickEvent event) {
+        if (event.phase == TickEvent.Phase.END) {
+            ParticleQualityController.update(Minecraft.getMinecraft());
+        }
+    }
+
+    @SubscribeEvent
     public void onChunkLoad(ChunkEvent.Load event) {
         if (event.getWorld().isRemote) ChunkTracker.onLoad(event.getChunk());
     }
@@ -43,6 +51,7 @@ public class ClientEventHandler {
     @SubscribeEvent
     public void onWorldUnload(WorldEvent.Unload event) {
         if (event.getWorld().isRemote) {
+            ParticleQualityController.restore(Minecraft.getMinecraft());
             ChunkTracker.clearDimension(event.getWorld().provider.getDimension());
             BlockSurfaceDetailRenderer.clearCache();
             LavaSurfaceRenderer.clearCache();
