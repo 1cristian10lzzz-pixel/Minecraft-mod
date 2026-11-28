@@ -1,6 +1,6 @@
 # Minefade Mod 0.10.0 — Minecraft Java 1.12.2
 
-Forge 14.23.5.2864 · Java 8 · ForgeGradle 2.3 · Gradle 4.10.3
+Forge 14.23.5.2864 · Java 8 · ForgeGradle 3.x (UserDev 3) · Gradle 5.6.4
 
 Minefade 0.10.0 is a client-rendering and gameplay polish update. It keeps the existing `voxelcore` mod ID, registered block/item IDs, vanilla fluid simulation and world content.
 
@@ -60,6 +60,6 @@ The current water and lava effects are client-side overlays. They do not add phy
 
 ## Build and testing
 
-Target runtime: Minecraft Java 1.12.2, Forge 14.23.5.2864, Java 8.
+Target runtime: Minecraft Java 1.12.2, Forge 14.23.5.2864, Java 8. Build toolchain: ForgeGradle 3.x (UserDev 3) and Gradle 5.6.4.
 
 CI compilation confirms source/API compatibility only. A live Minecraft launch, GPU-specific visual check, multiplayer session and long-duration performance test still need to be performed in-game.
