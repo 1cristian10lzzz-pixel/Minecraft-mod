@@ -51,10 +51,12 @@ public final class SurfaceRealismHandler {
         long now = world.getTotalWorldTime();
         long key = pos.toLong();
         Long previous = lastMiningImpact.get(key);
+        if (previous != null && now < previous.longValue()) {
+            lastMiningImpact.clear();
+            previous = null;
+        }
         if (previous != null && now - previous.longValue() < 2L) return;
         lastMiningImpact.put(key, Long.valueOf(now));
-
-        if (previous != null && now < previous.longValue()) lastMiningImpact.clear();
         if (lastMiningImpact.size() > 256) {
             Iterator<Map.Entry<Long, Long>> it = lastMiningImpact.entrySet().iterator();
             while (it.hasNext()) {
