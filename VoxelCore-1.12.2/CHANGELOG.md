@@ -1,3 +1,17 @@
+## 0.12.0 — Realismo de materiales, fluidos e interacción
+
+- Corrige la altura de estelas, salpicaduras al entrar al agua e impactos de lluvia usando `BlockLiquid.getLiquidHeight`; los efectos siguen el nivel real del agua corriente.
+- Interpola la espuma por vértice y la adhiere a la altura suavizada de cada lado de la superficie.
+- Añade pequeños impactos de lluvia en superficies sólidas expuestas cerca del jugador.
+- Reemplaza el temporizador fijo de pasos por una cadencia basada en distancia, alternancia de pie y partículas específicas de nieve, arena, tierra, madera, hielo, roca, hojas y enredaderas.
+- Separa los impactos al golpear materiales duros del interruptor de detalles minerales procedurales.
+- Amplía los acentos de superficie a arena roja, variantes de dirt, césped, micelio, soul sand, magma, nether bricks, nether wart block, hielo, packed/frosted ice, bone block, glowstone, sea lantern, end bricks y purpur.
+- Añade microbalanceo de brazos en reposo solo con las manos libres, sin intervenir en ataques o uso de objetos.
+- Limpia las referencias de mundo de los controladores de vegetación/materiales al descargar mundos.
+- Reduce las consultas OpenGL guardando únicamente los estados modificados por las pasadas de renderizado de Minefade.
+- Mantiene vanilla water/lava, física de bloques, IDs, contenido Resonite y simulación de mundo. No crea ni modifica imágenes, texturas ni resource packs.
+- Objetivo de compilación: Minecraft 1.12.2 / Forge 14.23.5.2864 / Java 8 / ForgeGradle 3.x / Gradle 5.6.4.
+
 ## 0.11.0 — Mejoras generales de estabilidad y rendimiento
 
 - Corrige el contador de chunks para separar correctamente las coordenadas por dimensión (Overworld, Nether, End).
