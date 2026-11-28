@@ -33,7 +33,7 @@ import java.util.Random;
  */
 @SideOnly(Side.CLIENT)
 public final class LavaSurfaceRenderer {
-    private static final int MAX_SURFACES = 520;
+    private static final int MAX_SURFACES = 460;
     private static final List<LavaCell> SURFACES = new ArrayList<LavaCell>();
     private static final Random RANDOM = new Random();
 
@@ -113,8 +113,8 @@ public final class LavaSurfaceRenderer {
         SURFACES.clear();
         int radius = MathHelper.clamp(ModConfig.LAVA_EFFECT_RADIUS / 3, 4, 10);
         if (reducedQuality) radius = Math.max(4, radius - 2);
-        int top = Math.min(255, cy + 8);
-        int bottom = Math.max(0, cy - 28);
+        int top = Math.min(255, cy + 12);
+        int bottom = Math.max(0, cy - 24);
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
 
         for (int x = cx - radius; x <= cx + radius; x++) {
@@ -129,10 +129,8 @@ public final class LavaSurfaceRenderer {
                     if (world.getBlockState(pos).getMaterial()
                             == net.minecraft.block.material.Material.LAVA) continue;
 
-                    int level = state.getBlock() instanceof BlockLiquid
-                            ? state.getValue(BlockLiquid.LEVEL).intValue() : 0;
-                    int adjusted = level >= 8 ? 0 : Math.min(7, level);
-                    double height = y + 1.0D - ((adjusted + 1) / 9.0D);
+                    // Use the same liquid-height routine as the vanilla 1.12.2 renderer.
+                    double height = BlockLiquid.getLiquidHeight(state, world, new BlockPos(x, y, z));
                     SURFACES.add(new LavaCell(x, z, height,
                             mix(x * 73428767 ^ z * 438289 ^ y * 912931)));
                     break;
@@ -146,7 +144,7 @@ public final class LavaSurfaceRenderer {
         double radius = ModConfig.LAVA_EFFECT_RADIUS;
         double radiusSq = radius * radius;
         int spawned = 0;
-        for (int i = 0; i < SURFACES.size() && spawned < 2; i++) {
+        for (int i = 0; i < 12 && spawned < 2 && !SURFACES.isEmpty(); i++) {
             LavaCell cell = SURFACES.get(RANDOM.nextInt(SURFACES.size()));
             double x = cell.x + 0.5D;
             double z = cell.z + 0.5D;
@@ -181,11 +179,7 @@ public final class LavaSurfaceRenderer {
         double radiusSq = radius * radius;
         double time = (mc.world.getTotalWorldTime() + event.getPartialTicks()) * 0.045D;
 
-        boolean texture = GL11.glIsEnabled(GL11.GL_TEXTURE_2D);
-        boolean lighting = GL11.glIsEnabled(GL11.GL_LIGHTING);
-        boolean blend = GL11.glIsEnabled(GL11.GL_BLEND);
-        boolean cull = GL11.glIsEnabled(GL11.GL_CULL_FACE);
-        boolean depthMask = GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK);
+        WorldRenderStateGuard renderState = WorldRenderStateGuard.capture();
 
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder buffer = tessellator.getBuffer();
@@ -206,49 +200,88 @@ public final class LavaSurfaceRenderer {
                 double dy = cell.surfaceY - camY;
                 double dz = cell.z + 0.5D - camZ;
                 if (dx * dx + dy * dy + dz * dz > radiusSq) continue;
-                drawMoltenVeins(buffer, cell, time,
+                drawMoltenCracks(buffer, cell, time,
                         reducedQuality ? Math.max(0, quality - 1) : quality);
             }
             tessellator.draw();
         } finally {
-            GlStateManager.depthMask(depthMask);
-            if (cull) GlStateManager.enableCull(); else GlStateManager.disableCull();
-            if (blend) GlStateManager.enableBlend(); else GlStateManager.disableBlend();
-            if (texture) GlStateManager.enableTexture2D(); else GlStateManager.disableTexture2D();
-            if (lighting) GlStateManager.enableLighting(); else GlStateManager.disableLighting();
-            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            renderState.restore();
             GlStateManager.popMatrix();
         }
     }
 
-    private static void drawMoltenVeins(BufferBuilder b, LavaCell cell, double time, int quality) {
-        int veins = quality <= 0 ? 1 : (quality == 1 ? 2 : 3);
-        for (int i = 0; i < veins; i++) {
+    /**
+     * Draws a stationary branching crack network. Only its glow pulses; the
+     * channels do not slide over the block like artificial painted stripes.
+     */
+    private static void drawMoltenCracks(BufferBuilder buffer, LavaCell cell,
+                                         double time, int quality) {
+        int cracks = quality <= 0 ? 1 : (quality == 1 ? 2 : 3);
+        for (int i = 0; i < cracks; i++) {
             int seed = mix(cell.seed + i * 19349663);
-            double phase = unit(seed) * Math.PI * 2.0D;
-            double travel = (time * (0.055D + unit(mix(seed + 3)) * 0.025D)
-                    + unit(mix(seed + 7))) % 1.0D;
-            double u = 0.12D + travel * 0.72D;
-            double v = 0.14D + unit(mix(seed + 11)) * 0.72D;
-            double length = 0.18D + unit(mix(seed + 17)) * 0.34D;
-            double width = 0.012D + unit(mix(seed + 23)) * 0.017D;
-            double dx = Math.cos(phase) * length;
-            double dz = Math.sin(phase) * length;
-            double px = -Math.sin(phase) * width;
-            double pz = Math.cos(phase) * width;
-            double x = cell.x + u;
-            double z = cell.z + v;
-            double y = cell.surfaceY + 0.006D + i * 0.0004D;
-            double pulse = 0.5D + 0.5D * Math.sin(time * 1.4D + phase + cell.seed * 0.00001D);
-            int alpha = (int) ((quality == 0 ? 24.0D : 34.0D) + pulse * 24.0D);
-            int red = i == veins - 1 ? 255 : 220;
-            int green = i == veins - 1 ? (int) (112.0D + pulse * 48.0D) : (int) (62.0D + pulse * 46.0D);
-            int blue = i == veins - 1 ? 36 : 12;
-            b.pos(x - dx - px, y, z - dz - pz).color(red, green, blue, alpha).endVertex();
-            b.pos(x - dx + px, y, z - dz + pz).color(red, green, blue, alpha).endVertex();
-            b.pos(x + dx + px, y, z + dz + pz).color(red, green, blue, alpha).endVertex();
-            b.pos(x + dx - px, y, z + dz - pz).color(red, green, blue, alpha).endVertex();
+            double x0 = cell.x + 0.16D + unit(seed + 3) * 0.68D;
+            double z0 = cell.z + 0.16D + unit(seed + 7) * 0.68D;
+            double angle = unit(seed + 11) * Math.PI * 2.0D;
+            double length = 0.18D + unit(seed + 17) * 0.28D;
+            double bend = (unit(seed + 23) - 0.5D) * 0.95D;
+            double x1 = x0 + Math.cos(angle) * length * 0.55D;
+            double z1 = z0 + Math.sin(angle) * length * 0.55D;
+            double x2 = x1 + Math.cos(angle + bend) * length * 0.45D;
+            double z2 = z1 + Math.sin(angle + bend) * length * 0.45D;
+            x1 = clampCell(x1, cell.x);
+            z1 = clampCell(z1, cell.z);
+            x2 = clampCell(x2, cell.x);
+            z2 = clampCell(z2, cell.z);
+
+            double pulse = 0.5D + 0.5D * Math.sin(time * 1.05D
+                    + unit(seed + 29) * Math.PI * 2.0D + cell.seed * 0.00001D);
+            int rimAlpha = (int) ((quality == 0 ? 22.0D : 31.0D) + pulse * 18.0D);
+            int coreAlpha = (int) ((quality == 0 ? 31.0D : 44.0D) + pulse * 38.0D);
+            double y = cell.surfaceY + 0.006D + i * 0.0005D;
+
+            drawCrackSegment(buffer, x0, z0, x1, z1, y,
+                    0.028D, 148, 35, 10, rimAlpha);
+            drawCrackSegment(buffer, x1, z1, x2, z2, y,
+                    0.023D, 148, 35, 10, rimAlpha);
+            drawCrackSegment(buffer, x0, z0, x1, z1, y + 0.0005D,
+                    0.009D, 255, (int) (96.0D + pulse * 80.0D), 22, coreAlpha);
+            drawCrackSegment(buffer, x1, z1, x2, z2, y + 0.0005D,
+                    0.007D, 255, (int) (118.0D + pulse * 70.0D), 32, coreAlpha);
+
+            // A small hot junction where the crack branches.
+            double spot = 0.012D + pulse * 0.004D;
+            drawHotDiamond(buffer, x1, y + 0.001D, z1, spot,
+                    255, (int) (138.0D + pulse * 76.0D), 34, coreAlpha);
         }
+    }
+
+    private static double clampCell(double coordinate, int blockCoordinate) {
+        return Math.max(blockCoordinate + 0.055D,
+                Math.min(blockCoordinate + 0.945D, coordinate));
+    }
+
+    private static void drawCrackSegment(BufferBuilder buffer,
+                                         double x0, double z0, double x1, double z1,
+                                         double y, double halfWidth,
+                                         int red, int green, int blue, int alpha) {
+        double dx = x1 - x0;
+        double dz = z1 - z0;
+        double length = Math.sqrt(dx * dx + dz * dz);
+        if (length < 0.0001D) return;
+        double px = -dz / length * halfWidth;
+        double pz = dx / length * halfWidth;
+        buffer.pos(x0 - px, y, z0 - pz).color(red, green, blue, alpha).endVertex();
+        buffer.pos(x0 + px, y, z0 + pz).color(red, green, blue, alpha).endVertex();
+        buffer.pos(x1 + px, y, z1 + pz).color(red, green, blue, alpha).endVertex();
+        buffer.pos(x1 - px, y, z1 - pz).color(red, green, blue, alpha).endVertex();
+    }
+
+    private static void drawHotDiamond(BufferBuilder buffer, double x, double y, double z,
+                                       double radius, int red, int green, int blue, int alpha) {
+        buffer.pos(x, y, z - radius).color(red, green, blue, alpha).endVertex();
+        buffer.pos(x + radius, y, z).color(red, green, blue, alpha).endVertex();
+        buffer.pos(x, y, z + radius).color(red, green, blue, alpha).endVertex();
+        buffer.pos(x - radius, y, z).color(red, green, blue, alpha).endVertex();
     }
 
     private static int mix(int value) {
