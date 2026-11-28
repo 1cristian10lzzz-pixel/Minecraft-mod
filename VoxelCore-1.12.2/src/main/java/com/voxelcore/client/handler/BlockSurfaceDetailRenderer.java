@@ -57,11 +57,11 @@ public final class BlockSurfaceDetailRenderer {
             {0.12F, 0.33F, 0.33F}
     };
 
-    private World cachedWorld;
-    private int lastScanTick = Integer.MIN_VALUE;
-    private int lastX = Integer.MIN_VALUE;
-    private int lastY = Integer.MIN_VALUE;
-    private int lastZ = Integer.MIN_VALUE;
+    private static World cachedWorld;
+    private static int lastScanTick = Integer.MIN_VALUE;
+    private static int lastX = Integer.MIN_VALUE;
+    private static int lastY = Integer.MIN_VALUE;
+    private static int lastZ = Integer.MIN_VALUE;
 
     @SubscribeEvent
     public void onRenderWorldLast(RenderWorldLastEvent event) {
@@ -124,6 +124,9 @@ public final class BlockSurfaceDetailRenderer {
 
     public static void clearCache() {
         DETAILS.clear();
+        cachedWorld = null;
+        lastScanTick = Integer.MIN_VALUE;
+        lastX = lastY = lastZ = Integer.MIN_VALUE;
     }
 
     private static void rebuild(World world, BlockPos centre) {
