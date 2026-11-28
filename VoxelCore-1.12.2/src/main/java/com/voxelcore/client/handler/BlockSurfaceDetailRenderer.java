@@ -82,7 +82,7 @@ public final class BlockSurfaceDetailRenderer {
         BlockPos cameraPos = new BlockPos(mc.getRenderViewEntity().posX,
                 mc.getRenderViewEntity().posY, mc.getRenderViewEntity().posZ);
         int tick = (int) world.getTotalWorldTime();
-        if (cachedWorld != world || tick - lastScanTick >= 20
+        if (cachedWorld != world || tick < lastScanTick || tick - lastScanTick >= 20
                 || Math.abs(cameraPos.getX() - lastX) >= 3
                 || Math.abs(cameraPos.getY() - lastY) >= 3
                 || Math.abs(cameraPos.getZ() - lastZ) >= 3) {
