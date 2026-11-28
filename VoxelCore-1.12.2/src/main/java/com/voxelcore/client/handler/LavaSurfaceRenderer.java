@@ -218,46 +218,25 @@ public final class LavaSurfaceRenderer {
                                          double time, int quality) {
         int cracks = quality <= 0 ? 1 : (quality == 1 ? 2 : 3);
         for (int i = 0; i < cracks; i++) {
-            int seed = mix(cell.seed + i * 19349663);
-            double x0 = cell.x + 0.16D + unit(seed + 3) * 0.68D;
-            double z0 = cell.z + 0.16D + unit(seed + 7) * 0.68D;
-            double angle = unit(seed + 11) * Math.PI * 2.0D;
-            double length = 0.18D + unit(seed + 17) * 0.28D;
-            double bend = (unit(seed + 23) - 0.5D) * 0.95D;
-            double x1 = x0 + Math.cos(angle) * length * 0.55D;
-            double z1 = z0 + Math.sin(angle) * length * 0.55D;
-            double x2 = x1 + Math.cos(angle + bend) * length * 0.45D;
-            double z2 = z1 + Math.sin(angle + bend) * length * 0.45D;
-            x1 = clampCell(x1, cell.x);
-            z1 = clampCell(z1, cell.z);
-            x2 = clampCell(x2, cell.x);
-            z2 = clampCell(z2, cell.z);
-
-            double pulse = 0.5D + 0.5D * Math.sin(time * 1.05D
-                    + unit(seed + 29) * Math.PI * 2.0D + cell.seed * 0.00001D);
+            CrackPath path = cell.cracks[i];
+            double pulse = 0.5D + 0.5D * Math.sin(time * path.pulseSpeed + path.pulsePhase);
             int rimAlpha = (int) ((quality == 0 ? 22.0D : 31.0D) + pulse * 18.0D);
             int coreAlpha = (int) ((quality == 0 ? 31.0D : 44.0D) + pulse * 38.0D);
             double y = cell.surfaceY + 0.006D + i * 0.0005D;
 
-            drawCrackSegment(buffer, x0, z0, x1, z1, y,
-                    0.028D, 148, 35, 10, rimAlpha);
-            drawCrackSegment(buffer, x1, z1, x2, z2, y,
-                    0.023D, 148, 35, 10, rimAlpha);
-            drawCrackSegment(buffer, x0, z0, x1, z1, y + 0.0005D,
-                    0.009D, 255, (int) (96.0D + pulse * 80.0D), 22, coreAlpha);
-            drawCrackSegment(buffer, x1, z1, x2, z2, y + 0.0005D,
-                    0.007D, 255, (int) (118.0D + pulse * 70.0D), 32, coreAlpha);
+            drawCrackSegment(buffer, path.x0, path.z0, path.x1, path.z1, y,
+                    path.rimWidth, 148, 35, 10, rimAlpha);
+            drawCrackSegment(buffer, path.x1, path.z1, path.x2, path.z2, y,
+                    path.rimWidth * 0.82D, 148, 35, 10, rimAlpha);
+            drawCrackSegment(buffer, path.x0, path.z0, path.x1, path.z1, y + 0.0005D,
+                    path.coreWidth, 255, (int) (96.0D + pulse * 80.0D), 22, coreAlpha);
+            drawCrackSegment(buffer, path.x1, path.z1, path.x2, path.z2, y + 0.0005D,
+                    path.coreWidth * 0.72D, 255, (int) (118.0D + pulse * 70.0D), 32, coreAlpha);
 
-            // A small hot junction where the crack branches.
-            double spot = 0.012D + pulse * 0.004D;
-            drawHotDiamond(buffer, x1, y + 0.001D, z1, spot,
-                    255, (int) (138.0D + pulse * 76.0D), 34, coreAlpha);
+            double spot = path.junctionRadius + pulse * 0.004D;
+            drawHotDiamond(buffer, path.x1, y + 0.001D, path.z1,
+                    spot, 255, (int) (138.0D + pulse * 76.0D), 34, coreAlpha);
         }
-    }
-
-    private static double clampCell(double coordinate, int blockCoordinate) {
-        return Math.max(blockCoordinate + 0.055D,
-                Math.min(blockCoordinate + 0.945D, coordinate));
     }
 
     private static void drawCrackSegment(BufferBuilder buffer,
@@ -311,11 +290,42 @@ public final class LavaSurfaceRenderer {
     private static final class LavaCell {
         final int x, z, seed;
         final double surfaceY;
+        final CrackPath[] cracks = new CrackPath[3];
+
         LavaCell(int x, int z, double surfaceY, int seed) {
             this.x = x;
             this.z = z;
             this.surfaceY = surfaceY;
             this.seed = seed;
+            for (int i = 0; i < cracks.length; i++) {
+                cracks[i] = new CrackPath(x, z, mix(seed + i * 19349663));
+            }
         }
     }
+
+    /** Immutable geometry precomputed once per cached lava column. */
+    private static final class CrackPath {
+        final double x0, z0, x1, z1, x2, z2;
+        final double rimWidth, coreWidth, junctionRadius, pulseSpeed, pulsePhase;
+
+        CrackPath(int blockX, int blockZ, int seed) {
+            double xStart = blockX + 0.16D + unit(seed + 3) * 0.68D;
+            double zStart = blockZ + 0.16D + unit(seed + 7) * 0.68D;
+            double angle = unit(seed + 11) * Math.PI * 2.0D;
+            double length = 0.18D + unit(seed + 17) * 0.28D;
+            double bend = (unit(seed + 23) - 0.5D) * 0.95D;
+            x0 = xStart;
+            z0 = zStart;
+            x1 = clampCell(xStart + Math.cos(angle) * length * 0.55D, blockX);
+            z1 = clampCell(zStart + Math.sin(angle) * length * 0.55D, blockZ);
+            x2 = clampCell(x1 + Math.cos(angle + bend) * length * 0.45D, blockX);
+            z2 = clampCell(z1 + Math.sin(angle + bend) * length * 0.45D, blockZ);
+            rimWidth = 0.028D + unit(seed + 29) * 0.006D;
+            coreWidth = 0.007D + unit(seed + 31) * 0.003D;
+            junctionRadius = 0.012D + unit(seed + 37) * 0.004D;
+            pulseSpeed = 0.82D + unit(seed + 41) * 0.44D;
+            pulsePhase = unit(seed + 43) * Math.PI * 2.0D;
+        }
+    }
+
 }
