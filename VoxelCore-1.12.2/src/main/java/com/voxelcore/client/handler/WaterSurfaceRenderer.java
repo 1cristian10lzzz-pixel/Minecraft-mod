@@ -225,12 +225,12 @@ public final class WaterSurfaceRenderer {
                 // A low-alpha tint sits just above vanilla's liquid. It must never
                 // replace the vanilla surface with an opaque, untextured white sheet.
                 int gridSegments = ModConfig.WATER_RENDER_QUALITY >= 2
-                        && (!reducedQuality || ModConfig.WATER_RENDER_QUALITY >= 2) ? 2 : 1;
+                        && !reducedQuality ? 2 : 1;
                 drawTintedSurface(buffer, cell, gloss, worldTime, celestialAngle,
                         cameraX, cameraY, cameraZ, sky, sunlight, gridSegments);
                 if (ModConfig.ENABLE_WATER_HIGHLIGHTS && ModConfig.WATER_RENDER_QUALITY > 0
-                        && (!reducedQuality || ModConfig.WATER_RENDER_QUALITY >= 2)) {
-                    drawMicroHighlight(buffer, cell, worldTime, sky, sunlight);
+                        && !reducedQuality) {
+                    drawMicroHighlight(buffer, cell, worldTime, gloss, sky, sunlight);
                 }
                 if (ModConfig.ENABLE_WATER_FOAM) {
                     drawFoam(buffer, cell, worldTime, gloss);
@@ -361,7 +361,7 @@ public final class WaterSurfaceRenderer {
     }
 
     private static void drawMicroHighlight(BufferBuilder buffer, SurfaceCell cell,
-                                           double time, Vec3d sky, float sunlight) {
+                                           double time, float gloss, Vec3d sky, float sunlight) {
         double phase = cell.highlightPhase;
         double glide = (time * cell.highlightSpeed + cell.highlightOffset) % 1.0D;
         double u = 0.16D + glide * 0.62D;
@@ -374,7 +374,7 @@ public final class WaterSurfaceRenderer {
         double pz = Math.cos(phase) * width;
         double x = cell.x + u;
         double z = cell.z + v;
-        double y = cell.surfaceY + waveHeight(x, z, time, ModConfig.WATER_WAVE_STRENGTH / 100.0F) + 0.008D;
+        double y = cell.surfaceY + waveHeight(x, z, time, gloss) + 0.008D;
         int alpha = 12 + (int) (sunlight * 18.0F);
         int red = toByte((float) Math.min(1.0D, sky.x * 0.72D + 0.20D));
         int green = toByte((float) Math.min(1.0D, sky.y * 0.78D + 0.20D));
