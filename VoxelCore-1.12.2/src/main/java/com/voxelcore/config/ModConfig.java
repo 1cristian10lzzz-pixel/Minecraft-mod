@@ -14,6 +14,8 @@ public final class ModConfig {
     private static final String CAT_WATER = "water";
     private static final String CAT_ITEMS = "dropped_items";
     private static final String CAT_ANIMATION = "animations";
+    private static final String CAT_LAVA = "lava";
+    private static final String CAT_MATERIALS = "materials";
 
     private static Configuration configuration;
 
@@ -39,6 +41,20 @@ public final class ModConfig {
     public static boolean ENABLE_ADAPTIVE_WATER_QUALITY = true;
     public static int WATER_WAVE_STRENGTH = 70;
     public static int WATER_EFFECT_RADIUS = 32;
+    public static boolean ENABLE_WATER_HIGHLIGHTS = true;
+    public static boolean ENABLE_WATER_FOAM = true;
+    public static int WATER_RENDER_QUALITY = 2;
+
+    public static boolean ENABLE_LAVA_EFFECTS = true;
+    public static boolean ENABLE_LAVA_EMBERS = true;
+    public static int LAVA_RENDER_QUALITY = 1;
+    public static int LAVA_EFFECT_RADIUS = 20;
+
+    public static boolean ENABLE_BLOCK_SURFACE_DETAILS = true;
+    public static int BLOCK_DETAIL_DENSITY = 2;
+    public static boolean ENABLE_VEGETATION_CONTACT = true;
+    public static boolean ENABLE_SLIME_CONTACT = true;
+    public static boolean ENABLE_MATERIAL_FOOTSTEPS = true;
 
     public static boolean ENABLE_REALISTIC_ITEM_PHYSICS = true;
     public static boolean FLAT_GROUND_ITEMS = true;
@@ -47,6 +63,7 @@ public final class ModConfig {
     public static boolean FLOAT_ITEMS_IN_FLUIDS = true;
     public static int ITEM_TOSS_STRENGTH = 85;
     public static boolean ENABLE_PLAYER_ANIMATIONS = true;
+    public static int PLAYER_ANIMATION_STRENGTH = 55;
 
     public static boolean GENERATE_RESONITE_ORE = true;
     public static int ORE_VEINS_PER_CHUNK = 4;
@@ -163,15 +180,15 @@ public final class ModConfig {
         ENABLE_UNDERWATER_TINT = configuration.get(CAT_WATER, "enableUnderwaterTint", true).getBoolean(true);
         ENABLE_ADAPTIVE_WATER_QUALITY = configuration.get(CAT_WATER, "adaptiveQuality", true).getBoolean(true);
         WATER_WAVE_STRENGTH = configuration.get(CAT_WATER, "waveStrength", 70).getInt(70);
-        WATER_EFFECT_RADIUS = configuration.get(CAT_WATER, "effectRadius", 32).getInt(32);
+        WATER_EFFECT_RADIUS = configuration.get(CAT_WATER, "effectRadius", 32).getInt(32);\n        ENABLE_WATER_HIGHLIGHTS = configuration.get(CAT_WATER, "surfaceHighlights", true).getBoolean(true);\n        ENABLE_WATER_FOAM = configuration.get(CAT_WATER, "shoreFoam", true).getBoolean(true);\n        WATER_RENDER_QUALITY = configuration.get(CAT_WATER, "surfaceQuality", 2).getInt(2);
 
         ENABLE_REALISTIC_ITEM_PHYSICS = configuration.get(CAT_ITEMS, "enablePhysics", true).getBoolean(true);
         FLAT_GROUND_ITEMS = configuration.get(CAT_ITEMS, "flatGroundItems", true).getBoolean(true);
         MANUAL_ITEM_PICKUP = configuration.get(CAT_ITEMS, "manualPickup", true).getBoolean(true);
         ENABLE_SPRINT_TOSS = configuration.get(CAT_ITEMS, "sprintToss", true).getBoolean(true);
         FLOAT_ITEMS_IN_FLUIDS = configuration.get(CAT_ITEMS, "floatInFluids", true).getBoolean(true);
-        ITEM_TOSS_STRENGTH = configuration.get(CAT_ITEMS, "tossStrength", 85).getInt(85);
-        ENABLE_PLAYER_ANIMATIONS = configuration.get(CAT_ANIMATION, "enablePlayerAnimations", true).getBoolean(true);
+        ITEM_TOSS_STRENGTH = configuration.get(CAT_ITEMS, "tossStrength", 85).getInt(85);\n        ENABLE_LAVA_EFFECTS = configuration.get(CAT_LAVA, "enableLavaEffects", true).getBoolean(true);\n        ENABLE_LAVA_EMBERS = configuration.get(CAT_LAVA, "lavaEmbers", true).getBoolean(true);\n        LAVA_RENDER_QUALITY = configuration.get(CAT_LAVA, "surfaceQuality", 1).getInt(1);\n        LAVA_EFFECT_RADIUS = configuration.get(CAT_LAVA, "effectRadius", 20).getInt(20);\n        ENABLE_BLOCK_SURFACE_DETAILS = configuration.get(CAT_MATERIALS, "proceduralSurfaceDetails", true).getBoolean(true);\n        BLOCK_DETAIL_DENSITY = configuration.get(CAT_MATERIALS, "detailDensity", 2).getInt(2);\n        ENABLE_VEGETATION_CONTACT = configuration.get(CAT_MATERIALS, "vegetationContact", true).getBoolean(true);\n        ENABLE_SLIME_CONTACT = configuration.get(CAT_MATERIALS, "slimeContact", true).getBoolean(true);\n        ENABLE_MATERIAL_FOOTSTEPS = configuration.get(CAT_MATERIALS, "materialFootsteps", true).getBoolean(true);
+        ENABLE_PLAYER_ANIMATIONS = configuration.get(CAT_ANIMATION, "enablePlayerAnimations", true).getBoolean(true);\n        PLAYER_ANIMATION_STRENGTH = configuration.get(CAT_ANIMATION, "animationStrength", 55).getInt(55);\n        PLAYER_ANIMATION_STRENGTH = configuration.get(CAT_ANIMATION, "animationStrength", 55,\n                "Intensity of the additive Minefade player animation layer.", 0, 100).getInt(55);
 
         GENERATE_RESONITE_ORE = configuration.get(CAT_WORLDGEN, "generateResoniteOre", true).getBoolean(true);
         ORE_VEINS_PER_CHUNK = configuration.get(CAT_WORLDGEN, "oreVeinsPerChunk", 4).getInt(4);
@@ -207,7 +224,7 @@ public final class ModConfig {
     private static void clampValues() {
         ENTITY_DISTANCE_PERCENT = Math.max(50, Math.min(100, ENTITY_DISTANCE_PERCENT));
         WATER_WAVE_STRENGTH = Math.max(0, Math.min(100, WATER_WAVE_STRENGTH));
-        WATER_EFFECT_RADIUS = Math.max(8, Math.min(64, WATER_EFFECT_RADIUS));
+        WATER_EFFECT_RADIUS = Math.max(8, Math.min(64, WATER_EFFECT_RADIUS));\n        WATER_RENDER_QUALITY = Math.max(0, Math.min(2, WATER_RENDER_QUALITY));\n        LAVA_RENDER_QUALITY = Math.max(0, Math.min(2, LAVA_RENDER_QUALITY));\n        LAVA_EFFECT_RADIUS = Math.max(6, Math.min(32, LAVA_EFFECT_RADIUS));\n        BLOCK_DETAIL_DENSITY = Math.max(0, Math.min(3, BLOCK_DETAIL_DENSITY));\n        PLAYER_ANIMATION_STRENGTH = Math.max(0, Math.min(100, PLAYER_ANIMATION_STRENGTH));
         ITEM_TOSS_STRENGTH = Math.max(30, Math.min(140, ITEM_TOSS_STRENGTH));
         ITEM_RENDER_RADIUS = Math.max(16, Math.min(128, ITEM_RENDER_RADIUS));
         ORE_VEINS_PER_CHUNK = Math.max(0, Math.min(16, ORE_VEINS_PER_CHUNK));
@@ -238,14 +255,14 @@ public final class ModConfig {
         configuration.get(CAT_WATER, "enableUnderwaterTint", true).set(ENABLE_UNDERWATER_TINT);
         configuration.get(CAT_WATER, "adaptiveQuality", true).set(ENABLE_ADAPTIVE_WATER_QUALITY);
         configuration.get(CAT_WATER, "waveStrength", 70).set(WATER_WAVE_STRENGTH);
-        configuration.get(CAT_WATER, "effectRadius", 32).set(WATER_EFFECT_RADIUS);
+        configuration.get(CAT_WATER, "effectRadius", 32).set(WATER_EFFECT_RADIUS);\n        configuration.get(CAT_WATER, "surfaceHighlights", true).set(ENABLE_WATER_HIGHLIGHTS);\n        configuration.get(CAT_WATER, "shoreFoam", true).set(ENABLE_WATER_FOAM);\n        configuration.get(CAT_WATER, "surfaceQuality", 2).set(WATER_RENDER_QUALITY);
         configuration.get(CAT_ITEMS, "enablePhysics", true).set(ENABLE_REALISTIC_ITEM_PHYSICS);
         configuration.get(CAT_ITEMS, "flatGroundItems", true).set(FLAT_GROUND_ITEMS);
         configuration.get(CAT_ITEMS, "manualPickup", true).set(MANUAL_ITEM_PICKUP);
         configuration.get(CAT_ITEMS, "sprintToss", true).set(ENABLE_SPRINT_TOSS);
         configuration.get(CAT_ITEMS, "floatInFluids", true).set(FLOAT_ITEMS_IN_FLUIDS);
-        configuration.get(CAT_ITEMS, "tossStrength", 85).set(ITEM_TOSS_STRENGTH);
-        configuration.get(CAT_ANIMATION, "enablePlayerAnimations", true).set(ENABLE_PLAYER_ANIMATIONS);
+        configuration.get(CAT_ITEMS, "tossStrength", 85).set(ITEM_TOSS_STRENGTH);\n        configuration.get(CAT_LAVA, "enableLavaEffects", true).set(ENABLE_LAVA_EFFECTS);\n        configuration.get(CAT_LAVA, "lavaEmbers", true).set(ENABLE_LAVA_EMBERS);\n        configuration.get(CAT_LAVA, "surfaceQuality", 1).set(LAVA_RENDER_QUALITY);\n        configuration.get(CAT_LAVA, "effectRadius", 20).set(LAVA_EFFECT_RADIUS);\n        configuration.get(CAT_MATERIALS, "proceduralSurfaceDetails", true).set(ENABLE_BLOCK_SURFACE_DETAILS);\n        configuration.get(CAT_MATERIALS, "detailDensity", 2).set(BLOCK_DETAIL_DENSITY);\n        configuration.get(CAT_MATERIALS, "vegetationContact", true).set(ENABLE_VEGETATION_CONTACT);\n        configuration.get(CAT_MATERIALS, "slimeContact", true).set(ENABLE_SLIME_CONTACT);\n        configuration.get(CAT_MATERIALS, "materialFootsteps", true).set(ENABLE_MATERIAL_FOOTSTEPS);
+        configuration.get(CAT_ANIMATION, "enablePlayerAnimations", true).set(ENABLE_PLAYER_ANIMATIONS);\n        configuration.get(CAT_ANIMATION, "animationStrength", 55).set(PLAYER_ANIMATION_STRENGTH);
         configuration.get(CAT_WORLDGEN, "generateResoniteOre", true).set(GENERATE_RESONITE_ORE);
         configuration.get(CAT_WORLDGEN, "oreVeinsPerChunk", 4).set(ORE_VEINS_PER_CHUNK);
         configuration.get(CAT_WORLDGEN, "oreVeinSize", 5).set(ORE_VEIN_SIZE);
