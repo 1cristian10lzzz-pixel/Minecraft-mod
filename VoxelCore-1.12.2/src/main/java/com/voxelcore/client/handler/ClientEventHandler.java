@@ -22,6 +22,7 @@ import java.util.Locale;
 public class ClientEventHandler {
     private static final int SAMPLE_COUNT = 120;
     private final double[] frameSamplesMs = new double[SAMPLE_COUNT];
+    private final double[] percentileScratch = new double[SAMPLE_COUNT];
     private long lastFrameNanos;
     private double averageFrameMs;
     private int sampleIndex;
@@ -119,11 +120,10 @@ public class ClientEventHandler {
 
     private double get95thPercentileFrameMs() {
         if (sampleSize == 0) return 0.0D;
-        double[] values = new double[sampleSize];
-        System.arraycopy(frameSamplesMs, 0, values, 0, sampleSize);
-        Arrays.sort(values);
-        int index = Math.min(values.length - 1, (int) Math.ceil(values.length * 0.95D) - 1);
-        return values[index];
+        System.arraycopy(frameSamplesMs, 0, percentileScratch, 0, sampleSize);
+        Arrays.sort(percentileScratch, 0, sampleSize);
+        int index = Math.min(sampleSize - 1, (int) Math.ceil(sampleSize * 0.95D) - 1);
+        return percentileScratch[index];
     }
 
     private String[] createLines(Minecraft mc) {
