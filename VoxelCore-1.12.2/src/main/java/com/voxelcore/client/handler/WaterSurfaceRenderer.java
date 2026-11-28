@@ -235,7 +235,8 @@ public final class WaterSurfaceRenderer {
                 // replace the vanilla surface with an opaque, untextured white sheet.
                 drawTintedSurface(buffer, cell, gloss, celestialAngle,
                         cameraX, cameraY, cameraZ, sky, sunlight);
-                if (ModConfig.ENABLE_WATER_HIGHLIGHTS && !reducedQuality) {
+                if (ModConfig.ENABLE_WATER_HIGHLIGHTS && ModConfig.WATER_RENDER_QUALITY > 0
+                        && (!reducedQuality || ModConfig.WATER_RENDER_QUALITY >= 2)) {
                     drawMicroHighlight(buffer, cell, worldTime, sky, sunlight);
                 }
                 if (ModConfig.ENABLE_WATER_FOAM) {
@@ -378,6 +379,18 @@ public final class WaterSurfaceRenderer {
         if (cell.east) emitQuad(buffer, cell.x + 1.0D - band, y, z0,
                 cell.x + 0.988D, y, z0, cell.x + 0.988D, y, z1, cell.x + 1.0D - band, y, z1,
                 190, 228, 232, softAlpha);
+    }
+
+    private static int mix(int value) {
+        value ^= value >>> 16;
+        value *= 0x7feb352d;
+        value ^= value >>> 15;
+        value *= 0x846ca68b;
+        return value ^ (value >>> 16);
+    }
+
+    private static double unit(int value) {
+        return (value & 0x00ffffff) / 16777215.0D;
     }
 
     private static int toByte(float value) {
