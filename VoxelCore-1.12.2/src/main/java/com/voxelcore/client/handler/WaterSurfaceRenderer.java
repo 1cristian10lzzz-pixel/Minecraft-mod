@@ -407,7 +407,7 @@ public final class WaterSurfaceRenderer {
         double pz = Math.cos(phase) * width;
         double x = cell.x + u;
         double z = cell.z + v;
-        double y = cell.surfaceY + waveHeight(x, z, time, gloss) + 0.008D;
+        double y = surfaceHeightAt(cell, u, v) + waveHeight(x, z, time, gloss) + 0.008D;
         int alpha = 12 + (int) (sunlight * 18.0F);
         int red = toByte((float) Math.min(1.0D, sky.x * 0.72D + 0.20D));
         int green = toByte((float) Math.min(1.0D, sky.y * 0.78D + 0.20D));
@@ -448,20 +448,36 @@ public final class WaterSurfaceRenderer {
                 + cell.x * 0.13D + cell.z * 0.17D);
         int brightAlpha = (int) (26.0F * pulse);
         int softAlpha = (int) (16.0F * pulse);
-        double y = cell.surfaceY + 0.008D;
-
-        if (cell.north) emitQuad(buffer, x0, y, cell.z + 0.012D,
+        if (cell.north) {
+            double y = surfaceHeightAt(cell, 0.5D, 0.015D) + 0.008D;
+            emitQuad(buffer, x0, y, cell.z + 0.012D,
                 x0, y, cell.z + band, x1, y, cell.z + band, x1, y, cell.z + 0.012D,
                 180, 220, 225, brightAlpha);
-        if (cell.south) emitQuad(buffer, x0, y, cell.z + 1.0D - band,
+        }
+        if (cell.south) {
+            double y = surfaceHeightAt(cell, 0.5D, 0.985D) + 0.008D;
+            emitQuad(buffer, x0, y, cell.z + 1.0D - band,
                 x0, y, cell.z + 0.988D, x1, y, cell.z + 0.988D, x1, y, cell.z + 1.0D - band,
                 190, 228, 232, softAlpha);
-        if (cell.west) emitQuad(buffer, cell.x + 0.012D, y, z0,
+        }
+        if (cell.west) {
+            double y = surfaceHeightAt(cell, 0.015D, 0.5D) + 0.008D;
+            emitQuad(buffer, cell.x + 0.012D, y, z0,
                 cell.x + band, y, z0, cell.x + band, y, z1, cell.x + 0.012D, y, z1,
                 180, 220, 225, brightAlpha);
-        if (cell.east) emitQuad(buffer, cell.x + 1.0D - band, y, z0,
+        }
+        if (cell.east) {
+            double y = surfaceHeightAt(cell, 0.985D, 0.5D) + 0.008D;
+            emitQuad(buffer, cell.x + 1.0D - band, y, z0,
                 cell.x + 0.988D, y, z0, cell.x + 0.988D, y, z1, cell.x + 1.0D - band, y, z1,
                 190, 228, 232, softAlpha);
+        }
+    }
+
+    private static double surfaceHeightAt(SurfaceCell cell, double u, double v) {
+        double north = lerp(cell.northWestHeight, cell.northEastHeight, u);
+        double south = lerp(cell.southWestHeight, cell.southEastHeight, u);
+        return lerp(north, south, v);
     }
 
     private static int mix(int value) {
