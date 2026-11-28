@@ -320,6 +320,23 @@ public class WaterEffectsHandler {
 
     @SubscribeEvent
     public void onFogColors(EntityViewRenderEvent.FogColors event) {
+        if (ModConfig.ENABLE_LAVA_EFFECTS && event.getEntity() != null
+                && event.getEntity().isInsideOfMaterial(Material.LAVA)) {
+            Minecraft mc = Minecraft.getMinecraft();
+            float pulse = mc.world == null ? 0.0F
+                    : (float) (0.5D + 0.5D * Math.sin(mc.world.getTotalWorldTime() * 0.035D));
+            float lavaRed = 0.52F + pulse * 0.10F;
+            float lavaGreen = 0.105F + pulse * 0.045F;
+            float lavaBlue = 0.025F + pulse * 0.012F;
+            // Add a warm reflected-light tint while preserving most of vanilla's
+            // lava fog contribution so visibility and the vanilla danger cue remain.
+            event.setRed(event.getRed() * 0.58F + lavaRed * 0.42F);
+            event.setGreen(event.getGreen() * 0.72F + lavaGreen * 0.28F);
+            event.setBlue(event.getBlue() * 0.84F + lavaBlue * 0.16F);
+            return;
+        }
+
+        if (!ModConfig.ENABLE_WATER_EFFECTS || !ModConfig.ENABLE_UNDERWATER_TINT) return;
         if (!ModConfig.ENABLE_WATER_EFFECTS || !ModConfig.ENABLE_UNDERWATER_TINT) return;
         Minecraft mc = Minecraft.getMinecraft();
         if (mc.player == null || mc.world == null
