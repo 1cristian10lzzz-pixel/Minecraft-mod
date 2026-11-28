@@ -109,7 +109,7 @@ public final class LavaSurfaceRenderer {
         }
     }
 
-    private static void rebuild(World world, int cx, int cy, int cz) {
+    private void rebuild(World world, int cx, int cy, int cz) {
         SURFACES.clear();
         int radius = MathHelper.clamp(ModConfig.LAVA_EFFECT_RADIUS / 3, 4, 10);
         if (reducedQuality) radius = Math.max(4, radius - 2);
