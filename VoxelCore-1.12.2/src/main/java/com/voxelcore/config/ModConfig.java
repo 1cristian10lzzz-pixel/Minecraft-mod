@@ -119,7 +119,7 @@ public final class ModConfig {
         ENABLE_UNDERWATER_TINT = configuration.get(CAT_WATER, "enableUnderwaterTint", true,
                 "Use a biome-aware underwater fog tint.").getBoolean(true);
         ENABLE_ADAPTIVE_WATER_QUALITY = configuration.get(CAT_WATER, "adaptiveQuality", true,
-                "Automatically reduce optional water effect frequency and detail when FPS stays low.").getBoolean(true);
+                "Automatically reduce optional water and lava effect frequency and detail when FPS stays low.").getBoolean(true);
         WATER_WAVE_STRENGTH = configuration.get(CAT_WATER, "waveStrength", 70,
                 "Intensity of subtle, non-displacing water-surface highlights.", 0, 100).getInt(70);
         WATER_EFFECT_RADIUS = configuration.get(CAT_WATER, "effectRadius", 32,
