@@ -57,9 +57,14 @@ public final class WaterSurfaceRenderer {
         int centreX = MathHelper.floor(view.posX);
         int centreY = MathHelper.floor(view.posY);
         int centreZ = MathHelper.floor(view.posZ);
-        int radius = Math.min(14, Math.max(6, ModConfig.WATER_EFFECT_RADIUS / 3));
-        if (centreY > 110) radius = Math.max(6, radius - 3);
-        int interval = reducedQuality ? 36 : 20;
+        int qualityRadius = ModConfig.WATER_RENDER_QUALITY <= 0 ? 6
+                : (ModConfig.WATER_RENDER_QUALITY == 1 ? 10 : 14);
+        int radius = Math.min(qualityRadius, Math.max(4, ModConfig.WATER_EFFECT_RADIUS / 3));
+        if (reducedQuality) radius = Math.max(4, radius - 3);
+        if (centreY > 110) radius = Math.max(4, radius - 2);
+        int interval = reducedQuality ? 36
+                : (ModConfig.WATER_RENDER_QUALITY <= 0 ? 32
+                : (ModConfig.WATER_RENDER_QUALITY == 1 ? 24 : 20));
 
         boolean worldChanged = cachedWorld != world;
         boolean moved = Math.abs(centreX - lastCentreX) >= 3
