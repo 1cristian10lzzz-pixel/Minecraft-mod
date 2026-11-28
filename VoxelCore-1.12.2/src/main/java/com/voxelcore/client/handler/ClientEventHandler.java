@@ -33,9 +33,13 @@ public class ClientEventHandler {
 
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.END) {
-            ParticleQualityController.update(Minecraft.getMinecraft());
+        if (event.phase != TickEvent.Phase.END) return;
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc.world == null) {
+            ParticleQualityController.restore(mc);
+            return;
         }
+        ParticleQualityController.update(mc);
     }
 
     @SubscribeEvent
