@@ -28,8 +28,11 @@ public final class ParticleQualityController {
     }
 
     public static void restore(Minecraft mc) {
-        if (mc != null && applied && previousParticleSetting >= 0) {
+        if (mc != null && mc.gameSettings != null && applied && previousParticleSetting >= 0) {
             mc.gameSettings.particleSetting = previousParticleSetting;
+            // If another options save occurred while forced-minimal mode was active,
+            // persist the user's original particle setting when Minefade releases it.
+            mc.gameSettings.saveOptions();
         }
         previousParticleSetting = -1;
         applied = false;
