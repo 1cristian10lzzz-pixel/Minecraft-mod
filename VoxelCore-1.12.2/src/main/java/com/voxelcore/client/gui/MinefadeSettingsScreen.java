@@ -111,7 +111,7 @@ public final class MinefadeSettingsScreen extends GuiScreen {
                     ? "ILIMITADO" : String.valueOf(mc.gameSettings.limitFramerate));
             addValue(4, 0, 2, "Distancia de render", mc.gameSettings.renderDistanceChunks + " chunks");
             addValue(5, 1, 2, "Partículas", particleName());
-            addToggle(6, 0, 3, "Calidad adaptativa de agua", ModConfig.ENABLE_ADAPTIVE_WATER_QUALITY);
+            addToggle(6, 0, 3, "Calidad adaptativa de fluidos", ModConfig.ENABLE_ADAPTIVE_WATER_QUALITY);
             addToggle(7, 1, 3, "Partículas mínimas", ModConfig.FORCE_MINIMAL_PARTICLES);
             addToggle(8, 0, 4, "Recorte de criaturas lejanas", ModConfig.ENABLE_ENTITY_DISTANCE_CULLING);
             addToggle(9, 1, 4, "Recorte de objetos lejanos", ModConfig.ENABLE_ITEM_DISTANCE_CULLING);
@@ -338,7 +338,7 @@ public final class MinefadeSettingsScreen extends GuiScreen {
                 case 3: return "Límite de cuadros por segundo de Minecraft";
                 case 4: return "Más chunks muestran más mundo, pero elevan el coste de CPU y GPU";
                 case 5: return "Reduce la cantidad de partículas para mejorar el rendimiento";
-                case 6: return "Baja temporalmente los detalles del agua cuando el FPS cae de forma sostenida";
+                case 6: return "Reduce detalles opcionales de agua y lava tras una caída sostenida de FPS";
                 case 7: return "Fuerza la opción de partículas mínimas de Minecraft";
                 case 8: return "Omite criaturas lejanas; puede ocultar mobs que estén al borde de la distancia";
                 case 9: return "Omite objetos tirados fuera del radio configurado";
