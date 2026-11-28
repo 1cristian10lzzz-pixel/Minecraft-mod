@@ -61,6 +61,7 @@ public final class MinefadeDroppedItemRenderer extends RenderEntityItem {
 
         // Bind the vanilla block atlas explicitly before drawing baked quads.
         bindEntityTexture(entity);
+        WorldRenderStateGuard renderState = WorldRenderStateGuard.capture();
         GlStateManager.enableRescaleNormal();
         GlStateManager.alphaFunc(516, 0.1F);
         GlStateManager.enableBlend();
@@ -80,9 +81,8 @@ public final class MinefadeDroppedItemRenderer extends RenderEntityItem {
             itemRenderer.renderItem(stack, model);
         } finally {
             GlStateManager.popMatrix();
-            GlStateManager.disableRescaleNormal();
-            GlStateManager.disableBlend();
-            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            RenderHelper.disableStandardItemLighting();
+            renderState.restore();
             // Keep the block atlas selected for Minecraft's remaining world renders.
             Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
         }
