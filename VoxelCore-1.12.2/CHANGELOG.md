@@ -1,6 +1,6 @@
 ## 0.10.0 — Superficie de fluidos, renderizado y estabilidad
 
-- Actualiza la configuración de compilación y compatibilidad del proyecto a Minecraft Forge 1.12.2-14.23.5.2864.
+- Actualiza la configuración de compilación a Minecraft Forge 1.12.2-14.23.5.2864 y migra a ForgeGradle 3.x/UserDev 3 con Gradle 5.6.4, ya que ForgeGradle 2.3 no resuelve el artefacto UserDev publicado para Forge 2864.
 
 - Replaces the flat water overlay with a gently varying micro-surface. Uses vanilla `BlockLiquid.getLiquidHeight` for source/falling-fluid heights and softly shares corners between adjacent columns only when their heights are close; it does not bridge banks or separate pools.
 - Adds small multi-directional surface relief and analytical normals for directional specular response. The effect is deliberately subtle and retains vanilla water texture/flow beneath the low-alpha tint.
