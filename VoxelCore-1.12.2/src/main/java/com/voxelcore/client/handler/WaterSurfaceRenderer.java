@@ -28,7 +28,7 @@ import java.util.Map;
  * It does not change block states, flow, levels, collisions or server simulation.
  *
  * The surface geometry is deliberately stationary: there are no expanding rings
- * and no sine-wave displacement. Appearance comes from biome/depth absorption,
+ * and only tiny multi-directional surface relief, not large ocean-like sine waves. Appearance comes from biome/depth absorption,
  * sky reflection, view-angle Fresnel response, sunlight highlights and shoreline
  * foam. Nearby surface cells are cached and drawn in a single batched pass.
  */
