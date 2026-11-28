@@ -19,7 +19,9 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Renders a calm, custom water surface over Minecraft's existing water blocks.
@@ -32,7 +34,7 @@ import java.util.List;
  */
 @SideOnly(Side.CLIENT)
 public final class WaterSurfaceRenderer {
-    private static final int MAX_CACHED_SURFACES = 900;
+    private static final int MAX_CACHED_SURFACES = 760;
     private static final List<SurfaceCell> SURFACES = new ArrayList<SurfaceCell>();
 
     private static World cachedWorld;
@@ -78,7 +80,7 @@ public final class WaterSurfaceRenderer {
                                                 int centreZ, int radius) {
         SURFACES.clear();
         int scanTop = Math.min(255, centreY + 20);
-        int scanBottom = Math.max(0, centreY - 88);
+        int scanBottom = Math.max(0, centreY - 28);
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
 
         for (int x = centreX - radius; x <= centreX + radius; x++) {
@@ -94,13 +96,9 @@ public final class WaterSurfaceRenderer {
                     if (world.getBlockState(mutable).getMaterial()
                             == net.minecraft.block.material.Material.WATER) continue;
 
-                    int level = 0;
-                    if (state.getBlock() instanceof BlockLiquid) {
-                        level = state.getValue(BlockLiquid.LEVEL).intValue();
-                    }
-                    // Match BlockLiquid's 1.12.2 surface height for both source and falling states.
-                    int heightLevel = level >= 8 ? 0 : Math.min(7, level);
-                    float fluidHeight = 1.0F - ((heightLevel + 1) / 9.0F);
+                    // Ask the 1.12.2 vanilla fluid block for its rendered height.
+                    // This includes its falling/source-state and above-fluid rules.
+                    float topY = BlockLiquid.getLiquidHeight(state, world, new BlockPos(x, y, z));
                     int depth = measureDepth(world, x, y, z);
                     BlockPos pos = new BlockPos(x, y, z);
                     int tint = world.getBiome(pos).getWaterColorMultiplier();
@@ -110,8 +108,7 @@ public final class WaterSurfaceRenderer {
                     boolean west = isExposedWaterEdge(world, x - 1, y, z);
                     boolean east = isExposedWaterEdge(world, x + 1, y, z);
 
-                    double top = y + fluidHeight;
-                    SURFACES.add(new SurfaceCell(x, z, top, depth,
+                    SURFACES.add(new SurfaceCell(x, z, topY, depth,
                             tint, north, south, west, east));
                     break;
                 }
@@ -121,13 +118,14 @@ public final class WaterSurfaceRenderer {
                 }
             }
         }
-
+        smoothSharedCorners();
     }
 
     private static int measureDepth(World world, int x, int y, int z) {
         int depth = 1;
-        for (int offset = 1; offset <= 10; offset++) {
-            BlockPos below = new BlockPos(x, y - offset, z);
+        BlockPos.MutableBlockPos below = new BlockPos.MutableBlockPos(x, y, z);
+        for (int offset = 1; offset <= 12; offset++) {
+            below.setPos(x, y - offset, z);
             if (below.getY() < 0 || !world.isBlockLoaded(below)
                     || world.getBlockState(below).getMaterial()
                     != net.minecraft.block.material.Material.WATER) break;
@@ -136,18 +134,48 @@ public final class WaterSurfaceRenderer {
         return depth;
     }
 
+    /**
+     * Blend the four heights around each water-cell corner. Only nearby water
+     * columns at a similar level contribute, preventing the surface from
+     * bridging banks, waterfalls or separate pools.
+     */
+    private static void smoothSharedCorners() {
+        Map<Long, SurfaceCell> cells = new HashMap<Long, SurfaceCell>(SURFACES.size() * 2);
+        for (SurfaceCell cell : SURFACES) {
+            cells.put(positionKey(cell.x, cell.z), cell);
+        }
+        for (SurfaceCell cell : SURFACES) {
+            cell.northWestHeight = sharedCornerHeight(cells, cell.x, cell.z, cell.surfaceY);
+            cell.northEastHeight = sharedCornerHeight(cells, cell.x + 1, cell.z, cell.surfaceY);
+            cell.southEastHeight = sharedCornerHeight(cells, cell.x + 1, cell.z + 1, cell.surfaceY);
+            cell.southWestHeight = sharedCornerHeight(cells, cell.x, cell.z + 1, cell.surfaceY);
+        }
+    }
+
+    private static double sharedCornerHeight(Map<Long, SurfaceCell> cells,
+                                             int cornerX, int cornerZ, double fallback) {
+        double sum = 0.0D;
+        int count = 0;
+        for (int dx = -1; dx <= 0; dx++) {
+            for (int dz = -1; dz <= 0; dz++) {
+                SurfaceCell adjacent = cells.get(positionKey(cornerX + dx, cornerZ + dz));
+                if (adjacent == null || Math.abs(adjacent.surfaceY - fallback) > 0.22D) continue;
+                sum += adjacent.surfaceY;
+                count++;
+            }
+        }
+        return count == 0 ? fallback : sum / count;
+    }
+
+    private static long positionKey(int x, int z) {
+        return (((long) x) << 32) ^ (z & 0xffffffffL);
+    }
+
     private static boolean isExposedWaterEdge(World world, int x, int y, int z) {
         BlockPos pos = new BlockPos(x, y, z);
         return y >= 0 && y < 256 && world.isBlockLoaded(pos)
                 && world.getBlockState(pos).getMaterial()
                 != net.minecraft.block.material.Material.WATER;
-    }
-
-    private static boolean isWater(World world, int x, int y, int z) {
-        BlockPos pos = new BlockPos(x, y, z);
-        return y >= 0 && y < 256 && world.isBlockLoaded(pos)
-                && world.getBlockState(pos).getMaterial()
-                == net.minecraft.block.material.Material.WATER;
     }
 
     public static void render(RenderWorldLastEvent event, boolean reducedQuality) {
@@ -173,11 +201,7 @@ public final class WaterSurfaceRenderer {
         Vec3d sky = mc.world.getSkyColor(view, partialTicks);
         if (sky == null) sky = new Vec3d(0.34D, 0.52D, 0.70D);
 
-        boolean wasTexture = GL11.glIsEnabled(GL11.GL_TEXTURE_2D);
-        boolean wasLighting = GL11.glIsEnabled(GL11.GL_LIGHTING);
-        boolean wasBlend = GL11.glIsEnabled(GL11.GL_BLEND);
-        boolean wasCull = GL11.glIsEnabled(GL11.GL_CULL_FACE);
-        boolean depthMask = GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK);
+        WorldRenderStateGuard renderState = WorldRenderStateGuard.capture();
 
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder buffer = tessellator.getBuffer();
@@ -200,8 +224,10 @@ public final class WaterSurfaceRenderer {
 
                 // A low-alpha tint sits just above vanilla's liquid. It must never
                 // replace the vanilla surface with an opaque, untextured white sheet.
-                drawTintedSurface(buffer, cell, gloss, celestialAngle,
-                        cameraX, cameraY, cameraZ, sky, sunlight);
+                int gridSegments = ModConfig.WATER_RENDER_QUALITY >= 2
+                        && (!reducedQuality || ModConfig.WATER_RENDER_QUALITY >= 2) ? 2 : 1;
+                drawTintedSurface(buffer, cell, gloss, worldTime, celestialAngle,
+                        cameraX, cameraY, cameraZ, sky, sunlight, gridSegments);
                 if (ModConfig.ENABLE_WATER_HIGHLIGHTS && ModConfig.WATER_RENDER_QUALITY > 0
                         && (!reducedQuality || ModConfig.WATER_RENDER_QUALITY >= 2)) {
                     drawMicroHighlight(buffer, cell, worldTime, sky, sunlight);
@@ -212,68 +238,126 @@ public final class WaterSurfaceRenderer {
             }
             tessellator.draw();
         } finally {
-            GlStateManager.depthMask(depthMask);
-            if (wasCull) GlStateManager.enableCull(); else GlStateManager.disableCull();
-            if (wasBlend) GlStateManager.enableBlend(); else GlStateManager.disableBlend();
-            if (wasTexture) GlStateManager.enableTexture2D(); else GlStateManager.disableTexture2D();
-            if (wasLighting) GlStateManager.enableLighting(); else GlStateManager.disableLighting();
-            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            renderState.restore();
             GlStateManager.popMatrix();
         }
     }
 
     private static void drawTintedSurface(BufferBuilder buffer, SurfaceCell cell,
-                                          float gloss, double celestialAngle,
+                                          float gloss, double time, double celestialAngle,
                                           double cameraX, double cameraY, double cameraZ,
-                                          Vec3d sky, float sunlight) {
-        // Use the correct fluid height per cell. No averaging across shores or
-        // across different flowing-water levels, so the mesh cannot bridge banks.
-        double x0 = cell.x + 0.006D;
-        double x1 = cell.x + 0.994D;
-        double z0 = cell.z + 0.006D;
-        double z1 = cell.z + 0.994D;
-        double y = cell.surfaceY + 0.003D;
-
-        float depth = MathHelper.clamp((cell.depth - 1) / 8.0F, 0.0F, 1.0F);
-        float br = ((cell.waterColor >> 16) & 255) / 255.0F;
-        float bg = ((cell.waterColor >> 8) & 255) / 255.0F;
-        float bb = (cell.waterColor & 255) / 255.0F;
-        float ambient = 0.46F + sunlight * 0.16F;
-
-        float red = br * (0.68F - depth * 0.34F) * ambient + 0.012F;
-        float green = bg * (0.72F - depth * 0.20F) * ambient + 0.025F;
-        float blue = bb * (0.76F - depth * 0.10F) * ambient + 0.040F;
-
-        double fresnel = calculateFresnel(x0 + 0.5D, y, z0 + 0.5D,
-                cameraX, cameraY, cameraZ);
-        float reflection = (float) (0.018D + fresnel * 0.105D);
-        reflection *= 0.70F + gloss * 0.30F;
-        red = red * (1.0F - reflection) + (float) sky.x * reflection;
-        green = green * (1.0F - reflection) + (float) sky.y * reflection;
-        blue = blue * (1.0F - reflection) + (float) sky.z * reflection;
-
-        double sunPulse = 0.5D + 0.5D * Math.sin(celestialAngle + cell.x * 0.011D + cell.z * 0.013D);
-        float sunTint = (float) (sunPulse * sunlight * (0.025D + gloss * 0.045D));
-        red += sunTint * 0.70F;
-        green += sunTint * 0.88F;
-        blue += sunTint;
-
-        // Deliberately modest alpha: vanilla water texture, transparency and
-        // its animated flow remain visible beneath Minefade's surface treatment.
-        int alpha = 42 + (int) (gloss * 10.0F);
-        emitQuad(buffer, x0, y, z0, x0, y, z1, x1, y, z1, x1, y, z0,
-                toByte(red), toByte(green), toByte(blue), alpha);
+                                          Vec3d sky, float sunlight, int segments) {
+        for (int gz = 0; gz < segments; gz++) {
+            double v0 = gz / (double) segments;
+            double v1 = (gz + 1) / (double) segments;
+            for (int gx = 0; gx < segments; gx++) {
+                double u0 = gx / (double) segments;
+                double u1 = (gx + 1) / (double) segments;
+                emitWaterVertex(buffer, cell, u0, v0, gloss, time, celestialAngle,
+                        cameraX, cameraY, cameraZ, sky, sunlight);
+                emitWaterVertex(buffer, cell, u0, v1, gloss, time, celestialAngle,
+                        cameraX, cameraY, cameraZ, sky, sunlight);
+                emitWaterVertex(buffer, cell, u1, v1, gloss, time, celestialAngle,
+                        cameraX, cameraY, cameraZ, sky, sunlight);
+                emitWaterVertex(buffer, cell, u1, v0, gloss, time, celestialAngle,
+                        cameraX, cameraY, cameraZ, sky, sunlight);
+            }
+        }
     }
 
-    private static double calculateFresnel(double x, double y, double z,
-                                           double cameraX, double cameraY, double cameraZ) {
+    /**
+     * A tiny multi-directional surface relief gives the water a changing normal
+     * without turning it into large, obvious sine waves. The same world-space
+     * function is used at every neighbouring cell edge, so vertices stay joined.
+     */
+    private static double waveHeight(double x, double z, double time, float gloss) {
+        if (gloss <= 0.001F) return 0.0D;
+        double a = Math.sin(x * 0.83D + z * 0.51D + time * 1.13D);
+        double b = Math.sin(x * 0.34D - z * 0.71D - time * 0.76D);
+        double c = Math.sin(x * 1.31D + z * 1.17D - time * 0.43D);
+        return (a * 0.0048D + b * 0.0031D + c * 0.0015D) * gloss;
+    }
+
+    private static void emitWaterVertex(BufferBuilder buffer, SurfaceCell cell,
+                                        double u, double v, float gloss, double time,
+                                        double celestialAngle,
+                                        double cameraX, double cameraY, double cameraZ,
+                                        Vec3d sky, float sunlight) {
+        double x = cell.x + u;
+        double z = cell.z + v;
+        double north = lerp(cell.northWestHeight, cell.northEastHeight, u);
+        double south = lerp(cell.southWestHeight, cell.southEastHeight, u);
+        double baseY = lerp(north, south, v);
+        double wave = waveHeight(x, z, time, gloss);
+        double y = baseY + 0.004D + wave;
+
+        double baseSlopeX = lerp(cell.northEastHeight - cell.northWestHeight,
+                cell.southEastHeight - cell.southWestHeight, v);
+        double baseSlopeZ = south - north;
+        double delta = 0.025D;
+        double waveSlopeX = (waveHeight(x + delta, z, time, gloss)
+                - waveHeight(x - delta, z, time, gloss)) / (delta * 2.0D);
+        double waveSlopeZ = (waveHeight(x, z + delta, time, gloss)
+                - waveHeight(x, z - delta, time, gloss)) / (delta * 2.0D);
+
+        double nx = -(baseSlopeX + waveSlopeX);
+        double ny = 1.0D;
+        double nz = -(baseSlopeZ + waveSlopeZ);
+        double normalLength = Math.sqrt(nx * nx + ny * ny + nz * nz);
+        nx /= normalLength;
+        ny /= normalLength;
+        nz /= normalLength;
+
         double vx = cameraX - x;
         double vy = cameraY - y;
         double vz = cameraZ - z;
-        double length = Math.sqrt(vx * vx + vy * vy + vz * vz);
-        if (length < 0.001D) return 0.0D;
-        double cosine = Math.max(0.0D, Math.min(1.0D, Math.abs(vy / length)));
-        return Math.pow(1.0D - cosine, 3.0D);
+        double viewLength = Math.sqrt(vx * vx + vy * vy + vz * vz);
+        if (viewLength > 0.001D) {
+            vx /= viewLength;
+            vy /= viewLength;
+            vz /= viewLength;
+        } else {
+            vx = 0.0D; vy = 1.0D; vz = 0.0D;
+        }
+
+        double sunX = -Math.cos(celestialAngle) * 0.45D;
+        double sunY = 0.78D;
+        double sunZ = -Math.sin(celestialAngle) * 0.45D;
+        double sunLength = Math.sqrt(sunX * sunX + sunY * sunY + sunZ * sunZ);
+        sunX /= sunLength; sunY /= sunLength; sunZ /= sunLength;
+        double halfX = sunX + vx;
+        double halfY = sunY + vy;
+        double halfZ = sunZ + vz;
+        double halfLength = Math.sqrt(halfX * halfX + halfY * halfY + halfZ * halfZ);
+        if (halfLength > 0.001D) {
+            halfX /= halfLength; halfY /= halfLength; halfZ /= halfLength;
+        }
+
+        double ndotv = Math.max(0.0D, nx * vx + ny * vy + nz * vz);
+        double fresnel = Math.pow(1.0D - ndotv, 5.0D);
+        double diffuse = Math.max(0.0D, nx * sunX + ny * sunY + nz * sunZ);
+        double specular = Math.pow(Math.max(0.0D, nx * halfX + ny * halfY + nz * halfZ), 28.0D)
+                * sunlight * (0.04D + gloss * 0.28D);
+
+        float depth = MathHelper.clamp((cell.depth - 1) / 11.0F, 0.0F, 1.0F);
+        float biomeRed = ((cell.waterColor >> 16) & 255) / 255.0F;
+        float biomeGreen = ((cell.waterColor >> 8) & 255) / 255.0F;
+        float biomeBlue = (cell.waterColor & 255) / 255.0F;
+        float absorption = 0.76F - depth * 0.34F;
+        float red = biomeRed * absorption * (0.62F + (float) diffuse * 0.12F);
+        float green = biomeGreen * (0.70F - depth * 0.13F) * (0.66F + (float) diffuse * 0.12F);
+        float blue = biomeBlue * (0.78F - depth * 0.07F) * (0.72F + (float) diffuse * 0.13F);
+
+        double reflection = 0.025D + fresnel * (0.08D + gloss * 0.08D);
+        red = (float) (red * (1.0D - reflection) + sky.x * reflection);
+        green = (float) (green * (1.0D - reflection) + sky.y * reflection);
+        blue = (float) (blue * (1.0D - reflection) + sky.z * reflection);
+        red += (float) specular;
+        green += (float) (specular * 0.98D);
+        blue += (float) (specular * 0.92D);
+
+        int alpha = 34 + (int) (gloss * 12.0F);
+        buffer.pos(x, y, z).color(toByte(red), toByte(green), toByte(blue), alpha).endVertex();
     }
 
     private static void drawMicroHighlight(BufferBuilder buffer, SurfaceCell cell,
@@ -290,7 +374,7 @@ public final class WaterSurfaceRenderer {
         double pz = Math.cos(phase) * width;
         double x = cell.x + u;
         double z = cell.z + v;
-        double y = cell.surfaceY + 0.006D;
+        double y = cell.surfaceY + waveHeight(x, z, time, ModConfig.WATER_WAVE_STRENGTH / 100.0F) + 0.008D;
         int alpha = 12 + (int) (sunlight * 18.0F);
         int red = toByte((float) Math.min(1.0D, sky.x * 0.72D + 0.20D));
         int green = toByte((float) Math.min(1.0D, sky.y * 0.78D + 0.20D));
@@ -376,6 +460,10 @@ public final class WaterSurfaceRenderer {
         private final int x;
         private final int z;
         private final double surfaceY;
+        private double northWestHeight;
+        private double northEastHeight;
+        private double southEastHeight;
+        private double southWestHeight;
         private final int depth;
         private final double highlightPhase;
         private final double highlightSpeed;
@@ -394,6 +482,10 @@ public final class WaterSurfaceRenderer {
             this.x = x;
             this.z = z;
             this.surfaceY = surfaceY;
+            this.northWestHeight = surfaceY;
+            this.northEastHeight = surfaceY;
+            this.southEastHeight = surfaceY;
+            this.southWestHeight = surfaceY;
             this.depth = depth;
             int seed = mix(x * 73428767 ^ z * 438289 ^ (int) (surfaceY * 912931.0D));
             this.highlightPhase = unit(seed) * Math.PI * 2.0D;
