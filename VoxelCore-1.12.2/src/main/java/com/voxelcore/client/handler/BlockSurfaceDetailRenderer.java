@@ -26,9 +26,9 @@ import java.util.List;
  */
 @SideOnly(Side.CLIENT)
 public final class BlockSurfaceDetailRenderer {
-    private static final int HORIZONTAL_RADIUS = 7;
-    private static final int VERTICAL_RADIUS = 5;
-    private static final int MAX_DETAILS = 600;
+    private static final int HORIZONTAL_RADIUS = 6;
+    private static final int VERTICAL_RADIUS = 4;
+    private static final int MAX_DETAILS = 360;
     private static final List<DetailBlock> DETAILS = new ArrayList<DetailBlock>();
     private static final float[][] LIGHT_COLOURS = {
             {0.72F, 0.72F, 0.72F}, {0.72F, 0.66F, 0.53F},
@@ -82,10 +82,10 @@ public final class BlockSurfaceDetailRenderer {
         BlockPos cameraPos = new BlockPos(mc.getRenderViewEntity().posX,
                 mc.getRenderViewEntity().posY, mc.getRenderViewEntity().posZ);
         int tick = (int) world.getTotalWorldTime();
-        if (cachedWorld != world || tick - lastScanTick >= 8
-                || Math.abs(cameraPos.getX() - lastX) >= 2
-                || Math.abs(cameraPos.getY() - lastY) >= 2
-                || Math.abs(cameraPos.getZ() - lastZ) >= 2) {
+        if (cachedWorld != world || tick - lastScanTick >= 20
+                || Math.abs(cameraPos.getX() - lastX) >= 3
+                || Math.abs(cameraPos.getY() - lastY) >= 3
+                || Math.abs(cameraPos.getZ() - lastZ) >= 3) {
             rebuild(world, cameraPos);
             cachedWorld = world;
             lastScanTick = tick;
@@ -98,11 +98,7 @@ public final class BlockSurfaceDetailRenderer {
         double camX = mc.getRenderManager().viewerPosX;
         double camY = mc.getRenderManager().viewerPosY;
         double camZ = mc.getRenderManager().viewerPosZ;
-        boolean wasTexture = GL11.glIsEnabled(GL11.GL_TEXTURE_2D);
-        boolean wasLighting = GL11.glIsEnabled(GL11.GL_LIGHTING);
-        boolean wasBlend = GL11.glIsEnabled(GL11.GL_BLEND);
-        boolean wasCull = GL11.glIsEnabled(GL11.GL_CULL_FACE);
-        boolean depthMask = GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK);
+        WorldRenderStateGuard renderState = WorldRenderStateGuard.capture();
 
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder buffer = tessellator.getBuffer();
@@ -121,12 +117,7 @@ public final class BlockSurfaceDetailRenderer {
             }
             tessellator.draw();
         } finally {
-            GlStateManager.depthMask(depthMask);
-            if (wasCull) GlStateManager.enableCull(); else GlStateManager.disableCull();
-            if (wasBlend) GlStateManager.enableBlend(); else GlStateManager.disableBlend();
-            if (wasTexture) GlStateManager.enableTexture2D(); else GlStateManager.disableTexture2D();
-            if (wasLighting) GlStateManager.enableLighting(); else GlStateManager.disableLighting();
-            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            renderState.restore();
             GlStateManager.popMatrix();
         }
     }
