@@ -9,21 +9,21 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /** Diagnostic-only client chunk counter. It never changes Minecraft's chunk loading pipeline. */
 public final class ChunkTracker {
-    private static final Set<String> LOADED_CHUNKS =
-            Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+    private static final Set<Long> LOADED_CHUNKS =
+            Collections.newSetFromMap(new ConcurrentHashMap<Long, Boolean>());
 
     private ChunkTracker() { }
 
     public static void onLoad(Chunk chunk) {
         if (chunk == null || chunk.getWorld() == null) return;
         ChunkPos pos = chunk.getPos();
-        LOADED_CHUNKS.add(chunk.getWorld().provider.getDimension() + ":" + ChunkPos.asLong(pos.x, pos.z));
+        LOADED_CHUNKS.add(Long.valueOf(ChunkPos.asLong(pos.x, pos.z)));
     }
 
     public static void onUnload(Chunk chunk) {
         if (chunk == null || chunk.getWorld() == null) return;
         ChunkPos pos = chunk.getPos();
-        LOADED_CHUNKS.remove(chunk.getWorld().provider.getDimension() + ":" + ChunkPos.asLong(pos.x, pos.z));
+        LOADED_CHUNKS.remove(Long.valueOf(ChunkPos.asLong(pos.x, pos.z)));
     }
 
     public static int getLoadedCount() {
