@@ -1,12 +1,10 @@
 package com.voxelcore.client.handler;
 
 import com.voxelcore.config.ModConfig;
+import net.minecraft.block.BlockLiquid;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.item.EntityBoat;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.EnumParticleTypes;
@@ -19,29 +17,18 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import org.lwjgl.opengl.GL11;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Random;
 
 /**
- * Client-only water presentation for Forge 1.12.2.
- *
- * The renderer batches every ripple into one GL draw call per frame. Surface
- * lookups and waterfall scans are throttled, while the cached surface follows
- * the player as they move. Vanilla fluid blocks and server world state remain
- * untouched.
+ * Ambient water behaviour for Forge 1.12.2. The old expanding ring renderer is
+ * removed: WaterSurfaceRenderer now renders a calm custom surface with biome
+ * depth colour, sky reflections, sunlight highlights and shoreline foam.
+ * Splashes and bubbles are local contact particles, not water-surface waves.
+ * Vanilla water blocks, flow, collision and server state remain untouched.
  */
 @SideOnly(Side.CLIENT)
 public class WaterEffectsHandler {
-    private static final int MAX_RIPPLES = 24;
-    private static final int NORMAL_RIPPLE_LIMIT = 20;
-    private static final int LOW_RIPPLE_LIMIT = 9;
-    private static final int NORMAL_RING_SEGMENTS = 40;
-    private static final int LOW_RING_SEGMENTS = 20;
-    private static final List<Ripple> RIPPLES = new ArrayList<Ripple>();
     private static final Random RANDOM = new Random();
 
     private double previousX;
@@ -55,6 +42,17 @@ public class WaterEffectsHandler {
     private boolean reducedQuality;
     private BlockPos cachedSurface;
     private World trackedWorld;
+    private EntityPlayer trackedPlayer;
+    private int lastLookupX = Integer.MIN_VALUE;
+    private int lastLookupY = Integer.MIN_VALUE;
+    private int lastLookupZ = Integer.MIN_VALUE;
+    private final BlockPos.MutableBlockPos depthProbe = new BlockPos.MutableBlockPos();
+    private World depthWorld;
+    private int depthX = Integer.MIN_VALUE;
+    private int depthY = Integer.MIN_VALUE;
+    private int depthZ = Integer.MIN_VALUE;
+    private long depthSampleTick = Long.MIN_VALUE;
+    private float cachedUnderwaterDepth = 4.0F;
 
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
@@ -70,9 +68,16 @@ public class WaterEffectsHandler {
         World world = mc.world;
         if (trackedWorld != world) {
             clearAll();
+            lastLookupX = lastLookupY = lastLookupZ = Integer.MIN_VALUE;
             trackedWorld = world;
             cachedSurface = null;
             lastSurfaceScanTick = -100;
+        }
+        if (trackedPlayer != player) {
+            trackedPlayer = player;
+            cachedSurface = null;
+            lastSurfaceScanTick = -100;
+            lastLookupX = lastLookupY = lastLookupZ = Integer.MIN_VALUE;
             previousInWater = false;
             previousX = player.posX;
             previousZ = player.posZ;
@@ -80,57 +85,89 @@ public class WaterEffectsHandler {
 
         tickCounter++;
         updateAdaptiveQuality();
+        WaterSurfaceRenderer.updateCache(mc, tickCounter, reducedQuality);
 
-        int scanInterval = reducedQuality ? 8 : 4;
-        boolean movedToAnotherArea = cachedSurface == null
-                || Math.abs(player.posX - cachedSurface.getX()) > 5.0D
-                || Math.abs(player.posZ - cachedSurface.getZ()) > 5.0D
-                || Math.abs(player.posY - cachedSurface.getY()) > 5.0D;
+        int scanInterval = reducedQuality ? 24 : 12;
+        int lookupX = MathHelper.floor(player.posX);
+        int lookupY = MathHelper.floor(player.posY);
+        int lookupZ = MathHelper.floor(player.posZ);
+        boolean movedToAnotherArea = lastLookupX == Integer.MIN_VALUE
+                || Math.abs(lookupX - lastLookupX) >= 3
+                || Math.abs(lookupY - lastLookupY) >= 6
+                || Math.abs(lookupZ - lastLookupZ) >= 3;
+        // Cache null results too. Without this guard, dry land triggered a full
+        // nearby-water scan every tick because cachedSurface stayed null.
         if (movedToAnotherArea || tickCounter - lastSurfaceScanTick >= scanInterval) {
-            cachedSurface = findNearbyWaterSurface(world, player.posX, player.posY, player.posZ, 2);
+            cachedSurface = findNearbyWaterSurface(world, player.posX, player.posY, player.posZ, 1);
             lastSurfaceScanTick = tickCounter;
+            lastLookupX = lookupX;
+            lastLookupY = lookupY;
+            lastLookupZ = lookupZ;
         }
 
         boolean ridingBoat = player.getRidingEntity() instanceof EntityBoat;
         boolean inWater = player.isInsideOfMaterial(Material.WATER) || ridingBoat;
         BlockPos surface = cachedSurface;
 
-        if (inWater && surface != null) {
-            double dx = player.posX - previousX;
-            double dz = player.posZ - previousZ;
-            double movementSq = dx * dx + dz * dz;
+        if (inWater) {
+            // Keep the transition state even when the local surface scan has
+            // no result. This avoids a false entry splash several ticks after
+            // the player was already submerged.
+            if (surface != null) {
+                double dx = player.posX - previousX;
+                double dz = player.posZ - previousZ;
+                double movementSq = dx * dx + dz * dz;
 
-            if (!previousInWater && ModConfig.ENABLE_WATER_SPLASHES) {
-                spawnEntrySplash(world, player, surface);
-            }
+                if (!previousInWater && ModConfig.ENABLE_WATER_SPLASHES) {
+                    spawnEntrySplash(world, player, surface);
+                }
 
-            if (movementSq > 0.0008D && ModConfig.ENABLE_WATER_RIPPLES) {
-                double surfaceY = surface.getY() + 1.015D;
-                addRipple(player.posX, surfaceY, player.posZ, ridingBoat ? 1.25F : 0.85F);
-                int wakeInterval = reducedQuality ? 8 : 4;
-                if (ModConfig.ENABLE_WATER_SPLASHES && tickCounter % wakeInterval == 0) {
-                    world.spawnParticle(EnumParticleTypes.WATER_WAKE, player.posX, surfaceY,
-                            player.posZ, -dx * 2.0D, 0.0D, -dz * 2.0D);
-                    if (movementSq > 0.0018D) {
-                        world.spawnParticle(EnumParticleTypes.WATER_SPLASH, player.posX, surfaceY,
-                                player.posZ, dx * 0.7D, 0.025D, dz * 0.7D);
+                if (movementSq > 0.0008D) {
+                    int wakeInterval = reducedQuality ? 8 : 4;
+                    if (ModConfig.ENABLE_WATER_SPLASHES && tickCounter % wakeInterval == 0) {
+                        double surfaceY = getWaterSurfaceY(world, surface) + 0.012D;
+                        world.spawnParticle(EnumParticleTypes.WATER_WAKE, player.posX, surfaceY,
+                                player.posZ, -dx * 2.0D, 0.0D, -dz * 2.0D);
+                        if (movementSq > 0.0018D) {
+                            world.spawnParticle(EnumParticleTypes.WATER_SPLASH, player.posX, surfaceY,
+                                    player.posZ, dx * 0.7D, 0.025D, dz * 0.7D);
+                        }
                     }
                 }
             }
             previousInWater = true;
         } else {
+            if (previousInWater && surface != null && ModConfig.ENABLE_WATER_SPLASHES) {
+                spawnExitSplash(world, player, surface);
+            }
             previousInWater = false;
         }
 
-        int rainInterval = reducedQuality ? 18 : 10;
+        // Small rising bubbles improve the underwater volume without screen overlays.
+        if (player.isInsideOfMaterial(Material.WATER) && tickCounter % (reducedQuality ? 9 : 6) == 0) {
+            int count = mc.gameSettings.particleSetting == 2 ? 1 : (reducedQuality ? 1 : 2);
+            for (int i = 0; i < count; i++) {
+                double x = player.posX + (RANDOM.nextDouble() - 0.5D) * 0.75D;
+                double y = player.posY + RANDOM.nextDouble() * Math.max(0.3D, player.height * 0.8D);
+                double z = player.posZ + (RANDOM.nextDouble() - 0.5D) * 0.75D;
+                world.spawnParticle(EnumParticleTypes.WATER_BUBBLE, x, y, z,
+                        player.motionX * 0.15D, 0.025D + RANDOM.nextDouble() * 0.025D,
+                        player.motionZ * 0.15D);
+            }
+        }
+
+        int rainInterval = reducedQuality ? 20 : 12;
         if (surface != null && ModConfig.ENABLE_RAIN_RIPPLES && world.isRaining()
-                && tickCounter % rainInterval == 0 && RANDOM.nextInt(5) == 0) {
+                && tickCounter % rainInterval == 0 && RANDOM.nextInt(4) == 0) {
             BlockPos rainWater = findNearbyWaterSurface(world,
                     surface.getX() + RANDOM.nextInt(5) - 2, surface.getY(),
                     surface.getZ() + RANDOM.nextInt(5) - 2, 1);
             if (rainWater != null && world.canSeeSky(rainWater.up())) {
-                addRipple(rainWater.getX() + 0.5D, rainWater.getY() + 1.015D,
-                        rainWater.getZ() + 0.5D, 0.38F);
+                world.spawnParticle(EnumParticleTypes.WATER_SPLASH,
+                        rainWater.getX() + 0.5D, getWaterSurfaceY(world, rainWater) + 0.012D,
+                        rainWater.getZ() + 0.5D,
+                        (RANDOM.nextDouble() - 0.5D) * 0.035D, 0.015D,
+                        (RANDOM.nextDouble() - 0.5D) * 0.035D);
             }
         }
 
@@ -141,12 +178,11 @@ public class WaterEffectsHandler {
 
         previousX = player.posX;
         previousZ = player.posZ;
-        ageRipples();
     }
 
     /**
-     * Hysteresis keeps visual quality from changing every few frames when FPS
-     * fluctuates around a threshold. It only reduces optional Minefade effects.
+     * Hysteresis keeps optional effects from changing quality every few frames.
+     * The water surface renderer uses a coarser mesh when this flag is active.
      */
     private void updateAdaptiveQuality() {
         if (!ModConfig.ENABLE_ADAPTIVE_WATER_QUALITY) {
@@ -176,66 +212,128 @@ public class WaterEffectsHandler {
         }
     }
 
-    private static BlockPos findNearbyWaterSurface(World world, double x, double y, double z, int radius) {
-        BlockPos origin = new BlockPos(MathHelper.floor(x), MathHelper.floor(y), MathHelper.floor(z));
-        BlockPos best = null;
+    private static BlockPos findNearbyWaterSurface(World world, double x, double y,
+                                                    double z, int radius) {
+        int originX = MathHelper.floor(x);
+        int originY = MathHelper.floor(y);
+        int originZ = MathHelper.floor(z);
+        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+        int bestX = 0;
+        int bestY = 0;
+        int bestZ = 0;
         double bestDistance = Double.MAX_VALUE;
+        boolean found = false;
 
-        for (int dy = -2; dy <= 2; dy++) {
+        for (int dy = -8; dy <= 8; dy++) {
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
-                    BlockPos pos = origin.add(dx, dy, dz);
-                    if (!world.isBlockLoaded(pos) || !world.isBlockLoaded(pos.up())) continue;
-                    if (world.getBlockState(pos).getMaterial() != Material.WATER) continue;
-                    if (world.getBlockState(pos.up()).getMaterial() == Material.WATER) continue;
+                    int blockX = originX + dx;
+                    int blockY = originY + dy;
+                    int blockZ = originZ + dz;
+                    if (blockY < 0 || blockY >= 255) continue;
+                    pos.setPos(blockX, blockY, blockZ);
+                    if (!world.isBlockLoaded(pos)) continue;
+                    IBlockState waterState = world.getBlockState(pos);
+                    if (waterState.getMaterial() != Material.WATER) continue;
 
-                    double cx = pos.getX() + 0.5D - x;
-                    double cz = pos.getZ() + 0.5D - z;
-                    double cy = pos.getY() + 1.0D - y;
+                    pos.setY(blockY + 1);
+                    if (!world.isBlockLoaded(pos)
+                            || world.getBlockState(pos).getMaterial() == Material.WATER) continue;
+
+                    pos.setPos(blockX, blockY, blockZ);
+                    double surfaceY = BlockLiquid.getLiquidHeight(waterState, world, pos);
+                    double cx = blockX + 0.5D - x;
+                    double cz = blockZ + 0.5D - z;
+                    double cy = surfaceY - y;
                     double distance = cx * cx + cz * cz + cy * cy * 0.5D;
                     if (distance < bestDistance) {
                         bestDistance = distance;
-                        best = pos;
+                        bestX = blockX;
+                        bestY = blockY;
+                        bestZ = blockZ;
+                        found = true;
                     }
                 }
             }
         }
-        return best;
+        return found ? new BlockPos(bestX, bestY, bestZ) : null;
+    }
+
+    /**
+     * Uses the level-aware vanilla fluid height, not a fixed 0.9-block guess.
+     * Flowing water (levels 1-7), source blocks and falling water therefore
+     * place wakes and splashes on the actual visible surface.
+     */
+    private static double getWaterSurfaceY(World world, BlockPos surface) {
+        if (surface == null || !world.isBlockLoaded(surface)) return 0.0D;
+        IBlockState state = world.getBlockState(surface);
+        if (state.getMaterial() != Material.WATER) return surface.getY() + 0.9D;
+        return BlockLiquid.getLiquidHeight(state, world, surface);
+    }
+
+    private static void spawnExitSplash(World world, EntityPlayer player, BlockPos surface) {
+        if (surface == null || !world.isBlockLoaded(surface)) return;
+        double surfaceY = getWaterSurfaceY(world, surface);
+        double dx = player.posX - (surface.getX() + 0.5D);
+        double dz = player.posZ - (surface.getZ() + 0.5D);
+        if (dx * dx + dz * dz > 2.25D
+                || Math.abs(player.posY - surfaceY) > 1.6D) return;
+
+        int count = Minecraft.getMinecraft().gameSettings.particleSetting == 2 ? 1 : 3;
+        for (int i = 0; i < count; i++) {
+            double angle = RANDOM.nextDouble() * Math.PI * 2.0D;
+            double speed = 0.018D + RANDOM.nextDouble() * 0.035D;
+            world.spawnParticle(EnumParticleTypes.WATER_SPLASH,
+                    surface.getX() + 0.5D + (RANDOM.nextDouble() - 0.5D) * 0.32D,
+                    surfaceY + 0.018D,
+                    surface.getZ() + 0.5D + (RANDOM.nextDouble() - 0.5D) * 0.32D,
+                    Math.cos(angle) * speed, 0.025D + RANDOM.nextDouble() * 0.025D,
+                    Math.sin(angle) * speed);
+        }
     }
 
     private static void spawnEntrySplash(World world, EntityPlayer player, BlockPos surface) {
-        double y = surface.getY() + 0.96D;
-        int particleCount = Minecraft.getMinecraft().gameSettings.particleSetting == 2 ? 3 : 6;
+        double y = getWaterSurfaceY(world, surface) + 0.018D;
+        int particleCount = Minecraft.getMinecraft().gameSettings.particleSetting == 2 ? 3 : 7;
         for (int i = 0; i < particleCount; i++) {
             double ox = (RANDOM.nextDouble() - 0.5D) * 0.65D;
             double oz = (RANDOM.nextDouble() - 0.5D) * 0.65D;
             world.spawnParticle(EnumParticleTypes.WATER_SPLASH, player.posX + ox, y,
-                    player.posZ + oz, ox * 0.12D, 0.10D + RANDOM.nextDouble() * 0.08D, oz * 0.12D);
-        }
-        addRipple(player.posX, surface.getY() + 1.015D, player.posZ, 1.5F);
-        if (Minecraft.getMinecraft().gameSettings.particleSetting != 2) {
-            addRipple(player.posX + 0.35D, surface.getY() + 1.016D, player.posZ - 0.2D, 0.75F);
+                    player.posZ + oz, ox * 0.12D, 0.10D + RANDOM.nextDouble() * 0.08D,
+                    oz * 0.12D);
         }
     }
 
     private void spawnNearbyWaterfallMist(World world, BlockPos centre) {
         int radius = reducedQuality ? 1 : 2;
+        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         for (int dx = -radius; dx <= radius; dx++) {
             for (int dz = -radius; dz <= radius; dz++) {
                 for (int dy = -2; dy <= 0; dy++) {
-                    BlockPos pos = centre.add(dx, dy, dz);
-                    if (!world.isBlockLoaded(pos) || !world.isBlockLoaded(pos.up())) continue;
-                    if (world.getBlockState(pos).getMaterial() != Material.WATER) continue;
-                    if (world.getBlockState(pos.up()).getMaterial() != Material.WATER) continue;
-                    if (!world.getBlockState(pos.down()).getMaterial().isSolid()) continue;
+                    int x = centre.getX() + dx;
+                    int y = centre.getY() + dy;
+                    int z = centre.getZ() + dz;
+                    if (y < 1 || y >= 255) continue;
+                    pos.setPos(x, y, z);
+                    if (!world.isBlockLoaded(pos)
+                            || world.getBlockState(pos).getMaterial() != Material.WATER) continue;
 
-                    double x = pos.getX() + 0.5D;
-                    double y = pos.getY() + 0.25D;
-                    double z = pos.getZ() + 0.5D;
+                    pos.setY(y + 1);
+                    if (!world.isBlockLoaded(pos)
+                            || world.getBlockState(pos).getMaterial() != Material.WATER) continue;
+
+                    pos.setY(y - 1);
+                    if (!world.isBlockLoaded(pos)
+                            || !world.getBlockState(pos).getMaterial().isSolid()) continue;
+
+                    double px = x + 0.5D;
+                    double py = y + 0.25D;
+                    double pz = z + 0.5D;
                     int particles = reducedQuality ? 1 : 2;
                     for (int i = 0; i < particles; i++) {
-                        world.spawnParticle(EnumParticleTypes.CLOUD, x + (RANDOM.nextDouble() - 0.5D) * 0.7D,
-                                y, z + (RANDOM.nextDouble() - 0.5D) * 0.7D,
+                        world.spawnParticle(EnumParticleTypes.CLOUD,
+                                px + (RANDOM.nextDouble() - 0.5D) * 0.7D,
+                                py, pz + (RANDOM.nextDouble() - 0.5D) * 0.7D,
                                 (RANDOM.nextDouble() - 0.5D) * 0.025D, 0.015D,
                                 (RANDOM.nextDouble() - 0.5D) * 0.025D);
                     }
@@ -245,29 +343,18 @@ public class WaterEffectsHandler {
         }
     }
 
-    private static void addRipple(double x, double y, double z, float scale) {
-        if (ModConfig.WATER_WAVE_STRENGTH <= 0) return;
-        int limit = ModConfig.ENABLE_ADAPTIVE_WATER_QUALITY
-                && Minecraft.getDebugFPS() > 0 && Minecraft.getDebugFPS() < 28
-                ? LOW_RIPPLE_LIMIT : NORMAL_RIPPLE_LIMIT;
-        if (RIPPLES.size() >= Math.min(MAX_RIPPLES, limit)) RIPPLES.remove(0);
-        RIPPLES.add(new Ripple(x, y, z, scale));
-    }
-
-    private static void ageRipples() {
-        Iterator<Ripple> iterator = RIPPLES.iterator();
-        while (iterator.hasNext()) {
-            Ripple ripple = iterator.next();
-            ripple.age++;
-            if (ripple.age >= ripple.maxAge) iterator.remove();
-        }
-    }
-
     private void resetTracking() {
         clearAll();
         trackedWorld = null;
+        trackedPlayer = null;
+        tickCounter = 0;
         cachedSurface = null;
         lastSurfaceScanTick = -100;
+        lastLookupX = lastLookupY = lastLookupZ = Integer.MIN_VALUE;
+        depthWorld = null;
+        depthX = depthY = depthZ = Integer.MIN_VALUE;
+        depthSampleTick = Long.MIN_VALUE;
+        cachedUnderwaterDepth = 4.0F;
         previousInWater = false;
         previousX = 0.0D;
         previousZ = 0.0D;
@@ -278,110 +365,108 @@ public class WaterEffectsHandler {
     }
 
     public static void clearAll() {
-        RIPPLES.clear();
+        WaterSurfaceRenderer.clear();
     }
 
     @SubscribeEvent
     public void onRenderWorldLast(RenderWorldLastEvent event) {
-        Minecraft mc = Minecraft.getMinecraft();
-        if (!ModConfig.ENABLE_WATER_EFFECTS || !ModConfig.ENABLE_WATER_RIPPLES
-                || ModConfig.WATER_WAVE_STRENGTH <= 0 || mc.world == null || mc.player == null
-                || RIPPLES.isEmpty()) return;
-
-        double viewX = mc.getRenderManager().viewerPosX;
-        double viewY = mc.getRenderManager().viewerPosY;
-        double viewZ = mc.getRenderManager().viewerPosZ;
-        int maxDistance = ModConfig.WATER_EFFECT_RADIUS;
-        double maxDistanceSq = (double) maxDistance * (double) maxDistance;
-        float strength = ModConfig.WATER_WAVE_STRENGTH / 100.0F;
-        int segments = reducedQuality ? LOW_RING_SEGMENTS : NORMAL_RING_SEGMENTS;
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder buffer = tessellator.getBuffer();
-
-        GlStateManager.pushMatrix();
-        try {
-            GlStateManager.translate(-viewX, -viewY, -viewZ);
-            GlStateManager.disableTexture2D();
-            GlStateManager.disableLighting();
-            GlStateManager.enableBlend();
-            GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
-            GlStateManager.disableCull();
-            GlStateManager.depthMask(false);
-            GL11.glLineWidth(1.25F);
-
-            buffer.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR);
-            for (Ripple ripple : RIPPLES) {
-                double dx = ripple.x - viewX;
-                double dy = ripple.y - viewY;
-                double dz = ripple.z - viewZ;
-                if (dx * dx + dy * dy + dz * dz > maxDistanceSq) continue;
-
-                float progress = (ripple.age + event.getPartialTicks()) / (float) ripple.maxAge;
-                float fade = Math.max(0.0F, 1.0F - progress);
-                float alpha = fade * strength * 0.58F;
-                if (alpha < 0.015F) continue;
-
-                double radius = (0.22D + progress * 2.55D) * ripple.scale;
-                int a = MathHelper.clamp((int) (alpha * 255.0F), 0, 255);
-                appendRing(buffer, ripple.x, ripple.y, ripple.z, radius, a, segments, 110, 204, 236);
-                appendRing(buffer, ripple.x, ripple.y + 0.001D, ripple.z, radius * 0.58D,
-                        Math.max(0, a / 2), segments, 184, 238, 250);
-            }
-            tessellator.draw();
-        } finally {
-            GlStateManager.depthMask(true);
-            GlStateManager.enableCull();
-            GlStateManager.disableBlend();
-            GlStateManager.enableTexture2D();
-            GlStateManager.enableLighting();
-            GlStateManager.popMatrix();
-            GL11.glLineWidth(1.0F);
-        }
-    }
-
-    /** Adds one complete ring as independent line segments to the shared frame buffer. */
-    private static void appendRing(BufferBuilder buffer, double x, double y, double z,
-                                   double radius, int alpha, int segments, int red, int green, int blue) {
-        for (int i = 0; i < segments; i++) {
-            double a0 = Math.PI * 2.0D * i / segments;
-            double a1 = Math.PI * 2.0D * (i + 1) / segments;
-            buffer.pos(x + Math.cos(a0) * radius, y, z + Math.sin(a0) * radius)
-                    .color(red, green, blue, alpha).endVertex();
-            buffer.pos(x + Math.cos(a1) * radius, y, z + Math.sin(a1) * radius)
-                    .color(125, 220, 242, alpha).endVertex();
-        }
+        WaterSurfaceRenderer.render(event, reducedQuality);
     }
 
     @SubscribeEvent
     public void onFogColors(EntityViewRenderEvent.FogColors event) {
+        if (ModConfig.ENABLE_LAVA_EFFECTS && event.getEntity() != null
+                && event.getEntity().isInsideOfMaterial(Material.LAVA)) {
+            Minecraft mc = Minecraft.getMinecraft();
+            float pulse = mc.world == null ? 0.0F
+                    : (float) (0.5D + 0.5D * Math.sin(mc.world.getTotalWorldTime() * 0.035D));
+            float lavaRed = 0.52F + pulse * 0.10F;
+            float lavaGreen = 0.105F + pulse * 0.045F;
+            float lavaBlue = 0.025F + pulse * 0.012F;
+            // Add a warm reflected-light tint while preserving most of vanilla's
+            // lava fog contribution so visibility and the vanilla danger cue remain.
+            event.setRed(event.getRed() * 0.58F + lavaRed * 0.42F);
+            event.setGreen(event.getGreen() * 0.72F + lavaGreen * 0.28F);
+            event.setBlue(event.getBlue() * 0.84F + lavaBlue * 0.16F);
+            return;
+        }
+
         if (!ModConfig.ENABLE_WATER_EFFECTS || !ModConfig.ENABLE_UNDERWATER_TINT) return;
         Minecraft mc = Minecraft.getMinecraft();
-        if (mc.player == null || mc.world == null || !mc.player.isInsideOfMaterial(Material.WATER)) return;
+        if (mc.player == null || mc.world == null
+                || !mc.player.isInsideOfMaterial(Material.WATER)) return;
 
         BlockPos pos = new BlockPos(mc.player.posX, mc.player.posY, mc.player.posZ);
         int waterColor = mc.world.getBiome(pos).getWaterColorMultiplier();
         float waterRed = ((waterColor >> 16) & 255) / 255.0F;
         float waterGreen = ((waterColor >> 8) & 255) / 255.0F;
         float waterBlue = (waterColor & 255) / 255.0F;
+        float depth = getUnderwaterDepth(mc.player);
 
-        event.setRed(event.getRed() * 0.28F + waterRed * 0.72F);
-        event.setGreen(event.getGreen() * 0.28F + waterGreen * 0.72F);
-        event.setBlue(event.getBlue() * 0.28F + waterBlue * 0.72F);
+        float absorbedRed = waterRed * (0.64F - Math.min(0.28F, depth * 0.012F));
+        float absorbedGreen = waterGreen * (0.78F - Math.min(0.14F, depth * 0.006F));
+        float absorbedBlue = waterBlue * (0.88F - Math.min(0.08F, depth * 0.003F));
+
+        event.setRed(event.getRed() * 0.16F + absorbedRed * 0.84F);
+        event.setGreen(event.getGreen() * 0.16F + absorbedGreen * 0.84F);
+        event.setBlue(event.getBlue() * 0.16F + absorbedBlue * 0.84F);
     }
 
-    private static final class Ripple {
-        private final double x;
-        private final double y;
-        private final double z;
-        private final float scale;
-        private final int maxAge = 34;
-        private int age;
+    @SubscribeEvent
+    public void onFogDensity(EntityViewRenderEvent.FogDensity event) {
+        if (!ModConfig.ENABLE_WATER_EFFECTS || !ModConfig.ENABLE_UNDERWATER_TINT
+                || event.getEntity() == null
+                || !event.getEntity().isInsideOfMaterial(Material.WATER)) return;
 
-        private Ripple(double x, double y, double z, float scale) {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-            this.scale = scale;
+        float depth = getUnderwaterDepth(Minecraft.getMinecraft().player);
+        float density = MathHelper.clamp(0.014F + Math.min(24.0F, depth) * 0.00072F,
+                0.014F, 0.032F);
+        event.setDensity(density);
+        // Forge requires this event to be cancelled for the custom density to apply.
+        event.setCanceled(true);
+    }
+
+    /**
+     * Fog events can run multiple times per rendered frame. Cache the water
+     * column lookup for four world ticks and reuse one mutable position so
+     * fog colour and density do not allocate/scan up to 33 BlockPos objects
+     * every frame while the player is underwater.
+     */
+    private float getUnderwaterDepth(EntityPlayer player) {
+        if (player == null || player.world == null) return 4.0F;
+        World world = player.world;
+        int x = MathHelper.floor(player.posX);
+        int y = MathHelper.floor(player.posY);
+        int z = MathHelper.floor(player.posZ);
+        long now = world.getTotalWorldTime();
+
+        if (depthWorld == world && depthX == x && depthY == y && depthZ == z
+                && now >= depthSampleTick && now - depthSampleTick < 4L) {
+            return cachedUnderwaterDepth;
         }
+
+        depthWorld = world;
+        depthX = x;
+        depthY = y;
+        depthZ = z;
+        depthSampleTick = now;
+        cachedUnderwaterDepth = 4.0F;
+
+        for (int dy = 0; dy <= 32; dy++) {
+            depthProbe.setPos(x, y + dy, z);
+            if (!world.isBlockLoaded(depthProbe)) break;
+            if (world.getBlockState(depthProbe).getMaterial() != Material.WATER) {
+                if (dy > 0) {
+                    depthProbe.setPos(x, y + dy - 1, z);
+                    if (world.isBlockLoaded(depthProbe)
+                            && world.getBlockState(depthProbe).getMaterial() == Material.WATER) {
+                        cachedUnderwaterDepth = Math.max(0.0F,
+                                (float) (depthProbe.getY() + 0.9D - player.posY));
+                    }
+                }
+                break;
+            }
+        }
+        return cachedUnderwaterDepth;
     }
 }

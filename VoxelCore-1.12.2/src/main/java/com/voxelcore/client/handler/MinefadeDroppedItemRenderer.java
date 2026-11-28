@@ -80,8 +80,14 @@ public final class MinefadeDroppedItemRenderer extends RenderEntityItem {
             itemRenderer.renderItem(stack, model);
         } finally {
             GlStateManager.popMatrix();
+            // Match the vanilla RenderEntityItem cleanup without issuing dozens
+            // of glGet calls for every dropped stack.
+            RenderHelper.disableStandardItemLighting();
             GlStateManager.disableRescaleNormal();
             GlStateManager.disableBlend();
+            GlStateManager.enableAlpha();
+            GlStateManager.alphaFunc(516, 0.1F);
+            GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             // Keep the block atlas selected for Minecraft's remaining world renders.
             Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);

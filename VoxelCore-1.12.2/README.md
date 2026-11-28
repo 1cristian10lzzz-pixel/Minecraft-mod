@@ -1,60 +1,69 @@
-# Minefade Mod 0.6.0 — Minecraft Java 1.12.2
+# Minefade Mod 0.14.0 — Minecraft Java 1.12.2
 
-Forge 14.23.5.2847 · Java 8 · ForgeGradle 2.3 · Gradle 4.10.3
+Forge 14.23.5.2864 · Java 8 · ForgeGradle 3.x (UserDev 3) · Gradle 5.6.4
 
-## Dropped item physics
+Minefade 0.14.0 amplía el realismo de contacto de criaturas y jugadores cercanos sin cambiar el contenido ni las interfaces ya existentes. Mantiene el mod ID `voxelcore`, los IDs registrados de bloques/objetos, la simulación vanilla de fluidos y el contenido existente.
 
-Minefade 0.6.0 adds original Forge 1.12.2 behaviour inspired by Realistic Item Drops:
+## Contacto ambiental de criaturas
 
-- Dropped items lie horizontally on the ground instead of hovering and spinning.
-- Right-click pickup replaces automatic walk-over collection when enabled.
-- Sprinting when dropping an item adds a forward throw impulse.
-- Airborne items can be caught with the same right-click interaction.
-- Dropped items receive gentle buoyancy and drag in water and lava.
-- The OBJETOS tab exposes separate controls and throw strength.
+- Animales, criaturas y otros jugadores cercanos dejan pequeñas partículas al caminar sobre nieve, arena, tierra, grava y vegetación. La cadencia depende de la distancia recorrida y del tamaño de la entidad.
+- Los aterrizajes tras caídas suficientes generan un impacto discreto adaptado al material de apoyo, sin cambiar daño ni rebotes.
+- Entrar o salir de agua poco profunda puede producir una salpicadura en la altura real de la superficie, también para criaturas.
+- El seguimiento se limita a entidades próximas a la cámara, usa referencias débiles y se limpia al descargar el mundo. Los efectos respetan los ajustes existentes de pasos, aterrizajes, agua y calidad de partículas.
 
-The server handles pickup, toss and liquid motion so multiplayer state remains authoritative. Minefade uses its own implementation and does not copy the reference mod's code.
+## Nuevas respuestas de contacto
 
-## Rendering and performance
+- Al aterrizar tras una caída suficiente, se genera un pequeño efecto de partículas adaptado al bloque de apoyo. La nieve usa polvo; los suelos sólidos usan fragmentos del estado de bloque.
+- La intensidad está limitada y sigue el ajuste de partículas. El efecto no cambia el daño ni la simulación del jugador.
+- Al salir del agua se puede generar una salpicadura pequeña si la superficie sigue cerca; el estado de inmersión se conserva aunque el escaneo local no encuentre agua durante unos ticks.
 
-The custom EntityItem renderer keeps Minecraft's baked item models, item texture atlas and standard lighting. It adds a ground transform for resting drops and optional item-distance culling.
+## Realismo de agua y lluvia
 
-Minefade also retains the 0.5.0 water rendering improvements: ripple geometry is batched, nearby water surfaces are cached, and optional water effects reduce their detail when FPS remains low.
+- Estelas, salpicaduras de entrada e impactos de lluvia calculan la altura de la superficie con el método vanilla `BlockLiquid.getLiquidHeight`. Los efectos siguen los niveles de agua fuente y corriente en lugar de usar una altura aproximada fija.
+- La espuma de orilla interpola la altura por vértice para permanecer pegada a superficies suavizadas y bordes inclinados.
+- Añade pequeños impactos de lluvia en suelo expuesto cerca del jugador; los impactos en superficies de agua siguen siendo gestionados por el sistema de agua.
+- La profundidad submarina se reutiliza entre eventos de niebla y los escaneos de agua/cascadas usan posiciones mutables.
 
-Sodium-derived Forge renderers such as Zorya rewrite more of the chunk rendering path and use techniques including face culling, chunk multi-draw, vertex arrays and compact vertex formats. Those are engine-level changes and can conflict with other renderer mods. Minefade therefore applies narrower optimizations without replacing the vanilla chunk renderer. It is not a full Sodium implementation.
+**Límite de renderizado:** los reflejos siguen siendo una aproximación de color del cielo y ángulo de visión; no hay SSR, refracción físicamente exacta ni pipeline completo de shaders.
 
-## Textures and interface
+## Interacción con materiales
 
-Minefade now includes original 32x32 item/block icons for Resonite tools, armour and materials, plus original leather and aged-metal panel/button textures. A new OBJETOS tab controls dropped-item physics.
+- Los pasos se disparan por distancia recorrida y alternan los pies, en vez de depender de un intervalo fijo de ticks.
+- Nieve utiliza partículas de polvo de nieve; arena y tierra generan restos de su bloque; roca, madera, hielo, hojas y enredaderas generan partículas derivadas de su estado real.
+- Los fragmentos al golpear materiales duros tienen una opción independiente de los detalles procedurales minerales.
+- Los contactos de vegetación y slime limpian su estado cuando se descarga el mundo.
 
-Realstuff64 (64x, Minecraft 1.12.2) served as a visual reference for realistic texture density and palette. Its files are not bundled or copied. This update changes Minefade's own assets, not every vanilla item texture.
+## Detalles procedurales de bloques
 
-## Water and atmosphere
+Sin cambiar texturas ni crear imágenes, el renderizador añade pequeñas facetas de color a más bloques vanilla: variantes de piedra, cobblestone, gravel, netherrack, end stone, sandstone, red sandstone, obsidian, prismarine, stone bricks, hardened clay, bricks, quartz, arena roja, dirt/coarse dirt/podzol, grass block/path, mycelium, soul sand, magma, nether bricks, nether wart block, hielo, packed/frosted ice, bone block, glowstone, sea lantern, end bricks y purpur.
 
-The 0.5.0 water effects remain available: surface rings, wakes, entry splashes, rain ripples, waterfall mist and biome-aware underwater tint. These are client-side visual effects. Vanilla fluid blocks and server water states are unchanged.
+Los acentos son geometría ligera de color por vértice. No sustituyen modelos, texturas ni estados de bloque.
 
-## Controls and settings
+## Animaciones
 
-- **O:** open the Minefade control centre.
-- **K:** toggle Minefade water effects.
-- **F8:** toggle the performance monitor.
-- **F7:** toggle distant-living-entity culling.
-- **F6:** toggle minimal particles.
+La capa del jugador sigue siendo aditiva y deja las posturas base de Minecraft bajo control vanilla. Se añaden pequeños movimientos de peso, carrera, escalada, natación, respiración y un balanceo de brazos muy leve durante el reposo cuando las manos están libres. El movimiento de reposo no se aplica durante el uso de objetos ni los ataques.
 
-The settings centre includes INFO, REND., AGUA, MUNDO and OBJETOS.
+## Rendimiento y estabilidad
 
-## Build, verify and install
+- Los pases de renderizado consultan y restauran solo los estados OpenGL que realmente modifican Minefade.
+- Se liberan las referencias de mundo de los controladores de vegetación, materiales e impactos en WorldEvent.Unload.
+- El contador de chunks incluye la dimensión.
+- El ajuste de partículas mínimas restaura la preferencia del usuario al salir del mundo.
+- Los radios/intervalos de agua y lava siguen la calidad seleccionada y el modo adaptativo.
+- Física de objetos, recogida, lanzamiento, Resonite y generación del mundo se mantienen.
 
-**Forge build passed:** [GitHub Actions run #47](https://github.com/1cristian10lzzz-pixel/Minecraft-mod/actions/runs/45705530398).
+## Lava
 
-- JAR: `minefade-0.6.0.jar`
-- Size: 97,424 bytes
-- SHA-256: `67ebad56ddcb7473b8a14a79a0f3dfb8c0224cd300cc6ba6ba2bf7ac5f194212`
+La lava mantiene vetas incandescentes ramificadas precalculadas con núcleo luminoso, borde oscuro, pulsación suave y pocas partículas de humo/brasas. Se añade un leve tinte cálido al entrar en lava sin sustituir la niebla, textura, flujo, daño o colisión vanilla.
 
-The downloaded JAR passed archive-integrity checks and includes the item physics handler, custom dropped-item renderer, OBJETOS settings screen, original textures and 0.6.0 metadata.
+**Límite de renderizado:** las vetas son un overlay procedural, no un material reemplazado ni un shader de distorsión térmica.
 
-Install the compiled JAR in `.minecraft/mods` with Minecraft Java 1.12.2 and Forge 14.23.5.2847.
+## Ajustes de vídeo
 
-## Compatibility notes
+La pantalla existente conserva su distribución inspirada en OptiFine: Quality, Details, Performance, Animations, Water/Lava, Items, World y Other. No se crea una interfaz nueva ni se añaden imágenes.
 
-The internal mod ID remains `voxelcore`. Optional item-distance culling is disabled by default. Vanilla item models and fluid blocks are retained. A live Minecraft client launch and multiplayer runtime test have not been performed in this build environment.
+## Compatibilidad y pruebas
+
+Minecraft Java 1.12.2 · Forge 14.23.5.2864 · Java 8 · ForgeGradle 3.x · Gradle 5.6.4.
+
+CI comprueba compilación y compatibilidad fuente/API. La comprobación visual dentro del cliente, medición en diferentes GPU, multijugador y pruebas prolongadas siguen siendo necesarias.

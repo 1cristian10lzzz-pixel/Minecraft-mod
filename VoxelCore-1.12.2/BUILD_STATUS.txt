@@ -1,29 +1,35 @@
-Minefade Mod 0.7.1 build status
+Minefade Mod 0.8.0 build status
 
+Source branch: minefade-0.8.0-realistic-water
+Source commit tested: 2bce245860e333dead442f9ec3e7f11f6feefcc7
+Minecraft: Java 1.12.2
+Forge: 14.23.5.2847
+Toolchain: JDK 8, Gradle 4.10.3, ForgeGradle 2.3.
+
+Resource validation: PASSED.
 Forge compilation: PASSED.
-GitHub Actions run: #53
-Run ID: 45838678259
-Run URL: https://github.com/1cristian10lzzz-pixel/Minecraft-mod/actions/runs/45838678259
-Build commit: f215437f1e8927493f90b9a57feaa853fb9d683f
-Toolchain: Minecraft 1.12.2 / Forge 14.23.5.2847, JDK 8, Gradle 4.10.3, ForgeGradle 2.3.
-Resource validation: PASSED with tools/validate_assets.py.
-JAR artifact: minefade-0.7.1.jar (101,998 bytes).
-GitHub Actions artifact name: minefade-mod-minecraft-1.12.2-v0.7.1
-GitHub Actions artifact ID: 15126578103 (30-day retention).
-JAR SHA-256: 949ab73eae7c68f374f14d32a2926dc0335a2bfaf691fa48249f928493f675ed
-Artifact ZIP SHA-256: 03eaa561aa4658ddc8362f2698dda068c4b71aad7e27af0fddaf6f347e2b1e74
+GitHub Actions run: #61
+Run ID: 45954678406
+Run URL: https://github.com/1cristian10lzzz-pixel/Minecraft-mod/actions/runs/45954678406
+JAR artifact: minefade-0.8.0.jar (109,941 bytes).
+GitHub Actions artifact: minefade-mod-minecraft-1.12.2-v0.8.0
+Artifact ID: 15178541272
+JAR SHA-256: 10d303524a5deeea3f094efcd1d153ace0771f0c2eb25660c8536d664ec0109f
 
-The GitHub Actions artifact ZIP and extracted JAR passed ZIP/CRC integrity checks. The JAR contains the expected main mod, PlayerAnimationHandler, MinefadePlayerModel, DroppedItemPhysicsHandler, MinefadeDroppedItemRenderer and WaterEffectsHandler. Manifest and mcmod.info report version 0.7.1; mcmod.info confirms modid "voxelcore" and Minecraft 1.12.2.
+Runtime inside a real Minecraft client, dedicated server or LAN world: NOT TESTED.
 
-0.7.1 changes:
-- Installs the player animation model before vanilla pose calculation and caches it per renderer to avoid per-frame allocation. Default/slim skin geometry and overlays are preserved.
-- Ground item rendering binds Minecraft's item atlas, uses one reduced-size baked model per dropped stack and retains the model's GROUND transform.
-- Adds a server-side proximity recovery that delegates to EntityItem.onCollideWithPlayer, preserving vanilla pickup delay, inventory capacity and transfer rules.
-- Reduces nearby water surface scan frequency/radius, smooths ripple rings, retains batched drawing and adaptive quality.
-- Throttles optional liquid buoyancy scans.
-- Existing PNG files were not changed; no images were created or added.
-- Preserves internal mod ID "voxelcore", Minecraft/Forge targets, and existing registry IDs.
+0.8.0 changes:
+- Custom calm surface mesh over exposed Minecraft water with shared smoothed corner heights.
+- Biome/depth colour absorption, sky reflection approximation, view-angle Fresnel response, daylight-dependent specular highlights and shoreline foam.
+- No geometric wave displacement and no expanding circular ring geometry. Reflections/highlights and foam brightness can change without moving the surface.
+- Underwater colour absorption and depth-based fog, rising bubbles, local splashes/wakes and waterfall mist.
+- Water remains vanilla in block identity, flow, level, collision, bucket interactions, world state and server simulation; Minefade changes client-side presentation only.
+- Dropped-item buoyancy uses gentler drag/lift and damping near the surface to reduce bobbing jitter.
+- Swimming animation includes alternating leg kicks.
+- No GUI or interface files changed. No images or textures created, modified or added.
+- Mod ID remains "voxelcore"; Minecraft/Forge version and existing item/block registry IDs remain compatible.
 
-Runtime inside an actual Minecraft client, dedicated server or LAN world: NOT TESTED in this environment. Successful compilation and archive checks do not guarantee absence of runtime interaction bugs.
+Important rendering limit:
+The custom surface uses procedural vertex geometry and a sky-colour/specular approximation. It does not provide full screen-space reflections, true refraction or a physically based fluid simulation. Those require full shader/framebuffer or chunk-renderer integration and carry greater Forge 1.12.2 compatibility risk.
 
-Install: copy Minefade-Mod-0.7.1-Forge-1.12.2.jar into .minecraft/mods with Minecraft Java 1.12.2 and Forge 14.23.5.2847. Internal mod ID remains "voxelcore".
+A passing Forge build and asset validation do not prove actual in-game behaviour. Client rendering and dedicated/LAN runtime tests remain required.

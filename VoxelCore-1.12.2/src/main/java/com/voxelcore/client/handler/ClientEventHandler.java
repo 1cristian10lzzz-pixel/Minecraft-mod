@@ -12,6 +12,7 @@ import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -22,12 +23,24 @@ import java.util.Locale;
 public class ClientEventHandler {
     private static final int SAMPLE_COUNT = 120;
     private final double[] frameSamplesMs = new double[SAMPLE_COUNT];
+    private final double[] percentileScratch = new double[SAMPLE_COUNT];
     private long lastFrameNanos;
     private double averageFrameMs;
     private int sampleIndex;
     private int sampleSize;
     private int overlayRefreshCounter;
     private String[] cachedLines = new String[0];
+
+    @SubscribeEvent
+    public void onClientTick(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc.world == null) {
+            ParticleQualityController.restore(mc);
+            return;
+        }
+        ParticleQualityController.update(mc);
+    }
 
     @SubscribeEvent
     public void onChunkLoad(ChunkEvent.Load event) {
@@ -42,7 +55,10 @@ public class ClientEventHandler {
     @SubscribeEvent
     public void onWorldUnload(WorldEvent.Unload event) {
         if (event.getWorld().isRemote) {
-            ChunkTracker.clear();
+            ParticleQualityController.restore(Minecraft.getMinecraft());
+            ChunkTracker.clearDimension(event.getWorld().provider.getDimension());
+            BlockSurfaceDetailRenderer.clearCache();
+            LavaSurfaceRenderer.clearCache();
             WaterEffectsHandler.clearAll();
             resetFrameSamples();
             cachedLines = new String[0];
@@ -119,11 +135,10 @@ public class ClientEventHandler {
 
     private double get95thPercentileFrameMs() {
         if (sampleSize == 0) return 0.0D;
-        double[] values = new double[sampleSize];
-        System.arraycopy(frameSamplesMs, 0, values, 0, sampleSize);
-        Arrays.sort(values);
-        int index = Math.min(values.length - 1, (int) Math.ceil(values.length * 0.95D) - 1);
-        return values[index];
+        System.arraycopy(frameSamplesMs, 0, percentileScratch, 0, sampleSize);
+        Arrays.sort(percentileScratch, 0, sampleSize);
+        int index = Math.min(sampleSize - 1, (int) Math.ceil(sampleSize * 0.95D) - 1);
+        return percentileScratch[index];
     }
 
     private String[] createLines(Minecraft mc) {

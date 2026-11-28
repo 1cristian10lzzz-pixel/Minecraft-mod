@@ -10,8 +10,11 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 /**
- * Small secondary animation layer. Vanilla first calculates the base pose;
- * Minefade then adds motion and synchronizes the skin overlay pieces.
+ * Conservative additive animation layer.
+ *
+ * Vanilla calculates the primary pose first. Minefade only adds small,
+ * state-aware offsets; it never replaces the vanilla crouch, elytra, attack,
+ * jump, skin or equipment pose. That avoids the old double-pose artefacts.
  */
 @SideOnly(Side.CLIENT)
 public final class MinefadePlayerModel extends ModelPlayer {
@@ -25,61 +28,94 @@ public final class MinefadePlayerModel extends ModelPlayer {
         super.setRotationAngles(limbSwing, limbSwingAmount, ageInTicks,
                 netHeadYaw, headPitch, scaleFactor, entityIn);
 
-        if (!ModConfig.ENABLE_PLAYER_ANIMATIONS || !(entityIn instanceof EntityPlayer)) return;
+        if (!ModConfig.ENABLE_PLAYER_ANIMATIONS || !(entityIn instanceof EntityPlayer)
+                || ModConfig.PLAYER_ANIMATION_STRENGTH <= 0) return;
+
         EntityPlayer player = (EntityPlayer) entityIn;
-
-        float walk = clamp(limbSwingAmount, 0.0F, 1.0F);
+        float intensity = clamp(ModConfig.PLAYER_ANIMATION_STRENGTH / 100.0F, 0.0F, 1.0F);
+        float gait = clamp(limbSwingAmount, 0.0F, 1.0F);
         float phase = limbSwing;
-        float sway = (float) Math.sin(phase) * walk;
-        float bob = (float) Math.sin(phase * 0.5F) * walk;
+        float stride = (float) Math.sin(phase) * gait;
+        float oppositeStride = (float) Math.cos(phase) * gait;
         float strafe = clamp(player.moveStrafing, -1.0F, 1.0F);
-        float sprint = player.isSprinting() ? 1.0F : 0.0F;
-        float crouch = player.isSneaking() ? 1.0F : 0.0F;
+        float forward = clamp(player.moveForward, -1.0F, 1.0F);
+        boolean inWater = player.isInsideOfMaterial(Material.WATER);
+        boolean onLadder = player.isOnLadder();
+        boolean sprinting = player.isSprinting() && !inWater && !onLadder;
 
-        // Subtle body weight shift and arm counter-swing over vanilla locomotion.
-        bipedBody.rotateAngleX += 0.035F * bob + 0.045F * sprint + 0.018F * crouch;
-        bipedBody.rotateAngleZ -= strafe * (0.035F + 0.018F * walk);
-        bipedHead.rotateAngleZ += strafe * 0.018F;
-        bipedRightArm.rotateAngleZ += -0.028F * sway + strafe * 0.018F;
-        bipedLeftArm.rotateAngleZ += 0.028F * sway + strafe * 0.018F;
-        bipedRightArm.rotateAngleX -= 0.025F * bob;
-        bipedLeftArm.rotateAngleX += 0.025F * bob;
-        bipedRightLeg.rotateAngleZ -= strafe * 0.010F;
-        bipedLeftLeg.rotateAngleZ -= strafe * 0.010F;
+        // Small centre-of-mass response while walking and turning.
+        bipedBody.rotateAngleY += -stride * 0.018F * intensity;
+        bipedBody.rotateAngleZ -= strafe * (0.025F + gait * 0.012F) * intensity;
+        bipedHead.rotateAngleZ += strafe * 0.010F * intensity;
 
-        if (player.isInsideOfMaterial(Material.WATER)) {
-            float paddle = (float) Math.sin(phase * 0.62F) * 0.075F;
-            bipedRightArm.rotateAngleX += paddle;
-            bipedLeftArm.rotateAngleX -= paddle;
-            bipedBody.rotateAngleX -= 0.025F;
+        // Running adds only a little arm follow-through to the vanilla counter-swing.
+        if (sprinting && player.onGround) {
+            float pump = oppositeStride * 0.055F * intensity;
+            bipedRightArm.rotateAngleX += pump;
+            bipedLeftArm.rotateAngleX -= pump;
+            bipedBody.rotateAngleX += Math.abs(forward) * 0.028F * intensity;
         }
 
-        if (player.isElytraFlying()) {
-            bipedBody.rotateAngleX -= 0.075F;
-            bipedRightArm.rotateAngleZ -= 0.055F;
-            bipedLeftArm.rotateAngleZ += 0.055F;
+        // Climbing: vanilla remains responsible for the base limb angles.
+        // This adds a light alternating reach rather than forcing a new pose.
+        if (onLadder && !inWater) {
+            float climb = (float) Math.sin(ageInTicks * 0.16F) * 0.07F * intensity;
+            bipedRightArm.rotateAngleX += climb;
+            bipedLeftArm.rotateAngleX -= climb;
+            bipedRightLeg.rotateAngleX -= climb * 0.32F;
+            bipedLeftLeg.rotateAngleX += climb * 0.32F;
         }
 
+        // Swimming strokes scale with actual movement; an idle underwater player
+        // no longer paddles continuously while standing still.
+        float swimActivity = clamp(Math.abs(forward) + Math.abs(strafe)
+                + Math.min(0.45F, (float) Math.abs(player.motionY) * 1.8F), 0.0F, 1.0F);
+        if (inWater && swimActivity > 0.06F) {
+            float swimBlend = intensity * swimActivity;
+            float swimPhase = ageInTicks * (0.065F + swimActivity * 0.04F) + phase * 0.16F;
+            float rightStroke = (float) Math.sin(swimPhase) * 0.085F * swimBlend;
+            float leftStroke = (float) Math.sin(swimPhase + Math.PI) * 0.085F * swimBlend;
+            float rightKick = (float) Math.sin(swimPhase + Math.PI * 0.5D) * 0.070F * swimBlend;
+            float leftKick = (float) Math.sin(swimPhase - Math.PI * 0.5D) * 0.070F * swimBlend;
+            bipedBody.rotateAngleX -= 0.025F * swimBlend;
+            bipedRightArm.rotateAngleX += rightStroke;
+            bipedLeftArm.rotateAngleX += leftStroke;
+            bipedRightLeg.rotateAngleX += rightKick;
+            bipedLeftLeg.rotateAngleX += leftKick;
+        }
+
+        // The vanilla elytra pose and falling transitions are intentionally
+        // left intact; no absolute arm angles are assigned here.
         float attack = this.swingProgress;
-        if (attack > 0.0F) {
-            float impact = (float) Math.sin(Math.sqrt(attack) * Math.PI);
-            bipedBody.rotateAngleY += impact * 0.075F;
-            if (player.getPrimaryHand() == EnumHandSide.RIGHT) {
-                bipedRightArm.rotateAngleX -= impact * 0.025F;
-            } else {
-                bipedLeftArm.rotateAngleX -= impact * 0.025F;
+        if (attack > 0.0F && player.getPrimaryHand() == EnumHandSide.RIGHT) {
+            bipedLeftArm.rotateAngleZ += attack * 0.018F * intensity;
+        } else if (attack > 0.0F) {
+            bipedRightArm.rotateAngleZ -= attack * 0.018F * intensity;
+        }
+
+        // Subtle breathing only while genuinely idle; never fights locomotion.
+        double horizontalSpeedSq = player.motionX * player.motionX + player.motionZ * player.motionZ;
+        if (horizontalSpeedSq < 0.0004D && !inWater && !player.isElytraFlying()
+                && !player.isSneaking() && !onLadder) {
+            float breathPhase = ageInTicks * 0.075F + player.getEntityId() * 0.17F;
+            float breath = (float) Math.sin(breathPhase) * 0.0035F * intensity;
+            bipedBody.rotateAngleX += breath;
+            bipedHead.rotateAngleX += breath * 0.25F;
+
+            // Relaxed arm/shoulder motion only while the hands are free.
+            // Never interfere with item use, blocking, bows or an active attack.
+            if (!player.isHandActive() && this.swingProgress < 0.01F) {
+                float idleSway = (float) Math.sin(breathPhase * 0.72F) * 0.006F * intensity;
+                float idleFollow = (float) Math.cos(breathPhase * 0.72F) * 0.0035F * intensity;
+                bipedRightArm.rotateAngleZ += idleSway;
+                bipedLeftArm.rotateAngleZ -= idleSway;
+                bipedRightArm.rotateAngleX += idleFollow;
+                bipedLeftArm.rotateAngleX += idleFollow;
             }
         }
 
-        double horizontalSpeedSq = player.motionX * player.motionX + player.motionZ * player.motionZ;
-        if (horizontalSpeedSq < 0.0004D && !player.isInsideOfMaterial(Material.WATER)) {
-            float breath = (float) Math.sin(ageInTicks * 0.08F) * 0.006F;
-            bipedBody.rotateAngleX += breath;
-            bipedHead.rotateAngleX += breath * 0.30F;
-        }
-
-        // ModelPlayer copies these angles during super.setRotationAngles(), before our additions.
-        // Copy again so sleeves, trousers and torso overlay follow the animated base parts.
+        // Keep every wearable overlay aligned after all additive rotations.
+        copyModelAngles(bipedHead, bipedHeadwear);
         copyModelAngles(bipedBody, bipedBodyWear);
         copyModelAngles(bipedRightArm, bipedRightArmwear);
         copyModelAngles(bipedLeftArm, bipedLeftArmwear);

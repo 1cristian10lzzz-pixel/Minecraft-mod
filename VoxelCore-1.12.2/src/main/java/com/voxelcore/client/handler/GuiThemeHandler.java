@@ -10,6 +10,7 @@ import net.minecraft.client.gui.GuiIngameMenu;
 import net.minecraft.client.gui.GuiMainMenu;
 import net.minecraft.client.gui.GuiOptionButton;
 import net.minecraft.client.gui.GuiOptions;
+import net.minecraft.client.gui.GuiVideoSettings;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraftforge.client.event.GuiScreenEvent;
@@ -29,6 +30,7 @@ public class GuiThemeHandler {
     public void onGuiInit(GuiScreenEvent.InitGuiEvent.Post event) {
         if (!ModConfig.ENABLE_UI_THEME) return;
         GuiScreen screen = event.getGui();
+        if (screen instanceof MinefadeSettingsScreen) return;
         List<GuiButton> buttons = event.getButtonList();
         ListIterator<GuiButton> iterator = buttons.listIterator();
 
@@ -40,7 +42,8 @@ public class GuiThemeHandler {
             }
         }
 
-        if (screen instanceof GuiMainMenu || screen instanceof GuiIngameMenu || screen instanceof GuiOptions) {
+        if (screen instanceof GuiMainMenu || screen instanceof GuiIngameMenu
+                || screen instanceof GuiOptions || screen instanceof GuiVideoSettings) {
             boolean exists = false;
             for (GuiButton button : buttons) {
                 if (button.id == MINEFADE_BUTTON_ID) exists = true;
@@ -63,7 +66,7 @@ public class GuiThemeHandler {
     public void onGuiDraw(GuiScreenEvent.DrawScreenEvent.Post event) {
         if (!ModConfig.ENABLE_UI_THEME) return;
         GuiScreen screen = event.getGui();
-        if (screen == null || screen instanceof GuiChat) return;
+        if (screen == null || screen instanceof GuiChat || screen instanceof MinefadeSettingsScreen) return;
 
         // A very small identity strip stays in the outer margin and does not cover container slots.
         int width = screen.width;
