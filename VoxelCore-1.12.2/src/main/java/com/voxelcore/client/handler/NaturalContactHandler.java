@@ -23,6 +23,8 @@ public final class NaturalContactHandler {
     private double previousZ;
     private int tick;
     private int lastSlimeLandingTick = -100;
+    private boolean wasOnGround;
+    private double previousMotionY;
     private World trackedWorld;
 
     @SubscribeEvent
@@ -42,6 +44,8 @@ public final class NaturalContactHandler {
             previousZ = player.posZ;
             tick = 0;
             lastSlimeLandingTick = -100;
+            wasOnGround = player.onGround;
+            previousMotionY = player.motionY;
         }
         tick++;
 
@@ -60,12 +64,14 @@ public final class NaturalContactHandler {
         // Vanilla slime blocks retain their normal bounce. Minefade adds only
         // a small contact burst after a meaningful fall; no extra force is added.
         IBlockState groundState = world.getBlockState(ground);
+        boolean landedThisTick = player.onGround && !wasOnGround && previousMotionY < -0.08D;
         if (com.voxelcore.config.ModConfig.ENABLE_SLIME_CONTACT
-                && player.onGround && groundState.getBlock() == Blocks.SLIME_BLOCK
-                && player.motionY > 0.15D && tick - lastSlimeLandingTick > 8) {
+                && landedThisTick && groundState.getBlock() == Blocks.SLIME_BLOCK
+                && tick - lastSlimeLandingTick > 8) {
             lastSlimeLandingTick = tick;
             int particleState = net.minecraft.block.Block.getStateId(groundState);
-            for (int i = 0; i < 5; i++) {
+            int particleCount = Minecraft.getMinecraft().gameSettings.particleSetting == 2 ? 2 : 5;
+            for (int i = 0; i < particleCount; i++) {
                 double ox = (world.rand.nextDouble() - 0.5D) * 0.7D;
                 double oz = (world.rand.nextDouble() - 0.5D) * 0.7D;
                 world.spawnParticle(EnumParticleTypes.BLOCK_CRACK,
@@ -77,6 +83,8 @@ public final class NaturalContactHandler {
 
         previousX = player.posX;
         previousZ = player.posZ;
+        wasOnGround = player.onGround;
+        previousMotionY = player.motionY;
     }
 
     private static void spawnVegetationContact(World world,
