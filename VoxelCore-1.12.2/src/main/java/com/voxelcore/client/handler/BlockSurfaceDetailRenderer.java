@@ -212,7 +212,7 @@ public final class BlockSurfaceDetailRenderer {
         // Two tiny mineral flecks per exposed face; deterministic positions avoid shimmer.
         for (int face = 0; face < 6; face++) {
             if ((detail.faces & (1 << face)) == 0) continue;
-            int density = com.voxelcore.config.ModConfig.BLOCK_DETAIL_DENSITY >= 3 ? 2 : 1;
+            int density = Math.max(1, Math.min(3, com.voxelcore.config.ModConfig.BLOCK_DETAIL_DENSITY));
             for (int grain = 0; grain < density; grain++) {
                 int seed = mix(detail.seed + face * 19349663 + grain * 83492791);
                 double u = 0.16D + unit(seed) * 0.68D;
