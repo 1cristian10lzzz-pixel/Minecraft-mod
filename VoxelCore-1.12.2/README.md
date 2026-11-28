@@ -1,8 +1,14 @@
-# Minefade Mod 0.12.0 — Minecraft Java 1.12.2
+# Minefade Mod 0.13.0 — Minecraft Java 1.12.2
 
 Forge 14.23.5.2864 · Java 8 · ForgeGradle 3.x (UserDev 3) · Gradle 5.6.4
 
-Minefade 0.12.0 es una actualización de realismo ambiental, interacción con materiales y rendimiento. Mantiene el mod ID `voxelcore`, los IDs registrados de bloques/objetos, la simulación vanilla de fluidos y el contenido existente.
+Minefade 0.13.0 amplía la respuesta de materiales y las transiciones de agua, manteniendo el contenido e interfaces ya existentes. Mantiene el mod ID `voxelcore`, los IDs registrados de bloques/objetos, la simulación vanilla de fluidos y el contenido existente.
+
+## Nuevas respuestas de contacto
+
+- Al aterrizar tras una caída suficiente, se genera un pequeño efecto de partículas adaptado al bloque de apoyo. La nieve usa polvo; los suelos sólidos usan fragmentos del estado de bloque.
+- La intensidad está limitada y sigue el ajuste de partículas. El efecto no cambia el daño ni la simulación del jugador.
+- Al salir del agua se puede generar una salpicadura pequeña si la superficie sigue cerca; el estado de inmersión se conserva aunque el escaneo local no encuentre agua durante unos ticks.
 
 ## Realismo de agua y lluvia
 

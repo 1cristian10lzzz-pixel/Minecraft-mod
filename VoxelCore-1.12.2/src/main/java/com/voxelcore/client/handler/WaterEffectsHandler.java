@@ -102,29 +102,37 @@ public class WaterEffectsHandler {
         boolean inWater = player.isInsideOfMaterial(Material.WATER) || ridingBoat;
         BlockPos surface = cachedSurface;
 
-        if (inWater && surface != null) {
-            double dx = player.posX - previousX;
-            double dz = player.posZ - previousZ;
-            double movementSq = dx * dx + dz * dz;
+        if (inWater) {
+            // Keep the transition state even when the local surface scan has
+            // no result. This avoids a false entry splash several ticks after
+            // the player was already submerged.
+            if (surface != null) {
+                double dx = player.posX - previousX;
+                double dz = player.posZ - previousZ;
+                double movementSq = dx * dx + dz * dz;
 
-            if (!previousInWater && ModConfig.ENABLE_WATER_SPLASHES) {
-                spawnEntrySplash(world, player, surface);
-            }
+                if (!previousInWater && ModConfig.ENABLE_WATER_SPLASHES) {
+                    spawnEntrySplash(world, player, surface);
+                }
 
-            if (movementSq > 0.0008D) {
-                int wakeInterval = reducedQuality ? 8 : 4;
-                if (ModConfig.ENABLE_WATER_SPLASHES && tickCounter % wakeInterval == 0) {
-                    double surfaceY = getWaterSurfaceY(world, surface) + 0.012D;
-                    world.spawnParticle(EnumParticleTypes.WATER_WAKE, player.posX, surfaceY,
-                            player.posZ, -dx * 2.0D, 0.0D, -dz * 2.0D);
-                    if (movementSq > 0.0018D) {
-                        world.spawnParticle(EnumParticleTypes.WATER_SPLASH, player.posX, surfaceY,
-                                player.posZ, dx * 0.7D, 0.025D, dz * 0.7D);
+                if (movementSq > 0.0008D) {
+                    int wakeInterval = reducedQuality ? 8 : 4;
+                    if (ModConfig.ENABLE_WATER_SPLASHES && tickCounter % wakeInterval == 0) {
+                        double surfaceY = getWaterSurfaceY(world, surface) + 0.012D;
+                        world.spawnParticle(EnumParticleTypes.WATER_WAKE, player.posX, surfaceY,
+                                player.posZ, -dx * 2.0D, 0.0D, -dz * 2.0D);
+                        if (movementSq > 0.0018D) {
+                            world.spawnParticle(EnumParticleTypes.WATER_SPLASH, player.posX, surfaceY,
+                                    player.posZ, dx * 0.7D, 0.025D, dz * 0.7D);
+                        }
                     }
                 }
             }
             previousInWater = true;
         } else {
+            if (previousInWater && surface != null && ModConfig.ENABLE_WATER_SPLASHES) {
+                spawnExitSplash(world, player, surface);
+            }
             previousInWater = false;
         }
 
@@ -254,6 +262,27 @@ public class WaterEffectsHandler {
         IBlockState state = world.getBlockState(surface);
         if (state.getMaterial() != Material.WATER) return surface.getY() + 0.9D;
         return BlockLiquid.getLiquidHeight(state, world, surface);
+    }
+
+    private static void spawnExitSplash(World world, EntityPlayer player, BlockPos surface) {
+        if (surface == null || !world.isBlockLoaded(surface)) return;
+        double surfaceY = getWaterSurfaceY(world, surface);
+        double dx = player.posX - (surface.getX() + 0.5D);
+        double dz = player.posZ - (surface.getZ() + 0.5D);
+        if (dx * dx + dz * dz > 2.25D
+                || Math.abs(player.posY - surfaceY) > 1.6D) return;
+
+        int count = Minecraft.getMinecraft().gameSettings.particleSetting == 2 ? 1 : 3;
+        for (int i = 0; i < count; i++) {
+            double angle = RANDOM.nextDouble() * Math.PI * 2.0D;
+            double speed = 0.018D + RANDOM.nextDouble() * 0.035D;
+            world.spawnParticle(EnumParticleTypes.WATER_SPLASH,
+                    surface.getX() + 0.5D + (RANDOM.nextDouble() - 0.5D) * 0.32D,
+                    surfaceY + 0.018D,
+                    surface.getZ() + 0.5D + (RANDOM.nextDouble() - 0.5D) * 0.32D,
+                    Math.cos(angle) * speed, 0.025D + RANDOM.nextDouble() * 0.025D,
+                    Math.sin(angle) * speed);
+        }
     }
 
     private static void spawnEntrySplash(World world, EntityPlayer player, BlockPos surface) {

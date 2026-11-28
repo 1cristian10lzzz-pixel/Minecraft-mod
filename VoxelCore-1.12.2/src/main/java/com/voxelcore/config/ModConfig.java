@@ -55,6 +55,7 @@ public final class ModConfig {
     public static int BLOCK_DETAIL_DENSITY = 2;
     public static boolean ENABLE_VEGETATION_CONTACT = true;
     public static boolean ENABLE_SLIME_CONTACT = true;
+    public static boolean ENABLE_LANDING_IMPACTS = true;
     public static boolean ENABLE_MATERIAL_FOOTSTEPS = true;
 
     public static boolean ENABLE_REALISTIC_ITEM_PHYSICS = true;
@@ -162,6 +163,8 @@ public final class ModConfig {
                 "Add small contact particles when moving through vanilla vegetation.").getBoolean(true);
         ENABLE_SLIME_CONTACT = configuration.get(CAT_MATERIALS, "slimeContact", true,
                 "Add contact particles on vanilla slime-block landings.").getBoolean(true);
+        ENABLE_LANDING_IMPACTS = configuration.get(CAT_MATERIALS, "landingImpacts", true,
+                "Add a small material-matched particle response when the player lands after a fall.").getBoolean(true);
         ENABLE_MATERIAL_FOOTSTEPS = configuration.get(CAT_MATERIALS, "materialFootsteps", true,
                 "Add subtle block-coloured footstep particles on natural surfaces.").getBoolean(true);
         ENABLE_PLAYER_ANIMATIONS = configuration.get(CAT_ANIMATION, "enablePlayerAnimations", true,
@@ -231,6 +234,7 @@ public final class ModConfig {
         BLOCK_DETAIL_DENSITY = configuration.get(CAT_MATERIALS, "detailDensity", 2).getInt(2);
         ENABLE_VEGETATION_CONTACT = configuration.get(CAT_MATERIALS, "vegetationContact", true).getBoolean(true);
         ENABLE_SLIME_CONTACT = configuration.get(CAT_MATERIALS, "slimeContact", true).getBoolean(true);
+        ENABLE_LANDING_IMPACTS = configuration.get(CAT_MATERIALS, "landingImpacts", true).getBoolean(true);
         ENABLE_MATERIAL_FOOTSTEPS = configuration.get(CAT_MATERIALS, "materialFootsteps", true).getBoolean(true);
         ENABLE_PLAYER_ANIMATIONS = configuration.get(CAT_ANIMATION, "enablePlayerAnimations", true).getBoolean(true);
         PLAYER_ANIMATION_STRENGTH = configuration.get(CAT_ANIMATION, "animationStrength", 55,
@@ -325,6 +329,7 @@ public final class ModConfig {
         configuration.get(CAT_MATERIALS, "detailDensity", 2).set(BLOCK_DETAIL_DENSITY);
         configuration.get(CAT_MATERIALS, "vegetationContact", true).set(ENABLE_VEGETATION_CONTACT);
         configuration.get(CAT_MATERIALS, "slimeContact", true).set(ENABLE_SLIME_CONTACT);
+        configuration.get(CAT_MATERIALS, "landingImpacts", true).set(ENABLE_LANDING_IMPACTS);
         configuration.get(CAT_MATERIALS, "materialFootsteps", true).set(ENABLE_MATERIAL_FOOTSTEPS);
         configuration.get(CAT_ANIMATION, "enablePlayerAnimations", true).set(ENABLE_PLAYER_ANIMATIONS);
         configuration.get(CAT_ANIMATION, "animationStrength", 55).set(PLAYER_ANIMATION_STRENGTH);

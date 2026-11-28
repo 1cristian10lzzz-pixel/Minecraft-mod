@@ -1,3 +1,11 @@
+## 0.13.0 — Impactos de aterrizaje y transiciones de agua
+
+- Añade partículas de aterrizaje según el material: nieve desprende polvo; piedra, tierra, arena y otros suelos sólidos levantan fragmentos discretos según la altura de la caída.
+- El efecto usa la distancia de caída acumulada y respeta la calidad de partículas. No cambia el daño de caída, las colisiones, el rebote del slime ni la física vanilla.
+- Corrige el seguimiento del estado de inmersión para que encontrar tarde una superficie cercana no provoque una salpicadura falsa de entrada.
+- Añade una salpicadura pequeña al salir del agua, limitada a una superficie realmente cercana y a una diferencia de altura razonable.
+- Evita consultar el bloque bajo el jugador en cada tick: la lectura de apoyo se realiza solo al detectar un aterrizaje.
+
 ## 0.12.0 — Realismo de materiales, fluidos e interacción
 
 - Corrige la altura de estelas, salpicaduras al entrar al agua e impactos de lluvia usando `BlockLiquid.getLiquidHeight`; los efectos siguen el nivel real del agua corriente.

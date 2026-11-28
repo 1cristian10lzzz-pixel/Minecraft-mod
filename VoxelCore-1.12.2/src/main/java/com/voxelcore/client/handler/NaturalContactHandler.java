@@ -1,6 +1,9 @@
 package com.voxelcore.client.handler;
 
+import com.voxelcore.config.ModConfig;
+import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.EnumParticleTypes;
@@ -26,6 +29,7 @@ public final class NaturalContactHandler {
     private int lastSlimeLandingTick = -100;
     private boolean wasOnGround;
     private double previousMotionY;
+    private float maxFallDistance;
     private World trackedWorld;
 
     @SubscribeEvent
@@ -38,6 +42,7 @@ public final class NaturalContactHandler {
             lastSlimeLandingTick = -100;
             wasOnGround = false;
             previousMotionY = 0.0D;
+            maxFallDistance = 0.0F;
         }
     }
 
@@ -60,6 +65,7 @@ public final class NaturalContactHandler {
             lastSlimeLandingTick = -100;
             wasOnGround = player.onGround;
             previousMotionY = player.motionY;
+            maxFallDistance = 0.0F;
         }
         tick++;
 
@@ -75,13 +81,28 @@ public final class NaturalContactHandler {
             spawnVegetationContact(world, player, ground);
         }
 
-        // Vanilla slime blocks retain their normal bounce. Minefade adds only
-        // a small contact burst after a falling-to-ground transition.
-        if (slimeEnabled) {
+        boolean landedThisTick = player.onGround && !wasOnGround
+                && previousMotionY < -0.08D;
+        if (!player.onGround) {
+            maxFallDistance = Math.max(maxFallDistance, player.fallDistance);
+        }
+
+        // Read the supporting block only on a real landing. This keeps the
+        // per-tick contact handler from doing an unnecessary block lookup.
+        if (landedThisTick && world.isBlockLoaded(ground)) {
             IBlockState groundState = world.getBlockState(ground);
-            boolean landedThisTick = player.onGround && !wasOnGround
-                    && previousMotionY < -0.08D;
-            if (landedThisTick && groundState.getBlock() == Blocks.SLIME_BLOCK
+            float impactDistance = Math.max(maxFallDistance, player.fallDistance);
+
+            // A light, material-matched landing response; vanilla fall damage,
+            // knockback, collisions and slime bounce are left untouched.
+            if (ModConfig.ENABLE_LANDING_IMPACTS && impactDistance >= 1.35F
+                    && groundState.getBlock() != Blocks.SLIME_BLOCK) {
+                spawnLandingImpact(world, player, ground, groundState, impactDistance);
+            }
+
+            // Vanilla slime blocks retain their normal bounce. Minefade adds
+            // only a small contact burst after the falling-to-ground transition.
+            if (slimeEnabled && groundState.getBlock() == Blocks.SLIME_BLOCK
                     && tick - lastSlimeLandingTick > 8) {
                 lastSlimeLandingTick = tick;
                 int particleState = net.minecraft.block.Block.getStateId(groundState);
@@ -96,11 +117,46 @@ public final class NaturalContactHandler {
                 }
             }
         }
+        if (player.onGround) maxFallDistance = 0.0F;
 
         previousX = player.posX;
         previousZ = player.posZ;
         wasOnGround = player.onGround;
         previousMotionY = player.motionY;
+    }
+
+    private static void spawnLandingImpact(World world, EntityPlayer player,
+                                            BlockPos ground, IBlockState state,
+                                            float fallDistance) {
+        Material material = state.getMaterial();
+        if (material != Material.SNOW && !material.isSolid()) return;
+
+        int particleSetting = Minecraft.getMinecraft().gameSettings.particleSetting;
+        int count = 2 + Math.min(5, Math.max(0, (int) ((fallDistance - 1.0F) * 1.35F)));
+        if (particleSetting == 2) count = 1;
+        else if (particleSetting == 1) count = Math.max(1, (count + 1) / 2);
+
+        EnumParticleTypes particle = material == Material.SNOW
+                ? EnumParticleTypes.SNOW_SHOVEL : EnumParticleTypes.BLOCK_CRACK;
+        int stateId = net.minecraft.block.Block.getStateId(state);
+        double y = ground.getY() + 1.015D;
+        double speed = 0.018D + Math.min(0.045D, fallDistance * 0.004D);
+
+        for (int i = 0; i < count; i++) {
+            double angle = world.rand.nextDouble() * Math.PI * 2.0D;
+            double radius = 0.10D + world.rand.nextDouble() * 0.24D;
+            double vx = Math.cos(angle) * speed;
+            double vz = Math.sin(angle) * speed;
+            double x = player.posX + Math.cos(angle) * radius;
+            double z = player.posZ + Math.sin(angle) * radius;
+            double vy = 0.012D + world.rand.nextDouble() * 0.024D;
+
+            if (particle == EnumParticleTypes.SNOW_SHOVEL) {
+                world.spawnParticle(particle, x, y, z, vx, vy, vz);
+            } else {
+                world.spawnParticle(particle, x, y, z, vx, vy, vz, stateId);
+            }
+        }
     }
 
     private static void spawnVegetationContact(World world,

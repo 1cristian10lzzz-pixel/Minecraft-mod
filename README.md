@@ -1,8 +1,14 @@
 # Minefade Mod — Minecraft Java 1.12.2
 
-Current source line: **0.12.0** · Forge 14.23.5.2864 · ForgeGradle 3.x · Gradle 5.6.4 · Java 8
+Current source line: **0.13.0** · Forge 14.23.5.2864 · ForgeGradle 3.x · Gradle 5.6.4 · Java 8
 
 Minefade improves existing Minecraft 1.12.2 rendering and gameplay systems while retaining the `voxelcore` mod ID, registered content IDs, vanilla fluid simulation and original gameplay content.
+
+## 0.13.0 — Impactos de aterrizaje y transiciones de agua
+
+- **Aterrizajes por material:** tras una caída suficiente aparecen partículas discretas del suelo real; la nieve levanta polvo y los suelos sólidos desprenden fragmentos.
+- **Física vanilla intacta:** no se cambia el daño de caída, los rebotes de slime, las colisiones ni el movimiento del jugador.
+- **Salidas del agua:** añade una salpicadura breve al salir cerca de una superficie; el seguimiento de inmersión evita entradas falsas cuando el escaneo encuentra tarde el agua.
 
 ## 0.12.0 — Realismo de materiales, fluidos e interacción
 
