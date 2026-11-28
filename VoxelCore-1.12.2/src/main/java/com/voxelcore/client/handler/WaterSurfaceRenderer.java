@@ -19,9 +19,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Renders a calm, custom water surface over Minecraft's existing water blocks.
@@ -124,44 +122,6 @@ public final class WaterSurfaceRenderer {
             }
         }
 
-    }
-
-    /**
-     * Derive each vertex from all water columns sharing that corner. Adjacent
-     * tiles therefore meet at the same height and form a softer continuous
-     * surface, including where source and flowing water levels vary.
-     */
-    private static void smoothSharedCorners() {
-        Map<Long, SurfaceCell> byPosition = new HashMap<Long, SurfaceCell>(SURFACES.size() * 2);
-        for (SurfaceCell cell : SURFACES) {
-            byPosition.put(positionKey(cell.x, cell.z), cell);
-        }
-
-        for (SurfaceCell cell : SURFACES) {
-            cell.northWestHeight = sharedCornerHeight(byPosition, cell.x, cell.z, cell.surfaceY);
-            cell.northEastHeight = sharedCornerHeight(byPosition, cell.x + 1, cell.z, cell.surfaceY);
-            cell.southEastHeight = sharedCornerHeight(byPosition, cell.x + 1, cell.z + 1, cell.surfaceY);
-            cell.southWestHeight = sharedCornerHeight(byPosition, cell.x, cell.z + 1, cell.surfaceY);
-        }
-    }
-
-    private static double sharedCornerHeight(Map<Long, SurfaceCell> cells,
-                                             int cornerX, int cornerZ, double fallback) {
-        double sum = 0.0D;
-        int count = 0;
-        for (int dx = -1; dx <= 0; dx++) {
-            for (int dz = -1; dz <= 0; dz++) {
-                SurfaceCell adjacent = cells.get(positionKey(cornerX + dx, cornerZ + dz));
-                if (adjacent == null) continue;
-                sum += adjacent.surfaceY;
-                count++;
-            }
-        }
-        return count == 0 ? fallback : sum / count;
-    }
-
-    private static long positionKey(int x, int z) {
-        return (((long) x) << 32) ^ (z & 0xffffffffL);
     }
 
     private static int measureDepth(World world, int x, int y, int z) {
