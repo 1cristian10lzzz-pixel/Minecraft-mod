@@ -90,28 +90,33 @@ public final class WaterSurfaceRenderer {
 
         for (int x = centreX - radius; x <= centreX + radius; x++) {
             for (int z = centreZ - radius; z <= centreZ + radius; z++) {
-                if (!world.isBlockLoaded(new BlockPos(x, scanTop, z))) continue;
+                mutable.setPos(x, scanTop, z);
+                if (!world.isBlockLoaded(mutable)) continue;
 
                 for (int y = scanTop; y >= scanBottom; y--) {
                     mutable.setPos(x, y, z);
                     IBlockState state = world.getBlockState(mutable);
                     if (state.getMaterial() != net.minecraft.block.material.Material.WATER) continue;
 
-                    mutable.setPos(x, y + 1, z);
-                    if (world.getBlockState(mutable).getMaterial()
-                            == net.minecraft.block.material.Material.WATER) continue;
+                    // Avoid querying outside the build height at y=255.
+                    if (y < 255) {
+                        mutable.setPos(x, y + 1, z);
+                        if (world.isBlockLoaded(mutable)
+                                && world.getBlockState(mutable).getMaterial()
+                                == net.minecraft.block.material.Material.WATER) continue;
+                    }
 
-                    // Ask the 1.12.2 vanilla fluid block for its rendered height.
-                    // This includes its falling/source-state and above-fluid rules.
+                    // Ask the vanilla 1.12.2 fluid block for its rendered height.
                     mutable.setPos(x, y, z);
                     float topY = BlockLiquid.getLiquidHeight(state, world, mutable);
-                    int depth = measureDepth(world, x, y, z);
+                    int depth = measureDepth(world, x, y, z, mutable);
+                    mutable.setPos(x, y, z);
                     int tint = world.getBiome(mutable).getWaterColorMultiplier();
 
-                    boolean north = isExposedWaterEdge(world, x, y, z - 1);
-                    boolean south = isExposedWaterEdge(world, x, y, z + 1);
-                    boolean west = isExposedWaterEdge(world, x - 1, y, z);
-                    boolean east = isExposedWaterEdge(world, x + 1, y, z);
+                    boolean north = isExposedWaterEdge(world, mutable, x, y, z - 1);
+                    boolean south = isExposedWaterEdge(world, mutable, x, y, z + 1);
+                    boolean west = isExposedWaterEdge(world, mutable, x - 1, y, z);
+                    boolean east = isExposedWaterEdge(world, mutable, x + 1, y, z);
 
                     SURFACES.add(new SurfaceCell(x, z, topY, depth,
                             tint, north, south, west, east));
@@ -127,13 +132,13 @@ public final class WaterSurfaceRenderer {
         smoothSharedCorners();
     }
 
-    private static int measureDepth(World world, int x, int y, int z) {
+    private static int measureDepth(World world, int x, int y, int z,
+                                    BlockPos.MutableBlockPos mutable) {
         int depth = 1;
-        BlockPos.MutableBlockPos below = new BlockPos.MutableBlockPos(x, y, z);
         for (int offset = 1; offset <= 12; offset++) {
-            below.setPos(x, y - offset, z);
-            if (below.getY() < 0 || !world.isBlockLoaded(below)
-                    || world.getBlockState(below).getMaterial()
+            mutable.setPos(x, y - offset, z);
+            if (mutable.getY() < 0 || !world.isBlockLoaded(mutable)
+                    || world.getBlockState(mutable).getMaterial()
                     != net.minecraft.block.material.Material.WATER) break;
             depth++;
         }
@@ -177,10 +182,12 @@ public final class WaterSurfaceRenderer {
         return (((long) x) << 32) ^ (z & 0xffffffffL);
     }
 
-    private static boolean isExposedWaterEdge(World world, int x, int y, int z) {
-        BlockPos pos = new BlockPos(x, y, z);
-        return y >= 0 && y < 256 && world.isBlockLoaded(pos)
-                && world.getBlockState(pos).getMaterial()
+    private static boolean isExposedWaterEdge(World world, BlockPos.MutableBlockPos mutable,
+                                              int x, int y, int z) {
+        if (y < 0 || y >= 256) return false;
+        mutable.setPos(x, y, z);
+        return world.isBlockLoaded(mutable)
+                && world.getBlockState(mutable).getMaterial()
                 != net.minecraft.block.material.Material.WATER;
     }
 
