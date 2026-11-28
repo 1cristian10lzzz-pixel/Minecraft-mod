@@ -195,31 +195,48 @@ public class WaterEffectsHandler {
         }
     }
 
-    private static BlockPos findNearbyWaterSurface(World world, double x, double y, double z, int radius) {
-        BlockPos origin = new BlockPos(MathHelper.floor(x), MathHelper.floor(y), MathHelper.floor(z));
-        BlockPos best = null;
+    private static BlockPos findNearbyWaterSurface(World world, double x, double y,
+                                                    double z, int radius) {
+        int originX = MathHelper.floor(x);
+        int originY = MathHelper.floor(y);
+        int originZ = MathHelper.floor(z);
+        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+        int bestX = 0;
+        int bestY = 0;
+        int bestZ = 0;
         double bestDistance = Double.MAX_VALUE;
+        boolean found = false;
 
         for (int dy = -8; dy <= 8; dy++) {
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
-                    BlockPos pos = origin.add(dx, dy, dz);
-                    if (!world.isBlockLoaded(pos) || !world.isBlockLoaded(pos.up())) continue;
-                    if (world.getBlockState(pos).getMaterial() != Material.WATER) continue;
-                    if (world.getBlockState(pos.up()).getMaterial() == Material.WATER) continue;
+                    int blockX = originX + dx;
+                    int blockY = originY + dy;
+                    int blockZ = originZ + dz;
+                    if (blockY < 0 || blockY >= 255) continue;
+                    pos.setPos(blockX, blockY, blockZ);
+                    if (!world.isBlockLoaded(pos)
+                            || world.getBlockState(pos).getMaterial() != Material.WATER) continue;
 
-                    double cx = pos.getX() + 0.5D - x;
-                    double cz = pos.getZ() + 0.5D - z;
-                    double cy = pos.getY() + 0.9D - y;
+                    pos.setY(blockY + 1);
+                    if (!world.isBlockLoaded(pos)
+                            || world.getBlockState(pos).getMaterial() == Material.WATER) continue;
+
+                    double cx = blockX + 0.5D - x;
+                    double cz = blockZ + 0.5D - z;
+                    double cy = blockY + 0.9D - y;
                     double distance = cx * cx + cz * cz + cy * cy * 0.5D;
                     if (distance < bestDistance) {
                         bestDistance = distance;
-                        best = pos;
+                        bestX = blockX;
+                        bestY = blockY;
+                        bestZ = blockZ;
+                        found = true;
                     }
                 }
             }
         }
-        return best;
+        return found ? new BlockPos(bestX, bestY, bestZ) : null;
     }
 
     private static void spawnEntrySplash(World world, EntityPlayer player, BlockPos surface) {
@@ -236,23 +253,34 @@ public class WaterEffectsHandler {
 
     private void spawnNearbyWaterfallMist(World world, BlockPos centre) {
         int radius = reducedQuality ? 1 : 2;
+        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         for (int dx = -radius; dx <= radius; dx++) {
             for (int dz = -radius; dz <= radius; dz++) {
                 for (int dy = -2; dy <= 0; dy++) {
-                    BlockPos pos = centre.add(dx, dy, dz);
-                    if (!world.isBlockLoaded(pos) || !world.isBlockLoaded(pos.up())) continue;
-                    if (world.getBlockState(pos).getMaterial() != Material.WATER) continue;
-                    if (world.getBlockState(pos.up()).getMaterial() != Material.WATER) continue;
-                    if (!world.getBlockState(pos.down()).getMaterial().isSolid()) continue;
+                    int x = centre.getX() + dx;
+                    int y = centre.getY() + dy;
+                    int z = centre.getZ() + dz;
+                    if (y < 1 || y >= 255) continue;
+                    pos.setPos(x, y, z);
+                    if (!world.isBlockLoaded(pos)
+                            || world.getBlockState(pos).getMaterial() != Material.WATER) continue;
 
-                    double x = pos.getX() + 0.5D;
-                    double y = pos.getY() + 0.25D;
-                    double z = pos.getZ() + 0.5D;
+                    pos.setY(y + 1);
+                    if (!world.isBlockLoaded(pos)
+                            || world.getBlockState(pos).getMaterial() != Material.WATER) continue;
+
+                    pos.setY(y - 1);
+                    if (!world.isBlockLoaded(pos)
+                            || !world.getBlockState(pos).getMaterial().isSolid()) continue;
+
+                    double px = x + 0.5D;
+                    double py = y + 0.25D;
+                    double pz = z + 0.5D;
                     int particles = reducedQuality ? 1 : 2;
                     for (int i = 0; i < particles; i++) {
                         world.spawnParticle(EnumParticleTypes.CLOUD,
-                                x + (RANDOM.nextDouble() - 0.5D) * 0.7D,
-                                y, z + (RANDOM.nextDouble() - 0.5D) * 0.7D,
+                                px + (RANDOM.nextDouble() - 0.5D) * 0.7D,
+                                py, pz + (RANDOM.nextDouble() - 0.5D) * 0.7D,
                                 (RANDOM.nextDouble() - 0.5D) * 0.025D, 0.015D,
                                 (RANDOM.nextDouble() - 0.5D) * 0.025D);
                     }
