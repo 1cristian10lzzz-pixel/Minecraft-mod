@@ -38,6 +38,7 @@ public final class SurfaceRealismHandler {
     private double distanceSinceStep;
     private boolean leftFoot = true;
     private World trackedWorld;
+    private net.minecraft.entity.player.EntityPlayer trackedPlayer;
     private World impactWorld;
 
     @SubscribeEvent
@@ -45,6 +46,7 @@ public final class SurfaceRealismHandler {
         if (event.getWorld() == null || !event.getWorld().isRemote) return;
         if (trackedWorld == event.getWorld()) {
             trackedWorld = null;
+            trackedPlayer = null;
             previousX = previousZ = 0.0D;
             distanceSinceStep = 0.0D;
             leftFoot = true;
@@ -130,8 +132,9 @@ public final class SurfaceRealismHandler {
         World world = player.world;
         if (!world.isRemote || player.isDead) return;
 
-        if (trackedWorld != world) {
+        if (trackedWorld != world || trackedPlayer != player) {
             trackedWorld = world;
+            trackedPlayer = player;
             previousX = player.posX;
             previousZ = player.posZ;
             distanceSinceStep = 0.0D;

@@ -1,3 +1,12 @@
+## 0.14.0 — Contacto ambiental de criaturas y rendimiento local
+
+- Añade pasos con partículas de material para entidades vivas cercanas (criaturas, animales y jugadores remotos) sobre nieve, arena, tierra, grava y vegetación.
+- Añade impactos de aterrizaje por material para entidades cercanas tras caídas suficientes, manteniendo intactos daño, IA, movimiento y colisiones.
+- Añade salpicaduras pequeñas al entrar/salir del agua; la superficie se obtiene con `BlockLiquid.getLiquidHeight` y se actualiza de forma espaciada.
+- Limita los efectos al radio cercano de la cámara, usa seguimiento con referencias débiles y borra el estado al descargar el mundo.
+- Mejora la detección de reemplazo del jugador tras reaparecer para reiniciar las distancias y transiciones de contacto sin falsos efectos.
+- Restablece el temporizador interno de agua cuando se abandona un mundo y fuerza un nuevo escaneo cuando cambia la entidad del jugador.
+
 ## 0.13.0 — Impactos de aterrizaje y transiciones de agua
 
 - Añade partículas de aterrizaje según el material: nieve desprende polvo; piedra, tierra, arena y otros suelos sólidos levantan fragmentos discretos según la altura de la caída.

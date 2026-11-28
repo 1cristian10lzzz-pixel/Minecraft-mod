@@ -31,12 +31,14 @@ public final class NaturalContactHandler {
     private double previousMotionY;
     private float maxFallDistance;
     private World trackedWorld;
+    private EntityPlayer trackedPlayer;
 
     @SubscribeEvent
     public void onWorldUnload(WorldEvent.Unload event) {
         if (event.getWorld() == null || !event.getWorld().isRemote) return;
         if (trackedWorld == event.getWorld()) {
             trackedWorld = null;
+            trackedPlayer = null;
             previousX = previousZ = 0.0D;
             tick = 0;
             lastSlimeLandingTick = -100;
@@ -57,8 +59,9 @@ public final class NaturalContactHandler {
         World world = player.world;
         if (!world.isRemote || player.isDead) return;
 
-        if (trackedWorld != world) {
+        if (trackedWorld != world || trackedPlayer != player) {
             trackedWorld = world;
+            trackedPlayer = player;
             previousX = player.posX;
             previousZ = player.posZ;
             tick = 0;

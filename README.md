@@ -1,8 +1,15 @@
 # Minefade Mod — Minecraft Java 1.12.2
 
-Current source line: **0.13.0** · Forge 14.23.5.2864 · ForgeGradle 3.x · Gradle 5.6.4 · Java 8
+Current source line: **0.14.0** · Forge 14.23.5.2864 · ForgeGradle 3.x · Gradle 5.6.4 · Java 8
 
 Minefade improves existing Minecraft 1.12.2 rendering and gameplay systems while retaining the `voxelcore` mod ID, registered content IDs, vanilla fluid simulation and original gameplay content.
+
+## 0.14.0 — Contacto ambiental de criaturas
+
+- Añade pasos discretos para criaturas y jugadores remotos cuando caminan sobre nieve, arena, tierra, grava o vegetación; las partículas utilizan el estado real del bloque.
+- Añade pequeños impactos de aterrizaje después de caídas y salpicaduras al entrar o salir del agua, calculando la altura visible del fluido.
+- Los efectos se ejecutan únicamente en el cliente, cerca de la cámara, respetan los ajustes existentes de partículas/pasos/agua y limpian referencias al descargar el mundo.
+- No altera IA, movimiento, colisiones, daño, combate, inventarios ni simulación del servidor.
 
 ## 0.13.0 — Impactos de aterrizaje y transiciones de agua
 

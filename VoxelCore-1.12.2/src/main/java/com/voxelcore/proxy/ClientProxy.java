@@ -6,6 +6,7 @@ import com.voxelcore.client.handler.ClientKeyHandler;
 import com.voxelcore.client.handler.ClientModelRegistry;
 import com.voxelcore.client.handler.GuiThemeHandler;
 import com.voxelcore.client.handler.LavaSurfaceRenderer;
+import com.voxelcore.client.handler.LivingEntityContactHandler;
 import com.voxelcore.client.handler.WaterEffectsHandler;
 import com.voxelcore.client.handler.ConfigChangedHandler;
 import com.voxelcore.client.handler.MinefadeDroppedItemRenderer;
@@ -40,6 +41,7 @@ public class ClientProxy extends CommonProxy {
         MinecraftForge.EVENT_BUS.register(clientEvents);
         FMLCommonHandler.instance().bus().register(clientEvents);
         MinecraftForge.EVENT_BUS.register(new BlockSurfaceDetailRenderer());
+        MinecraftForge.EVENT_BUS.register(new LivingEntityContactHandler());
         MinecraftForge.EVENT_BUS.register(new PlayerAnimationHandler());
         NaturalContactHandler naturalContact = new NaturalContactHandler();
         MinecraftForge.EVENT_BUS.register(naturalContact);

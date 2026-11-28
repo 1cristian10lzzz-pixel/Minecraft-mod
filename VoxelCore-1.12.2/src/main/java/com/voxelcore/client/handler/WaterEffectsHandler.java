@@ -42,6 +42,7 @@ public class WaterEffectsHandler {
     private boolean reducedQuality;
     private BlockPos cachedSurface;
     private World trackedWorld;
+    private EntityPlayer trackedPlayer;
     private int lastLookupX = Integer.MIN_VALUE;
     private int lastLookupY = Integer.MIN_VALUE;
     private int lastLookupZ = Integer.MIN_VALUE;
@@ -71,6 +72,12 @@ public class WaterEffectsHandler {
             trackedWorld = world;
             cachedSurface = null;
             lastSurfaceScanTick = -100;
+        }
+        if (trackedPlayer != player) {
+            trackedPlayer = player;
+            cachedSurface = null;
+            lastSurfaceScanTick = -100;
+            lastLookupX = lastLookupY = lastLookupZ = Integer.MIN_VALUE;
             previousInWater = false;
             previousX = player.posX;
             previousZ = player.posZ;
@@ -339,6 +346,8 @@ public class WaterEffectsHandler {
     private void resetTracking() {
         clearAll();
         trackedWorld = null;
+        trackedPlayer = null;
+        tickCounter = 0;
         cachedSurface = null;
         lastSurfaceScanTick = -100;
         lastLookupX = lastLookupY = lastLookupZ = Integer.MIN_VALUE;

@@ -1,8 +1,15 @@
-# Minefade Mod 0.13.0 — Minecraft Java 1.12.2
+# Minefade Mod 0.14.0 — Minecraft Java 1.12.2
 
 Forge 14.23.5.2864 · Java 8 · ForgeGradle 3.x (UserDev 3) · Gradle 5.6.4
 
-Minefade 0.13.0 amplía la respuesta de materiales y las transiciones de agua, manteniendo el contenido e interfaces ya existentes. Mantiene el mod ID `voxelcore`, los IDs registrados de bloques/objetos, la simulación vanilla de fluidos y el contenido existente.
+Minefade 0.14.0 amplía el realismo de contacto de criaturas y jugadores cercanos sin cambiar el contenido ni las interfaces ya existentes. Mantiene el mod ID `voxelcore`, los IDs registrados de bloques/objetos, la simulación vanilla de fluidos y el contenido existente.
+
+## Contacto ambiental de criaturas
+
+- Animales, criaturas y otros jugadores cercanos dejan pequeñas partículas al caminar sobre nieve, arena, tierra, grava y vegetación. La cadencia depende de la distancia recorrida y del tamaño de la entidad.
+- Los aterrizajes tras caídas suficientes generan un impacto discreto adaptado al material de apoyo, sin cambiar daño ni rebotes.
+- Entrar o salir de agua poco profunda puede producir una salpicadura en la altura real de la superficie, también para criaturas.
+- El seguimiento se limita a entidades próximas a la cámara, usa referencias débiles y se limpia al descargar el mundo. Los efectos respetan los ajustes existentes de pasos, aterrizajes, agua y calidad de partículas.
 
 ## Nuevas respuestas de contacto
 
