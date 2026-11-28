@@ -43,6 +43,13 @@ public class WaterEffectsHandler {
     private int lastLookupX = Integer.MIN_VALUE;
     private int lastLookupY = Integer.MIN_VALUE;
     private int lastLookupZ = Integer.MIN_VALUE;
+    private final BlockPos.MutableBlockPos depthProbe = new BlockPos.MutableBlockPos();
+    private World depthWorld;
+    private int depthX = Integer.MIN_VALUE;
+    private int depthY = Integer.MIN_VALUE;
+    private int depthZ = Integer.MIN_VALUE;
+    private long depthSampleTick = Long.MIN_VALUE;
+    private float cachedUnderwaterDepth = 4.0F;
 
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
@@ -261,6 +268,10 @@ public class WaterEffectsHandler {
         cachedSurface = null;
         lastSurfaceScanTick = -100;
         lastLookupX = lastLookupY = lastLookupZ = Integer.MIN_VALUE;
+        depthWorld = null;
+        depthX = depthY = depthZ = Integer.MIN_VALUE;
+        depthSampleTick = Long.MIN_VALUE;
+        cachedUnderwaterDepth = 4.0F;
         previousInWater = false;
         previousX = 0.0D;
         previousZ = 0.0D;
@@ -316,20 +327,47 @@ public class WaterEffectsHandler {
         event.setCanceled(true);
     }
 
-    private static float getUnderwaterDepth(EntityPlayer player) {
-        if (player == null) return 4.0F;
-        BlockPos surface = new BlockPos(player.posX, player.posY, player.posZ);
-        BlockPos found = null;
+    /**
+     * Fog events can run multiple times per rendered frame. Cache the water
+     * column lookup for four world ticks and reuse one mutable position so
+     * fog colour and density do not allocate/scan up to 33 BlockPos objects
+     * every frame while the player is underwater.
+     */
+    private float getUnderwaterDepth(EntityPlayer player) {
+        if (player == null || player.world == null) return 4.0F;
+        World world = player.world;
+        int x = MathHelper.floor(player.posX);
+        int y = MathHelper.floor(player.posY);
+        int z = MathHelper.floor(player.posZ);
+        long now = world.getTotalWorldTime();
+
+        if (depthWorld == world && depthX == x && depthY == y && depthZ == z
+                && now >= depthSampleTick && now - depthSampleTick < 4L) {
+            return cachedUnderwaterDepth;
+        }
+
+        depthWorld = world;
+        depthX = x;
+        depthY = y;
+        depthZ = z;
+        depthSampleTick = now;
+        cachedUnderwaterDepth = 4.0F;
+
         for (int dy = 0; dy <= 32; dy++) {
-            BlockPos check = surface.up(dy);
-            if (!player.world.isBlockLoaded(check)) break;
-            if (player.world.getBlockState(check).getMaterial() != Material.WATER) {
-                if (dy > 0 && player.world.getBlockState(check.down()).getMaterial() == Material.WATER) {
-                    found = check.down();
+            depthProbe.setPos(x, y + dy, z);
+            if (!world.isBlockLoaded(depthProbe)) break;
+            if (world.getBlockState(depthProbe).getMaterial() != Material.WATER) {
+                if (dy > 0) {
+                    depthProbe.setPos(x, y + dy - 1, z);
+                    if (world.isBlockLoaded(depthProbe)
+                            && world.getBlockState(depthProbe).getMaterial() == Material.WATER) {
+                        cachedUnderwaterDepth = Math.max(0.0F,
+                                (float) (depthProbe.getY() + 0.9D - player.posY));
+                    }
                 }
                 break;
             }
         }
-        return found == null ? 4.0F : Math.max(0.0F, (float) (found.getY() + 0.9D - player.posY));
+        return cachedUnderwaterDepth;
     }
 }
