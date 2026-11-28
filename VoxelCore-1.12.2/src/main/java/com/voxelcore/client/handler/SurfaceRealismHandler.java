@@ -28,6 +28,7 @@ public final class SurfaceRealismHandler {
     private double previousX;
     private double previousZ;
     private World trackedWorld;
+    private World impactWorld;
 
     @SubscribeEvent
     public void onLeftClickBlock(PlayerInteractEvent.LeftClickBlock event) {
@@ -36,6 +37,10 @@ public final class SurfaceRealismHandler {
                 || event.getEntityPlayer() != Minecraft.getMinecraft().player) return;
 
         World world = event.getWorld();
+        if (impactWorld != world) {
+            lastMiningImpact.clear();
+            impactWorld = world;
+        }
         BlockPos pos = event.getPos();
         if (pos == null || !world.isBlockLoaded(pos)) return;
 
@@ -49,6 +54,7 @@ public final class SurfaceRealismHandler {
         if (previous != null && now - previous.longValue() < 2L) return;
         lastMiningImpact.put(key, Long.valueOf(now));
 
+        if (previous != null && now < previous.longValue()) lastMiningImpact.clear();
         if (lastMiningImpact.size() > 256) {
             Iterator<Map.Entry<Long, Long>> it = lastMiningImpact.entrySet().iterator();
             while (it.hasNext()) {
