@@ -10,6 +10,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.event.entity.item.ItemTossEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
@@ -20,8 +21,6 @@ import java.util.List;
 
 /** Server-authoritative dropped-item behaviour using vanilla inventory collision logic. */
 public final class DroppedItemPhysicsHandler {
-    private int tickCounter;
-
     /**
      * Optional right-click fallback. Vanilla's normal walk-over pickup remains enabled;
      * this path only supplements it and still checks the real inventory capacity.
@@ -62,7 +61,8 @@ public final class DroppedItemPhysicsHandler {
         if (event.phase != TickEvent.Phase.END || event.player == null) return;
         EntityPlayer player = event.player;
         if (player.world.isRemote || player.isSpectator()
-                || !ModConfig.ENABLE_REALISTIC_ITEM_PHYSICS) return;
+                || !ModConfig.ENABLE_REALISTIC_ITEM_PHYSICS
+                || player.ticksExisted % 2 != 0) return;
 
         List<EntityItem> nearby = player.world.getEntitiesWithinAABB(
                 EntityItem.class, player.getEntityBoundingBox().grow(0.12D, 0.10D, 0.12D));
@@ -94,23 +94,25 @@ public final class DroppedItemPhysicsHandler {
         if (event.phase != TickEvent.Phase.END || event.world.isRemote
                 || !ModConfig.ENABLE_REALISTIC_ITEM_PHYSICS || !ModConfig.FLOAT_ITEMS_IN_FLUIDS) return;
         // Fluid buoyancy is cosmetic; do not scan every loaded entity every single tick.
-        if (++tickCounter % 5 != 0) return;
+        if (event.world.getTotalWorldTime() % 5L != 0L) return;
 
         List<Entity> entities = event.world.loadedEntityList;
+        BlockPos.MutableBlockPos fluidPos = new BlockPos.MutableBlockPos();
         for (int i = 0, count = entities.size(); i < count; i++) {
             Entity entity = entities.get(i);
             if (!(entity instanceof EntityItem) || entity.isDead) continue;
             EntityItem item = (EntityItem) entity;
             if (item.getItem().isEmpty()) continue;
 
-            Material fluid = getFluidAtItem(item);
+            Material fluid = getFluidAtItem(item, fluidPos);
             if (fluid == null) continue;
             double drag = fluid == Material.LAVA ? 0.80D : 0.91D;
             item.motionX *= drag;
             item.motionZ *= drag;
 
-            BlockPos fluidPos = new BlockPos(item.posX, item.posY, item.posZ);
-            boolean atSurface = item.world.getBlockState(fluidPos.up()).getMaterial() != fluid;
+            fluidPos.setY(fluidPos.getY() + 1);
+            boolean atSurface = !item.world.isBlockLoaded(fluidPos, false)
+                    || item.world.getBlockState(fluidPos).getMaterial() != fluid;
             double lift = fluid == Material.LAVA ? 0.026D : 0.012D;
             if (atSurface) {
                 // Dampen vertical movement near the air/fluid boundary to prevent bobbing jitter.
@@ -124,13 +126,22 @@ public final class DroppedItemPhysicsHandler {
         }
     }
 
-    private static Material getFluidAtItem(EntityItem item) {
-        if (item.isInsideOfMaterial(Material.WATER)) return Material.WATER;
-        if (item.isInsideOfMaterial(Material.LAVA)) return Material.LAVA;
-        BlockPos position = new BlockPos(item.posX, item.posY, item.posZ);
+    /**
+     * Uses one reusable mutable position and never requests an unloaded block.
+     * The block containing the item and the block immediately below cover the
+     * item body crossing the liquid boundary without repeated volume scans.
+     */
+    private static Material getFluidAtItem(EntityItem item, BlockPos.MutableBlockPos position) {
+        position.setPos(MathHelper.floor(item.posX), MathHelper.floor(item.posY),
+                MathHelper.floor(item.posZ));
+        if (!item.world.isBlockLoaded(position, false)) return null;
+
         Material here = item.world.getBlockState(position).getMaterial();
         if (here == Material.WATER || here == Material.LAVA) return here;
-        Material below = item.world.getBlockState(position.down()).getMaterial();
+
+        position.setY(position.getY() - 1);
+        if (position.getY() < 0 || !item.world.isBlockLoaded(position, false)) return null;
+        Material below = item.world.getBlockState(position).getMaterial();
         return below == Material.WATER || below == Material.LAVA ? below : null;
     }
 }
